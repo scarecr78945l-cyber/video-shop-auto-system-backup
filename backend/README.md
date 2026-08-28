@@ -57,7 +57,8 @@ python -m sourcing scheduler --loop --interval 60
 
 ```bash
 cd backend
-python -m pytest tests -q
+# 注意：必须带 --basetemp=".pytest-tmp"（踩坑日志 P-001：本机默认临时目录 WinError 5 无权限）
+python -m pytest tests -q --basetemp=".pytest-tmp"
 ```
 
 ## 五维打分模型
