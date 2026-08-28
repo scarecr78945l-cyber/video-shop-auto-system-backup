@@ -351,3 +351,56 @@
 - 产出文件：`backend/ads/*`（7 文件）、`backend/tests/test_ads_tables.py`、`test_ads_repo.py`、`conftest.py`（追加）、`backend/data/db/m5-ads.db`（不入 git）、`_management/modules/m5-ads/REPORT_v0.2.md`、`progress.md`（v0.2 勾选、完成度 **30%**）、`context/README.md`（+status 枚举对齐）、本日志追加条目。
 - 当前阻塞：无。已请总控提交备份（里程碑：ad_* 表可建）；待总控确认后推进 v0.3 执行层（托管执行器 Playwright·抽象接口 + fixtures 模拟，依赖总控待用户确认清单）。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；验收复跑测试命令均带 --basetemp=".pytest-tmp"（P-001）。
+
+---
+
+### 2026-08-28 ｜ S1b 子代理 ｜ M1 自动选品 ｜ 角色：子代理
+
+- 完成任务：任务包 S1b（打分维度扩展 + app_config 白名单接线 + m1 投放转化表 DDL）——
+  ① config.py ScoringConfig 新增 `ad_data_max_age_days=7.0`（投放转化新鲜度阈值，经总工澄清允许改动 config.py）；
+  ② tables.py 新增 `M1AdConversionCache`（m1_ad_conversion_cache：唯一键 category+period_start+period_end，sales_amount INTEGER 分，category/period 索引）与 `M1AdConversionIngest`（m1_ad_conversion_ingests：唯一键 source_file+period_start+period_end+generated_at）；
+  ③ pipeline.py：`_load_category_whitelist()` 读 app_config.category_whitelist 注入 ComplianceEngine（键缺失/类型非法/异常一律回落 config 默认，不抛异常，persist=False 兼容）；两处 ad_by_cat 组装统一走 `_fresh_ad_by_category()` 过滤（generated_at 超 ad_data_max_age_days 或 sample_count<5 → 置空视为无数据不传 ad_roi/ad_sales；fixtures 旧格式无元数据 → 可用，既有 39 测试行为不变）；ad_sales 优先取 sales_amount 回落 sales；
+  ④ 迁移脚本 `_management/modules/m1-sourcing/database/migrations/v0.1_m1_ad_tables.sql`（SQLite 幂等 DDL：IF NOT EXISTS + 唯一约束，与 ORM 一致）+ 同目录 README.md（三种执行方式 + PG 类型映射）。
+- 产出文件：`backend/sourcing/config.py`（+1 配置项）、`tables.py`（+2 ORM 类）、`pipeline.py`（白名单接线 + 新鲜度/弱样本过滤）、`migrations/v0.1_m1_ad_tables.sql`、`migrations/README.md`、`backend/tests/test_m1_ad_tables.py`(9)、`test_scoring_ad_freshness.py`(8)、`test_compliance_appconfig.py`(6)。
+- 测试结果：新增 21 passed（2.47s）；全量 `python -m pytest tests -q --basetemp=".pytest-tmp"` → **258 passed / 5 failed / 1 skipped**（5 个失败均为 M0 foundation 既有问题，与 M5 总工台账记录一致：naive/aware 时间 TypeError×2、表断言列顺序、熔断时序；foundation 测试仅 import foundation 包，与 sourcing 零依赖，未改既有测试）；非 foundation 隔离运行 **234 passed + 1 skipped** 全绿。
+- 当前阻塞：无（5 个 foundation 失败属 M0 范围，建议总工知悉并可向总控反馈）。
+- 备注：未运行 git 命令；未写明文密钥；未修改 db.py / backend/README.md / scoring.py；写文件均用 write/edit 工具（UTF-8 无 BOM），未用 PowerShell 写中文。
+
+---
+
+### 2025 体系建立日 ｜ M5 总工程师 ｜ M5 自动小店投放（商品托管） ｜ 角色：总工（v0.3 执行层派发）
+
+- 完成任务：总控批准 v0.3 执行层排期（2 子代理：托管执行器 + 投放设置，先抽象接口 + fixtures 模拟，不依赖真实登录态）；总工承担架构设计层——先落盘两个公共契约骨架：① `backend/ads/ui_config.py`（ShopAdsUiConfig：pages/selectors/batch_size/item_interval_s/page_timeout_ms/screenshot_dir/page_signature，选择器按页面分组含两步操作与投放管理列表预留，真实选择器值待实机校准，fixtures 阶段可为空）；② `backend/ads/interfaces.py`（PageOps Protocol 最小操作集 + PageChangedError，Playwright 语义子集，两子代理共用避免并行文件冲突）；随后并行派发两个自包含子代理任务书（背景/必读/目标/输出路径/验收标准/宪法要点/P-001/禁 git/禁明文密钥/UTF-8/禁改公共骨架与 v0.2 定稿）。
+- 派发子代理：**① 托管执行器=861a44a5**（backend/ads/executor.py：ShopAdsSession 会话管理/check_login、BrowserConnector 抽象 + MockBrowserConnector + PlaywrightBrowserConnector 骨架(NotImplementedError)、MockPageOps、verify_page_signature page_changed 检测（PageChangedError 证据）、ShopAdsExecutor.add_product（≤50/批+间隔）与 run_batch 编排（延迟 import settings 用 getattr 兜底）、错误分类映射 page_changed/AUTH_REQUIRED/TIMEOUT + test_ads_executor.py）；**② 投放设置=91f77eec**（backend/ads/settings.py：pick_materials 素材优选纯函数（efficient>potential>exploring，仅 approved）、validate_submit 提交校验（余额/素材/预算→blocked+PLATFORM_REJECT）、SettingsForm（choose_target 三选一 roi/net_roi/goods、fill_roi、bind_materials {mid} 模板、submit 读 error_banner 关键词匹配）+ MockSettingsPage 独立实现不 import executor + config.py 仅尾部追加 target_roi_override/roi_recommended_source + test_ads_settings.py）。
+- 产出文件：`backend/ads/ui_config.py`、`backend/ads/interfaces.py`（总工骨架）；`progress.md`（v0.3 开发中标注、两子代理已派发）；本日志追加条目。
+- 当前阻塞：无。待两子代理完成通知 → 总工分别验收（读产出 + 跑 pytest --basetemp=".pytest-tmp"）→ v0.3 集成（executor↔settings 对接）→ 更新 progress.md/台账 → 通知总控备份 → 推进 v0.4 监控层。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；公共骨架与 v0.2 定稿文件由总工锁定，子代理只读/尾部追加。
+
+---
+
+### 2026-08-28 ｜ 子代理 A2 ｜ M2 自动收集素材（m2-materials） ｜ 角色：子代理（批次 2 · TikTokDownloader 二次封装）
+
+- 完成任务：实现 TikTokDownloader 二次封装（抖音/快手/小红书批量下载 CLI 封装），「锁定版本设计封装 + fixtures 测试」模式（本机 TikTokDownloader 未安装，已探测确认，未尝试安装）：
+  - `backend/materials/collectors/tiktok_wrapper.py`：`TikTokDownloaderError`（error_code + 脱敏证据）；`TikTokDownloaderCLI`（binary_path/timeout_seconds/output_dir/extra_args/config 可配，默认读 config.tiktok）；
+    - `check_available()` 探测 binary（显式路径/PATH），缺失不抛异常返回 {available,version,error}（含安装指引 + 视频号不在范围声明 R-M2-05）；
+    - `search_download(keyword,count,output_dir)` / `author_download(author_url_or_id,count,output_dir,platform)`：构造锁定 CLI 契约参数 → subprocess.run（超时、捕获 stdout/stderr、证据脱敏）→ 解析（文本/JSON 双模式）→ 返回 [{file_path,title,author,platform,source_url}]；
+    - 错误分类映射对齐 downloader.py 码表：超时→TIMEOUT；登录失效/需要登录→AUTH_REQUIRED（不自动重试转人工，P-002）；频控/风控/验证码→RATE_LIMIT；签名/参数错误→PLATFORM_REJECT；无输出/无命中→NO_MATCH；其他→UNEXPECTED；
+    - 脱敏（P-004）：redact_url（键集扩展 sec_uid/uid/user_id，urlencode %2A 还原为可读 ***）/ redact_text / redact_path（@作者 段掩码）；返回 source_url/title/author 即脱敏，file_path 保留真实路径；
+    - 平台开关 `config.tiktok.enabled`（author_download 按达人 URL 平台校验，R-M2-21）；fake .py binary 用当前解释器启动（fixtures 模式）；
+  - config.py **只追加** `TikTokConfig` 子配置（嵌套 BaseSettings + validation_alias 完整 env 名 MATERIALS_TIKTOK_BINARY/TIMEOUT_SECONDS/OUTPUT_DIR/VERSION_PIN/ENABLED，populate_by_name 保证字典覆盖；实测 pydantic-settings 2.15）；`__main__.py` **只追加** `tiktok-download` 子命令（--keyword/--author-url 二选一、--count、--output-dir、--json；binary 缺失清晰错误 exit 1），未覆盖 init-db/pool/download/normalize/dedup-check；
+  - `backend/materials/collectors/README.md`：范围声明（视频号不在范围 R-M2-05）、版本锁定与安装说明（推荐版本线 TikTokDownloader 4.1.x，pip 安装命令示例，requirements 固定纪律，升级回归纪律 5 步）、CLI 契约、错误分类映射表、脱敏纪律、测试说明；
+  - 测试 `backend/tests/test_materials_tiktok_wrapper.py`（34 用例）：fake CLI fixtures 全场景（临时 python 脚本按环境变量输出模拟文本/JSON 输出与退出码/超时）：①search_download 正常解析（files 模式 3 条 + JSON 模式 2 条）②author_download 参数构造（--mode author --target --count --output）③错误映射各分支（RATE_LIMIT/AUTH_REQUIRED/PLATFORM_REJECT 特征词参数化、TIMEOUT sleep、NO_MATCH 空输出、UNEXPECTED 非 0 无特征、证据脱敏）④binary 缺失（check_available=False + search 清晰错误）⑤脱敏（fake 输出含 sec_uid/a_bogus/token 敏感值，断言返回结果与日志无明文）+ redact_* 直接单测 + JSON 解析/去重 + 平台开关 + config env 映射 + CLI 子命令（缺失非 0 退出 / 注入 fake 跑通解析 / 失败特征词非 0 退出）。
+- 验收自测：① 单独 `python -m pytest tests/test_materials_tiktok_wrapper.py -q --basetemp=".pytest-tmp"` → **34 passed**；② materials 相关定向 `-k "materials or db_dsn or listing_gate"` → **148 passed, 1 skipped**；③ 全量 `python -m pytest tests -q --basetemp=".pytest-tmp"` → 通过数 230+，**5 个失败均为 M0 foundation 既有问题**（naive/aware 时间 TypeError×2、熔断时序等，与 materials 零依赖，与 M5 总工/S1b 台账记录一致）；首轮全量出现的 28 errors 为并发 pytest 共享 .pytest-tmp 互相清理（P-011），串行复跑即消失。
+- 文档同步：`decisions.md`（+子代理 A 决策行）、`context/README.md` 2.1（+实现快照：CLI 契约/配置/错误映射表/版本锁定/脱敏）、本日志追加条目。
+- 当前阻塞：无（真实二进制安装由集成环境执行；对接步骤见 collectors/README.md「升级回归纪律」）。
+- 备注：未运行任何 git 命令；未安装/下载任何软件（含 TikTokDownloader）；未改动 backend/sourcing/* 与既有 materials 文件语义（仅追加 config/CLI）；未写任何明文密钥（fake 输出中的假 Cookie/Token 同样脱敏，测试断言）；全部产出 UTF-8 无 BOM（write/edit 工具）。
+
+---
+
+### 体系建立日 ｜ M1 总工程师 ｜ M1 自动选品（m1-sourcing） ｜ 角色：总工（批次 1 · S1b 验收 + S1 收官）
+
+- 完成任务：① **S1b 验收通过**（子代理 58579182，经 4 次中断后断点续跑完成，产出完整）——独立复跑全量测试 `python -m pytest tests -q --basetemp=".pytest-tmp"` → **331 passed, 4 failed, 1 skipped**，4 个失败全部为 **M0 foundation 既有问题**（test_foundation_queue ×2：naive/aware 时间、熔断时序；test_foundation_tables ×2：断言排序逻辑），与 sourcing 零依赖、与 M5 总工台账一致，**sourcing 域 62 passed 全绿（41 基线 + 21 新增）**；② 代码抽查通过：`tables.py` 两表 m1_ad_conversion_cache/ingests（唯一键 uq_m1_ad_cache/uq_m1_ad_ingest + 索引符合 database/README DDL）、`pipeline.py` `_load_category_whitelist()`（app_config 接线、异常回落 config 默认、persist=False 兼容）、`_ad_data_usable()`/`_fresh_ad_by_category()`（新鲜度+弱样本过滤、ISO 字符串含 Z 兼容、naive 按 UTC、旧格式无元数据按可用保既有 39 测试行为）、`config.py` ScoringConfig 新增 `ad_data_max_age_days=7.0`、迁移脚本 `migrations/v0.1_m1_ad_tables.sql`（幂等 SQL 镜像 + README 三执行方式 + PG 映射）、3 测试文件 21 例；③ 全量失败数随并行代理改动波动（4~17），sourcing 始终零失败；④ S1 收官：progress.md 完成度 10%→**20%**，里程碑达成（配置化/DSN 切换/m1 表/投放转化过滤链路，REC-007/008 落地）。
+- 产出文件：S1b 产出 `backend/sourcing/tables.py`/`pipeline.py`/`config.py`（+1 配置项）、`database/migrations/`（v0.1 SQL + README）、`backend/tests/test_m1_ad_tables.py`/`test_scoring_ad_freshness.py`/`test_compliance_appconfig.py`；`progress.md`（S1b 勾选 100%、完成度 20%、S2 标注已派发）。
+- 跨模块反馈：**M0 foundation 4~5 个测试失败（queue/tables）为既有问题**，非本模块引入（M5 总工台账亦记录一致数字）；已登记，提请总控转达 M0 总工。
+- 当前阻塞：无。S2（ad_backfill，依赖 m1 表+过滤逻辑）已具备派发条件并已派发子代理；待完成验收后派发 S3（真实采集，需登录态就绪确认）。
+- 备注：未运行任何 git 命令；未读写其他模块库；全部文件经 write/edit 工具 UTF-8 无 BOM；无明文密钥；验收复跑测试均带 --basetemp=".pytest-tmp"（P-001），并注意 P-011（并行 pytest 共享 basetemp 抖动，结果以串行复跑为准）。

@@ -89,6 +89,33 @@
 - 能力：批量关键词搜索下载 / 达人主页下载；输出目录与命名规范由本模块控制。
 - 失败分类：进程超时→`TIMEOUT`；输出无结果→`NO_MATCH`；频控/风控→`RATE_LIMIT`；签名失效→`PLATFORM_REJECT` 记录证据。
 
+#### 实现快照（子代理 A，2026-08-28，文档同步 decisions.md）
+
+- 封装位置：`backend/materials/collectors/tiktok_wrapper.py`（`TikTokDownloaderCLI` /
+  `TikTokDownloaderError`）；测试 `backend/tests/test_materials_tiktok_wrapper.py`
+  （fake CLI fixtures 全场景，零真实二进制、零外网，R-M2-17）；说明文档
+  `backend/materials/collectors/README.md`。
+- 锁定 CLI 契约：`--mode search/author --target <关键词|达人URL> --count N --output DIR [extra_args]`
+  （`build_command` 生成；真实版本对接时按所装版本语法核对，升级需回归——见 README「升级回归纪律」）。
+- 配置：`config.tiktok`（`MATERIALS_TIKTOK_BINARY` / `MATERIALS_TIKTOK_TIMEOUT_SECONDS` /
+  `MATERIALS_TIKTOK_OUTPUT_DIR` / `MATERIALS_TIKTOK_VERSION_PIN` /
+  `MATERIALS_TIKTOK_ENABLED`；`TikTokConfig` 为嵌套 BaseSettings + validation_alias，
+  populate_by_name 保证字典覆盖可用）。
+- 错误分类映射与处置建议（对齐 downloader.py 码表 + R-M2-06 退避）：
+
+  | 输出特征 | 错误码 | 处置 |
+  |---|---|---|
+  | 子进程超时 | `TIMEOUT` | 60s 退避重试 |
+  | 频控/风控/验证码/限流 | `RATE_LIMIT` | 180s 退避，连续失败熔断（R-M2-21） |
+  | 登录失效/需要登录/Cookie 失效 | `AUTH_REQUIRED` | **不自动重试 → 人工登录 → 断点续跑**（P-002） |
+  | 签名/参数错误/请求被拒绝 | `PLATFORM_REJECT` | 记录证据，更新签名/参数后重试 |
+  | 无输出/无命中 | `NO_MATCH` | 120s 退避，检查关键词/达人 |
+  | 其他（非 0 退出且无已知特征） | `UNEXPECTED` | 人工查看脱敏证据 |
+- 版本锁定：推荐版本线 `TikTokDownloader 4.1.x`（PyPI），安装命令与升级回归纪律见
+  collectors/README.md；**视频号明确不在本封装范围**（R-M2-05）。
+- 脱敏：`source_url/title/author` 返回即脱敏（敏感查询参数值→`***`、疑似密钥键值掩码、
+  超长截断）；日志/证据路径走 `redact_path`（`@作者` 段掩码）；绝不落 Cookie/Token（P-004）。
+
 ### 2.2 视频号采集器（自研，签名+直链）
 
 - 分层：页面层（Playwright 共享浏览器 CDP 拿作者/视频信息）→ 直链解析层（`signer.py` 接口化，签名算法独立可替换）。

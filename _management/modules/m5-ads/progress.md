@@ -27,6 +27,15 @@
 - 已达成里程碑：**ad_* 表可建** ✅（backend/data/db/m5-ads.db 5 表 + repo 层可测可跑）
 - 距离目标还差：执行层 v0.3（Playwright 托管执行器·抽象接口+fixtures 模拟）→ 监控层 v0.4 → 回流层 v0.5 → 集成验收 → 真实实投
 
+## 当前迭代：v0.3（执行层·开发中）
+
+| 任务 | 负责 | 进度 | 剩余工作 |
+|---|---|---|---|
+| [x] 公共骨架：ui_config.py（ShopAdsUiConfig 选择器/页面/节奏配置）+ interfaces.py（PageOps Protocol + PageChangedError） | 总工 | 100% | 无 |
+| [~] 托管执行器：会话管理/CDP 连接抽象/两步操作编排/page_changed 检测 + MockPageOps（backend/ads/executor.py + test_ads_executor.py） | 子代理 861a44a5（已派发） | 10% | 子代理开发中；总工验收 |
+| [~] 投放设置：目标三选一/ROI 填值/素材绑定（高效>潜力>探索期）/提交校验 + Mock（backend/ads/settings.py + test_ads_settings.py） | 子代理 91f77eec（已派发） | 10% | 子代理开发中；总工验收 |
+| [ ] v0.3 集成：executor ↔ settings 对接（run_batch 编排联调）+ 验收 | 总工 | 0% | 两子代理完成后执行 |
+
 ## 开发阶段管理方式（总控已确认，2025 体系建立日）
 
 1. M5 总工拥有独立会话，全权管理本模块开发全流程（需求→设计→排期→分派→集成→验收→迭代）。

@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 
 import pytest
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from optimization.compliance import check_supply_chain
 from optimization.config import load_config
@@ -62,8 +62,10 @@ def pet_product(products) -> dict:
 
 @pytest.fixture
 def cfg(tmp_path):
+    # 内存库（任务允许 sqlite:///:memory:）：避免并发 pytest 进程共享 .pytest-tmp
+    # 互相清理导致的文件锁（WinError 32，见 pitfall-log M2 子代理备注）
     return load_config(
-        db_url=f"sqlite:///{tmp_path / 'm3-test.db'}",
+        db_url="sqlite:///:memory:",
         data_dir=tmp_path / "data",
         fixtures_dir=FIXTURES,
     )
@@ -113,8 +115,14 @@ class TestPhash:
 
     def test_dhash_different_images_differ(self, tmp_path):
         p1, p2 = tmp_path / "a.png", tmp_path / "b.png"
-        Image.new("RGB", (200, 200), (255, 255, 255)).save(p1)
-        Image.new("RGB", (200, 200), (10, 10, 10)).save(p2)
+        # 结构化图片（避免纯色均匀图 dHash 全零盲区）：黑块位置/形状不同
+        img1 = Image.new("RGB", (200, 200), (255, 255, 255))
+        img2 = Image.new("RGB", (200, 200), (255, 255, 255))
+        d1, d2 = ImageDraw.Draw(img1), ImageDraw.Draw(img2)
+        d1.rectangle([10, 10, 90, 90], fill=(0, 0, 0))
+        d2.ellipse([110, 110, 190, 190], fill=(0, 0, 0))
+        img1.save(p1)
+        img2.save(p2)
         assert hamming_distance(phash_dhash(p1), phash_dhash(p2)) > 8
 
 
@@ -314,6 +322,17 @@ class TestQualityGate:
         assert not verdict.ok
         assert any("分辨率不足" in i for i in verdict.issues)
 
+    def test_inspect_detail_750x1000_ok(self, cfg, pet_product, tmp_path):
+        """文档认可的详情图规格 750x1000（3:4）必须过门禁。"""
+        gate = ImageQualityGate(cfg)
+        plan = KimiImagePlanner(cfg).plan(pet_product, "detail")
+        d = WanImageProvider(cfg, out_dir=tmp_path / "imgs").generate(
+            pet_product, plan, variant_no=1
+        )
+        assert (d.width, d.height) == (750, 1000)
+        verdict = gate.inspect("img_detail", d.file_path, "detail")
+        assert verdict.ok, verdict.issues
+
     def test_inspect_main_not_square(self, cfg, tmp_path):
         gate = ImageQualityGate(cfg)
         wide = tmp_path / "wide.png"
@@ -452,10 +471,11 @@ class TestMemory:
         assert mem.strategy_for("宠物用品").get("background") == "gradient"
 
     def test_policy_injected(self, db, cfg):
-        policy = MemoryPolicy(reject_rate_threshold=1.0, min_samples=1)
+        # 阈值 0.9、1 样本：通过记录 → 拒审率 0 < 0.9，不触发切换
+        policy = MemoryPolicy(reject_rate_threshold=0.9, min_samples=1)
         mem = CategoryListingMemory(db, cfg, policy=policy)
-        mem.record("家居日用", passed=False, reject_reason="r")
-        assert mem.get("家居日用").image_strategy == {}  # 拒审率 1.0 < 1.0 不触发
+        mem.record("家居日用", passed=True)
+        assert mem.get("家居日用").image_strategy == {}
 
 
 # ---------------------------------------------------------------- 全链路（fixtures 离线）

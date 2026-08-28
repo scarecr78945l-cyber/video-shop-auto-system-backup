@@ -24,11 +24,34 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import types
 
 
 def utcnow() -> datetime:
     """统一 UTC 时间（REC-005）。SQLite 存 naive UTC（近似），PostgreSQL TIMESTAMPTZ 真带时区。"""
     return datetime.now(timezone.utc)
+
+
+class AwareUTCDateTime(types.TypeDecorator):
+    """强制 aware UTC 的时间列类型（REC-005：时间一律 UTC 带时区）。
+
+    SQLite 无时区类型：存储时转 naive UTC（近似 ISO8601），读取时补回 UTC tzinfo，
+    保证 Python 层永远得到 aware UTC，杜绝 naive/aware 混用（TypeError）。
+    PostgreSQL 的 TIMESTAMPTZ 原生带时区，此装饰器对读取结果补 tzinfo（幂等）。
+    """
+
+    impl = DateTime(timezone=True)
+    cache_ok = True
+
+    def process_bind_param(self, value: datetime | None, dialect):
+        if value is not None and value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
+
+    def process_result_value(self, value: datetime | None, dialect):
+        if value is not None and value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
 
 
 class Base(DeclarativeBase):
@@ -62,18 +85,18 @@ class WorkflowJob(Base):
     error_message: Mapped[str] = mapped_column(Text, default="")
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)  # 已重试次数
     retry_after: Mapped[datetime | None] = mapped_column(  # 下次可重试时间（UTC；error_codes.backoff_seconds 计算）
-        DateTime(timezone=True), nullable=True
+        AwareUTCDateTime(), nullable=True
     )
     lease_owner: Mapped[str | None] = mapped_column(String(120), nullable=True)  # 租约持有者（worker id）
     lease_expires_at: Mapped[datetime | None] = mapped_column(  # 租约过期时间（45min，过期回收）
-        DateTime(timezone=True), nullable=True
+        AwareUTCDateTime(), nullable=True
     )
     generation_version: Mapped[str] = mapped_column(String(40), nullable=False, default="v1")
     payload: Mapped[dict] = mapped_column(JSON, default=dict)  # 入队参数/断点；JSON 内金额按分 int（REC-005）
     evidence_json: Mapped[dict] = mapped_column(JSON, default=dict)  # 结果证据（09/02 文档 evidence_json 留痕）
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(AwareUTCDateTime(), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+        AwareUTCDateTime(), default=utcnow, onupdate=utcnow
     )
 
 
@@ -96,14 +119,14 @@ class Task(Base):
     error_code: Mapped[str | None] = mapped_column(String(40), nullable=True)
     error_message: Mapped[str] = mapped_column(Text, default="")
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    retry_after: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    retry_after: Mapped[datetime | None] = mapped_column(AwareUTCDateTime(), nullable=True)
     lease_owner: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(AwareUTCDateTime(), nullable=True)
     payload: Mapped[dict] = mapped_column(JSON, default=dict)  # 金额按分 int（REC-005）
     evidence_json: Mapped[dict] = mapped_column(JSON, default=dict)  # 结果证据（留痕）
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(AwareUTCDateTime(), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+        AwareUTCDateTime(), default=utcnow, onupdate=utcnow
     )
 
 
@@ -114,7 +137,7 @@ class LogEntry(Base):
     __table_args__ = (Index("idx_logs_module_ts", "module", "created_at"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(AwareUTCDateTime(), default=utcnow)
     module: Mapped[str] = mapped_column(String(20), nullable=False)  # m0/m1/.../m5
     level: Mapped[str] = mapped_column(String(10), nullable=False)
     event: Mapped[str] = mapped_column(String(120), default="")
@@ -135,7 +158,7 @@ class AppConfigRow(Base):
     value: Mapped[dict] = mapped_column(JSON, default=dict)  # 值一律 JSON；金额类配置按分 int
     description: Mapped[str] = mapped_column(String(500), default="")
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+        AwareUTCDateTime(), default=utcnow, onupdate=utcnow
     )
 
 

@@ -22,6 +22,10 @@ from PIL import Image, ImageStat
 from ..config import M3Config, load_config
 from ..models import ImagePlan, QualityVerdict
 
+# 详情图最小边：750x1000（3:4）为文档认可的离线/线上规格（06 第二节「详情图 800x800
+# 或 750x1000」），故详情图最小边按 750 校验；主图按 config.image.min_edge_px（800）。
+DETAIL_MIN_EDGE_PX = 750
+
 
 # ---------- 感知哈希（Pillow 自实现，无第三方依赖） ----------
 
@@ -42,7 +46,7 @@ def phash_dhash(file_path: str | Path) -> str:
 def phash_ahash(file_path: str | Path) -> str:
     """aHash：缩放 8x8 灰度，与均值比较，64 bit → 16 位 hex。"""
     img = Image.open(file_path).convert("L").resize((8, 8), Image.Resampling.LANCZOS)
-    pixels = list(img.getdata())
+    pixels = list(img.tobytes())  # L 模式每字节一像素（避免 getdata 弃用警告）
     avg = sum(pixels) / len(pixels)
     bits = "".join("1" if p > avg else "0" for p in pixels)
     return hex(int(bits, 2))[2:].zfill(16)
@@ -82,9 +86,10 @@ class ImageQualityGate:
 
         w, h = img.size
         min_edge = min(w, h)
-        if min_edge < cfg.min_edge_px:
+        min_edge_req = cfg.min_edge_px if image_type == "main" else DETAIL_MIN_EDGE_PX
+        if min_edge < min_edge_req:
             issues.append(
-                f"分辨率不足：最小边 {min_edge}px < {cfg.min_edge_px}px（{w}x{h}）"
+                f"分辨率不足：最小边 {min_edge}px < {min_edge_req}px（{w}x{h}）"
             )
 
         ratio = w / h if h else 0.0

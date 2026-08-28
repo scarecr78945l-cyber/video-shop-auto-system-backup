@@ -143,3 +143,11 @@
 3. 追加已有文件时，先确认目标文件编码为 UTF-8，再以 UTF-8 追加；不要混用带 BOM 与无 BOM 写入同一文件。
 4. 读取中文文本文件时，若显示乱码，请用 UTF-8 显式解码（`[System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)`），不要用默认编码读取后误判内容损坏。
 5. 违反本条款的文件在提交前必须修复（统一转 UTF-8 无 BOM）。
+
+## 12. 测试运行纪律（pytest 独立 basetemp，P-001/P-011）
+
+1. 运行 pytest 必须带 `--basetemp`，且**每个模块使用专属目录，禁止共用**：
+   - M0：`--basetemp=".pytest-tmp-m0"`；M1：`-m1`；M2：`-m2`；M3：`-m3`；M4：`-m4`；M5：`-m5`（总控回归用 `.pytest-tmp-verify`）。
+2. 多代理并行跑 pytest 共用同一 basetemp 会导致间歇性 PermissionError/WinError 5（P-011），串行复跑可能掩盖真实失败——必须以独立 basetemp 下全绿为准。
+3. 总工分派子代理任务书时，必须写明本模块专属 basetemp 名。
+4. 全量回归由总控执行（独立目录），任何模块不得独占 tests 目录。

@@ -85,7 +85,13 @@ class CategoryListingMemory:
     def record(
         self, category: str, *, passed: bool = True, reject_reason: str = ""
     ) -> None:
-        """记录一次人工通过 / 平台拒审（累计计数 + 拒审原因统计）。"""
+        """记录一次人工通过 / 平台拒审（累计计数 + 拒审原因统计）。
+
+        注：骨架 repo.record 对「新建行」直接 ``row.pass_count += 1``，而列默认值
+        需 flush 后才落到实例属性（未 flush 为 None → TypeError）。故先经
+        get_or_create 建行并 flush，再委托骨架 repo 记账（只使用，不修改骨架）。
+        """
+        self.repo.get_or_create(category)
         self.repo.record(category, passed=passed, reject_reason=reject_reason)
         if not passed:
             self.auto_adjust(category)  # 拒审后立即评估是否切策略

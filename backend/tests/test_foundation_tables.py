@@ -78,10 +78,10 @@ def test_timestamp_columns_at_suffix(fdb: Database) -> None:
 def test_unique_constraints_present(fdb: Database) -> None:
     """幂等唯一约束：workflow_jobs (product_id, stage, generation_version)、tasks (job_id, task_type)。"""
     inspector = inspect(fdb.engine)
-    wj_uniques = {tuple(sorted(u["column_names"])) for u in inspector.get_unique_constraints("workflow_jobs")}
-    assert ("product_id", "stage", "generation_version") in wj_uniques
-    tk_uniques = {tuple(sorted(u["column_names"])) for u in inspector.get_unique_constraints("tasks")}
-    assert ("job_id", "task_type") in tk_uniques
+    wj_uniques = {frozenset(u["column_names"]) for u in inspector.get_unique_constraints("workflow_jobs")}
+    assert frozenset({"product_id", "stage", "generation_version"}) in wj_uniques
+    tk_uniques = {frozenset(u["column_names"]) for u in inspector.get_unique_constraints("tasks")}
+    assert frozenset({"job_id", "task_type"}) in tk_uniques
 
 
 def test_seed_error_codes_idempotent(fdb: Database) -> None:

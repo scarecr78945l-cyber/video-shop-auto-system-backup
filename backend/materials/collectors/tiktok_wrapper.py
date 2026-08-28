@@ -107,7 +107,8 @@ def _truncate(text: Any, n: int = 300) -> str:
 def redact_url(url: str) -> str:
     """脱敏 URL：敏感查询参数值一律替换为 ***（不落日志/证据；P-004）。
 
-    键集在 downloader.redact_url 基础上补充 sec_uid/uid/user_id 等账号类参数。
+    键集在 downloader.redact_url 基础上补充 sec_uid/uid/user_id 等账号类参数；
+    urlencode 会把 *** 编码为 %2A%2A%2A，这里再还原为可读的 ***（证据可读性）。
     """
     try:
         parsed = urlsplit(url or "")
@@ -115,7 +116,8 @@ def redact_url(url: str) -> str:
             (k, "***" if k.lower() in _SENSITIVE_QUERY_KEYS else v)
             for k, v in parse_qsl(parsed.query, keep_blank_values=True)
         ]
-        return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(qs), ""))
+        query = urlencode(qs).replace("%2A%2A%2A", "***")
+        return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, query, ""))
     except Exception:  # 解析失败原样截断返回（不留详情）
         return _truncate(url, 200)
 
@@ -342,7 +344,7 @@ class TikTokDownloaderCLI:
             return AUTH_REQUIRED
         if any(h in t for h in _RATE_LIMIT_HINTS) or any(h in low for h in ("rate limit", "too many requests")):
             return RATE_LIMIT
-        if any(h in t for h in _PLATFORM_REJECT_HINTS) or any(h in low for h in ("x-bogus", "a_bogus", "invalid param")):
+        if any(h in t for h in _PLATFORM_REJECT_HINTS) or any(h in low for h in ("invalid param", "params error")):
             return PLATFORM_REJECT
         return None
 
@@ -427,7 +429,9 @@ class TikTokDownloaderCLI:
             if m:
                 if cur.get("file_path"):
                     entries.append(cur)
-                cur = {"file_path": m.group(1).strip()}
+                    cur = {}
+                # 无 file_path 时保留已收集的 title/author/source_url（字段顺序无关）
+                cur["file_path"] = m.group(1).strip()
                 continue
             t = _TITLE_RE.search(line)
             if t and not cur.get("title"):
@@ -448,7 +452,8 @@ class TikTokDownloaderCLI:
             ):
                 if cur.get("file_path"):
                     entries.append(cur)
-                cur = {"file_path": line}
+                    cur = {}
+                cur["file_path"] = line
         if cur.get("file_path"):
             entries.append(cur)
         return entries

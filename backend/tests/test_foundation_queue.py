@@ -230,11 +230,14 @@ def test_failure_isolation(queue: WorkflowQueue) -> None:
     """失败隔离：一个 job 进入 waiting_verification，其他 pending job 仍可被领取。"""
     j1 = queue.enqueue(product_id=1, stage="source_collect")
     queue.enqueue(product_id=2, stage="source_collect")
-    queue.claim(worker_id="worker-1", limit=10)
-    queue.fail(job_id=j1.id, worker_id="worker-1", error_code="VERIFICATION_REQUIRED")
-    claimed = queue.claim(worker_id="worker-2", limit=10)
-    assert len(claimed) == 1
-    assert claimed[0].product_id == 2  # 只有未阻塞的 job 被领取
+    # 只领取一个 job（limit=1，按 id 升序 → j1），将其 fail 为 waiting_verification
+    claimed = queue.claim(worker_id="worker-1")
+    assert len(claimed) == 1 and claimed[0].id == j1.id
+    assert queue.fail(job_id=j1.id, worker_id="worker-1", error_code="VERIFICATION_REQUIRED") is True
+    # 另一个 pending job（j2）仍可被 worker-2 领取，不受阻塞
+    claimed2 = queue.claim(worker_id="worker-2")
+    assert len(claimed2) == 1
+    assert claimed2[0].product_id == 2  # 只有未阻塞的 job 被领取
 
 
 def test_list_jobs_filters(queue: WorkflowQueue) -> None:
