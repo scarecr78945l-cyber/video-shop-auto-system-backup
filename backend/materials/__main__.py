@@ -162,5 +162,81 @@ def normalize(config, input_path, output_path) -> None:
         raise SystemExit(1)
 
 
+@cli.command()
+@click.option("--file", "file_path", type=click.Path(exists=True), required=True, help="素材文件路径")
+@click.option(
+    "--type", "asset_type", type=click.Choice(["image", "video"]), default="image",
+    show_default=True, help="素材类型（video 需本机 ffmpeg，缺失报清晰错误）",
+)
+@click.pass_obj
+def dedup_check(config, file_path, asset_type) -> None:
+    """双去重人工验收：对单个素材文件跑 MD5 + phash 检查（只查不注册）。"""
+    import json as _json
+
+    from .db import Database
+    from .dedup import DedupService, FrameExtractionError, FFmpegNotFoundError
+
+    db = Database(config)
+    svc = DedupService(db)
+    try:
+        result = (
+            svc.check_image(file_path) if asset_type == "image" else svc.check_video(file_path)
+        )
+    except (FFmpegNotFoundError, FrameExtractionError) as exc:
+        click.echo(f"去重检查失败：{exc}", err=True)
+        raise SystemExit(1)
+    click.echo(_json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@cli.command()
+@click.option("--keyword", default=None, help="搜索关键词（与 --author-url 二选一）")
+@click.option("--author-url", "author_url", default=None, help="达人主页 URL 或达人 ID（与 --keyword 二选一）")
+@click.option("--count", type=int, default=10, show_default=True, help="下载数量上限")
+@click.option("--output-dir", "output_dir", default=None, type=click.Path(), help="输出目录（默认 config.tiktok.default_output_dir）")
+@click.option("--json", "as_json", is_flag=True, help="以 JSON 输出结果列表")
+@click.pass_obj
+def tiktok_download(config, keyword, author_url, count, output_dir, as_json) -> None:
+    """TikTokDownloader 采集（抖音/快手/小红书；视频号不在本封装范围，R-M2-05）。
+
+    外部 CLI 子进程 + 超时 + 输出解析 + 错误分类（对齐 downloader.py 码表）；
+    binary 缺失时打印清晰错误（含安装指引）并以非 0 退出（不静默）；
+    版本锁定与安装说明见 collectors/README.md；开发/CI 可用 fake CLI fixtures（R-M2-17）。
+    """
+    import json as _json
+
+    from .collectors.tiktok_wrapper import TikTokDownloaderCLI, TikTokDownloaderError
+
+    if not keyword and not author_url:
+        click.echo("错误：--keyword 与 --author-url 必须二选一", err=True)
+        raise SystemExit(2)
+    if keyword and author_url:
+        click.echo("错误：--keyword 与 --author-url 只能二选一", err=True)
+        raise SystemExit(2)
+
+    cli = TikTokDownloaderCLI(output_dir=output_dir, config=config)
+    avail = cli.check_available()
+    if not avail["available"]:
+        click.echo(f"错误：{avail['error']}", err=True)
+        raise SystemExit(1)
+    try:
+        if keyword:
+            results = cli.search_download(keyword, count=count)
+        else:
+            results = cli.author_download(author_url, count=count)
+    except TikTokDownloaderError as exc:
+        click.echo(f"采集失败 [{exc.error_code}]：{exc.message}", err=True)
+        raise SystemExit(1)
+
+    if as_json:
+        click.echo(_json.dumps(results, ensure_ascii=False, indent=2, default=str))
+    else:
+        for r in results:
+            click.echo(
+                f"{r['platform'] or '未知'}\t{r['title'][:24] or '（无标题）'}\t"
+                f"{r['file_path'] or '（未落盘）'}"
+            )
+        click.echo(f"共 {len(results)} 个作品")
+
+
 if __name__ == "__main__":
     cli()

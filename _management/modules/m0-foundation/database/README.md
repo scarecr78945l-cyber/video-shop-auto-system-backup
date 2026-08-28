@@ -49,20 +49,35 @@ CREATE INDEX idx_wj_retry  ON workflow_jobs(retry_after);
 CREATE INDEX idx_wj_lease  ON workflow_jobs(lease_expires_at);
 ```
 
-### `tasks` — 任务明细/子任务（骨架，待迁移包核对后定稿）
+### `tasks` — 任务明细/子任务（最终 DDL v0.2，总控第 2 步定稿，替换 v0.1 骨架）
+
+> 归属：M0 共享基座（无前缀），全员只读；`job_id` 关联 `workflow_jobs.id`（跨库暂不建 FK）。
+> 对齐 09 文档表清单「workflow_jobs / tasks / logs（任务队列/任务/日志）」与迁移包 tasks 表（939 条基线）语义。
+> 字段口径：时间戳 `_at` 后缀 UTC（REC-005）；payload/evidence_json 内金额按「分」int。
 
 ```sql
 CREATE TABLE tasks (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    job_id      INTEGER,                       -- 关联 workflow_jobs.id（暂不建 FK）
-    task_type   VARCHAR(60),
-    status      VARCHAR(20) DEFAULT 'pending',
-    payload     JSON,
-    result      JSON,
-    error_code  VARCHAR(40),
-    created_at  DATETIME NOT NULL,
-    updated_at  DATETIME NOT NULL
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id              INTEGER NOT NULL,       -- 任务归属（workflow_jobs.id，暂不建 FK 防跨库）
+    stage               VARCHAR(40) NOT NULL,   -- 与 workflow_jobs.stage 同枚举：source_collect|alibaba_quote|taobao_reference|image_generation|listing_upload|shop_ads_run|shop_ads_report
+    task_type           VARCHAR(60) NOT NULL DEFAULT '',
+    status              VARCHAR(20) NOT NULL DEFAULT 'pending',
+                      -- pending|running|waiting_login|waiting_verification|blocked|success|failed|cancelled
+    error_code          VARCHAR(40),            -- 错误码（见 error_codes 表）
+    error_message       TEXT DEFAULT '',
+    retry_count         INTEGER NOT NULL DEFAULT 0,
+    retry_after         DATETIME,               -- 下次可重试时间（UTC；error_codes.backoff_seconds 计算）
+    lease_owner         VARCHAR(120),           -- 租约持有者（worker id）
+    lease_expires_at    DATETIME,               -- 租约过期时间（默认 45min，过期回收）
+    payload             JSON,                   -- 入队参数/断点数据（金额按分 int，REC-005）
+    evidence_json       JSON,                   -- 结果证据（留痕）
+    created_at          DATETIME NOT NULL,      -- UTC
+    updated_at          DATETIME NOT NULL,      -- UTC
+    UNIQUE (job_id, task_type)                  -- 幂等：同一 job 下同类型子任务唯一
 );
+CREATE INDEX idx_tk_job    ON tasks(job_id);
+CREATE INDEX idx_tk_status ON tasks(status);
+CREATE INDEX idx_tk_retry  ON tasks(retry_after);
 ```
 
 ### `logs` — 操作留痕（脱敏）
@@ -141,7 +156,7 @@ INSERT INTO error_codes VALUES
 | `VARCHAR`/`INTEGER`/`TEXT` | 同名 | 兼容 |
 | `UNIQUE(...)` / `CREATE INDEX` | 同名 | 兼容 |
 
-> **REC-005 口径落实检查（五表）**：时间戳字段全部 `_at` 后缀——`workflow_jobs`（next_retry_at/lease_expires_at/created_at/updated_at）、`tasks`（created_at/updated_at）、`logs`（created_at）、`app_config`（updated_at）；`error_codes` 无时间/金额字段。JSON 列（workflow_jobs.payload/result、tasks.payload/result、logs.evidence、app_config.value）内若含金额一律「分」int。
+> **REC-005 口径落实检查（五表，随 v0.2 定稿）**：时间戳字段全部 `_at` 后缀——`workflow_jobs`（retry_after/lease_expires_at/created_at/updated_at）、`tasks`（retry_after/lease_expires_at/created_at/updated_at）、`logs`（created_at）、`app_config`（updated_at）；`error_codes` 无时间/金额字段。JSON 列（workflow_jobs.payload/evidence_json、tasks.payload/evidence_json、logs.evidence、app_config.value）内若含金额一律「分」int。
 
 ## 迁移记录
 

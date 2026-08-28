@@ -57,3 +57,26 @@ def db_materials(cfg_materials):
     database = Database(cfg_materials)
     database.create_all()
     return database
+
+
+# ---------------------------------------------------------------- M5 ads
+# 自动小店投放（商品托管）基座 fixtures：临时 SQLite（不动 sourcing/materials fixtures）。
+# 内部 import：ads 包异常时不连带拖垮既有测试。
+
+
+@pytest.fixture()
+def cfg_ads(tmp_path):
+    """M5 投放模块隔离配置（临时 SQLite）。"""
+    from ads.config import load_config
+
+    return load_config(db_url=f"sqlite:///{tmp_path / 'ads-test.db'}")
+
+
+@pytest.fixture()
+def db_ads(cfg_ads):
+    """M5 投放 Database（建好 5 张 ad_* 表）。"""
+    from ads.db import Database
+
+    database = Database(cfg_ads)
+    database.create_all()
+    return database

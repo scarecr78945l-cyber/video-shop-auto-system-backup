@@ -4,6 +4,8 @@
 source_collection_events / source_runs / product_source_evidence /
 products / product_library / product_fingerprint_claims /
 suppliers / sku / app_config
+新增（m1_ 前缀，database/README.md v0.1 DDL 镜像）：
+m1_ad_conversion_cache / m1_ad_conversion_ingests
 """
 
 from __future__ import annotations
@@ -223,3 +225,57 @@ class Sku(Base):
     freight: Mapped[float] = mapped_column(Float, default=0.0)
     raw_url: Mapped[str] = mapped_column(String(500), default="")
     quoted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class M1AdConversionCache(Base):
+    """类目级投放转化缓存（打分输入）：接收 M5 经交换文件的聚合结果。
+
+    对应 database/README.md 第二节 v0.1 DDL 镜像。
+    sales_amount 单位为「分」（int，与 M5 口径一致，禁元/分混用）；
+    generated_at 为新鲜度判定基准（ISO-8601 带时区）。
+    """
+
+    __tablename__ = "m1_ad_conversion_cache"
+    __table_args__ = (
+        UniqueConstraint("category", "period_start", "period_end", name="uq_m1_ad_cache"),
+        Index("idx_m1_ad_cache_category", "category"),
+        Index("idx_m1_ad_cache_period", "period_start", "period_end"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    category: Mapped[str] = mapped_column(String(80), nullable=False)  # 类目锚点（与 products.category 一致，C-1）
+    roi: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)  # 期间托管 ROI（成交额/花费，比值无量纲）
+    sales_amount: Mapped[int] = mapped_column(Integer, nullable=False, default=0)  # 期间托管成交额（分，int）
+    sample_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)  # 计入商品数（<5 弱样本，打分视为无数据）
+    period_start: Mapped[str] = mapped_column(String(20), nullable=False)  # 快照期起 YYYY-MM-DD
+    period_end: Mapped[str] = mapped_column(String(20), nullable=False)  # 快照期止 YYYY-MM-DD
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)  # M5 生成时间（新鲜度基准）
+    source_file: Mapped[str] = mapped_column(String(300), nullable=False, default="")  # 来源交换文件（审计）
+    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)  # 导入时间（UTC）
+
+
+class M1AdConversionIngest(Base):
+    """回写导入审计（幂等/追溯）：每次 M5 交换文件导入留痕一条。
+
+    对应 database/README.md 第二节 v0.1 DDL 镜像；
+    唯一键 (source_file, period_start, period_end, generated_at) 保证同批次重复导入被覆盖/跳过。
+    """
+
+    __tablename__ = "m1_ad_conversion_ingests"
+    __table_args__ = (
+        UniqueConstraint(
+            "source_file", "period_start", "period_end", "generated_at", name="uq_m1_ad_ingest"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    source_file: Mapped[str] = mapped_column(String(300), nullable=False)
+    schema_ver: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    period_start: Mapped[str] = mapped_column(String(20), nullable=False)
+    period_end: Mapped[str] = mapped_column(String(20), nullable=False)
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    rows_loaded: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    skipped: Mapped[int] = mapped_column(Integer, nullable=False, default=0)  # 弱样本/无类目命中跳过数
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="ok")  # ok | partial | failed
+    message: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)

@@ -43,6 +43,7 @@
 
 - **入库门禁**：`asset_dedup_fingerprints` 表对 (fingerprint_type, fingerprint_value) 唯一约束；并发认领机制对齐 `product_fingerprint_claims`（先认领后入库，防并发重复）。
 - **重复处理**：命中重复 → 不入库，累加 `asset_items` 已有记录的来源计数（`dup_hits`，若需）或记 `asset_dedup_fingerprints.hits`；不静默丢弃，写日志留证据。
+- **指纹值存储格式（子代理 E 定稿，见 decisions.md）**：md5=32 位小写 hex；image_phash=16 位小写 hex；video_phash=**JSON 数组字符串**（`["帧0hex","帧1hex","帧2hex"]`，数组下标=首/中/尾帧序号即帧标识），与 `asset_items.phash` 的 combined 值共用；检查器读取兼容 `{index}:{hex}` 与纯 hex。近似判重 = 任一候选帧与任一所存帧汉明距离 ≤ 阈值（默认 8，`config.dedup.phash_hamming_threshold` 配置化）。
 
 ### 1.3 素材硬规格（写死，投放/投稿共用；05 文档第三节）
 
@@ -54,7 +55,7 @@
 | 大小 | ≤500M（524288000 字节） |
 | 时长 | 5 ~ 300 秒 |
 
-- ffmpeg 输出参数锁定（示例）：`ffmpeg -i in.mp4 -vf scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2 -t 300 -c:v libx264 -crf 23 -c:a aac output.mp4`（实际按素材源微调，参数集中配置）。
+- ffmpeg 输出参数锁定（示例）：`ffmpeg -i in.mp4 -vf scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2 -t 300 -c:v libx264 -crf 23 -c:a aac output.mp4`（实际按素材源微调，参数集中配置 `config.normalize`；比例校验容差 ±0.01 = `normalize.ratio_tolerance`，与 `normalizer.validate_specs` 模块常量同值，见 decisions.md 子代理 C 决策行）。
 - 校验时机：入库（原始素材预检）与标准化后（成品复检）双校验；M5 绑定前再校验（P-007 防复发）。
 
 ### 1.4 评估标签取值（M5 回写，枚举唯一）

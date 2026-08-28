@@ -35,7 +35,89 @@ class SourcingPipeline:
         self.config = config
         self.db = db or Database(config)
         self.scorer = Scorer(config.scoring)
-        self.compliance = ComplianceEngine(config)
+        # 类目白名单优先级：app_config 运行时配置 > config 默认（读不到/异常回落默认，不抛异常）
+        self.compliance = ComplianceEngine(
+            config, category_whitelist=self._load_category_whitelist()
+        )
+
+    # ------------------------------------------------------------ 运行时配置
+    def _load_category_whitelist(self) -> Optional[list[str]]:
+        """从 app_config 读取类目白名单（运行时优先级高于 config 默认）。
+
+        - self.db 可用且 app_config.category_whitelist 为 list[str] → 使用之；
+        - 键不存在/类型非法/任何异常 → 返回 None（ComplianceEngine 回落 config.category_whitelist）；
+        - 绝不抛异常打断流水线；persist=False 时同样兼容（只读查询）。
+        """
+        if self.db is None:
+            return None
+        try:
+            from . import repo
+
+            with self.db.session() as session:
+                value = repo.get_config_value(session, "category_whitelist", None)
+            if isinstance(value, list) and all(isinstance(v, str) for v in value):
+                log.info("app_config.category_whitelist 生效：%d 个类目", len(value))
+                return value
+            if value is not None:
+                log.warning(
+                    "app_config.category_whitelist 类型非法（%s），回落 config 默认",
+                    type(value).__name__,
+                )
+        except Exception:
+            log.warning("读取 app_config.category_whitelist 失败，回落 config 默认", exc_info=True)
+        return None
+
+    @staticmethod
+    def _ad_data_usable(ad: dict, max_age_days: float) -> bool:
+        """单类目投放转化数据是否可用（新鲜度 + 弱样本过滤，C-2 / R-14）。
+
+        - generated_at 存在且超过 max_age_days 天 → 不可用（过期）；
+        - sample_count 存在且 < 5 → 不可用（弱样本）；
+        - 两者都缺（fixtures 旧格式仅 {roi, sales}）→ 可用（兼容既有 39 测试行为）；
+        - 元数据解析失败保守按「不可用」处理（宁缺勿错，不污染打分）。
+        generated_at 兼容 ISO 字符串（含尾部 Z）与 datetime，naive 按 UTC 处理。
+        """
+        generated_at = ad.get("generated_at")
+        if generated_at is not None:
+            try:
+                if isinstance(generated_at, str):
+                    generated_at = generated_at.replace("Z", "+00:00")
+                    generated_at = datetime.fromisoformat(generated_at)
+                if generated_at.tzinfo is None:
+                    generated_at = generated_at.replace(tzinfo=timezone.utc)
+                age = datetime.now(timezone.utc) - generated_at
+                if age.total_seconds() > max_age_days * 86400:
+                    log.info("类目投放转化数据过期（generated_at=%s，>%s 天），视为无数据", generated_at, max_age_days)
+                    return False
+            except (TypeError, ValueError):
+                log.warning("generated_at=%r 解析失败，按无数据处理", ad.get("generated_at"))
+                return False
+        sample_count = ad.get("sample_count")
+        if sample_count is not None:
+            try:
+                if int(sample_count) < 5:
+                    log.info("类目投放转化弱样本（sample_count=%s<5），视为无数据", sample_count)
+                    return False
+            except (TypeError, ValueError):
+                log.warning("sample_count=%r 非法，按无数据处理", sample_count)
+                return False
+        return True
+
+    def _fresh_ad_by_category(self, ad_by_cat: dict) -> dict:
+        """按新鲜度/弱样本过滤类目级投放转化数据（两处 ad_by_cat 组装统一入口）。
+
+        不可用类目置空 dict（打分时不传 ad_roi/ad_sales，维度自动不生效），
+        可用类目原样保留（含 roi/sales/sales_amount/sample_count/generated_at 元数据）。
+        """
+        if not ad_by_cat:
+            return {}
+        max_age = float(self.config.scoring.ad_data_max_age_days)
+        fresh: dict = {}
+        for category, ad in ad_by_cat.items():
+            if not isinstance(ad, dict):
+                continue
+            fresh[category] = ad if self._ad_data_usable(ad, max_age) else {}
+        return fresh
 
     # ------------------------------------------------------------ 采集
     def collect(self, sources: Iterable[str], mode: str = "fixtures") -> dict[str, list[SourceItem]]:
@@ -175,6 +257,7 @@ class SourcingPipeline:
 
         # 5) 打分（五维，投放转化按类目回流）
         ad_by_cat = load_ad_snapshots(self.config) if mode == "fixtures" else self.config.ad_conversion_by_category
+        ad_by_cat = self._fresh_ad_by_category(ad_by_cat)
         for cand in candidates:
             ad = ad_by_cat.get(cand.category, {})
             data = ScoreInput(
@@ -187,7 +270,7 @@ class SourcingPipeline:
                 return_rate=cand.return_rate,
                 supplier_count=cand.supplier_count,
                 ad_roi=ad.get("roi") if ad else None,
-                ad_sales=ad.get("sales"),
+                ad_sales=ad.get("sales_amount", ad.get("sales")),
             )
             cand.score = self.scorer.score(data)
             cand.ad_conversion = ad
@@ -263,6 +346,7 @@ class SourcingPipeline:
             result.quoted = sum(1 for c in candidates if c.quotes)
 
         ad_by_cat = load_ad_snapshots(self.config) if mode == "fixtures" else self.config.ad_conversion_by_category
+        ad_by_cat = self._fresh_ad_by_category(ad_by_cat)
         for cand in candidates:
             ad = ad_by_cat.get(cand.category, {})
             data = ScoreInput(
@@ -275,7 +359,7 @@ class SourcingPipeline:
                 return_rate=cand.return_rate,
                 supplier_count=cand.supplier_count,
                 ad_roi=ad.get("roi") if ad else None,
-                ad_sales=ad.get("sales"),
+                ad_sales=ad.get("sales_amount", ad.get("sales")),
             )
             cand.score = self.scorer.score(data)
             cand.ad_conversion = ad

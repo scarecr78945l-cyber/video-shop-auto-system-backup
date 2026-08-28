@@ -1,6 +1,7 @@
 """M0 基座引擎/会话管理（参照 backend/sourcing/db.py 风格）。
 
 默认 SQLite（开发零配置），生产通过 M0_DB_URL 切 PostgreSQL。
+测试可用内存库：sqlite:///:memory:（StaticPool 保证跨 session 共享同一连接）。
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ from typing import Iterator, Optional
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from .config import FoundationConfig, load_config
 
@@ -21,10 +23,18 @@ class Database:
     def __init__(self, config: FoundationConfig):
         self.config = config
         connect_args: dict = {}
+        poolclass = None
         if config.db_url.startswith("sqlite"):
             connect_args["check_same_thread"] = False
+            if config.db_url == "sqlite:///:memory:":
+                # 内存库：固定单连接，保证建表/写入/读取跨 session 可见
+                poolclass = StaticPool
         self.engine: Engine = create_engine(
-            config.db_url, echo=False, future=True, connect_args=connect_args
+            config.db_url,
+            echo=False,
+            future=True,
+            connect_args=connect_args,
+            poolclass=poolclass,
         )
         self._session_factory = sessionmaker(
             bind=self.engine, expire_on_commit=False, future=True

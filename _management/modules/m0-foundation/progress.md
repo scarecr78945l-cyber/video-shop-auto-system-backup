@@ -16,7 +16,9 @@
 | [x] P-001 落实：`backend/README.md` 测试命令补 `--basetemp=".pytest-tmp"` | 总工 | 100% | 无 |
 | [x] 登记工作台账 `agent-activity.md` | 总工 | 100% | 无 |
 | [x] A1-1：workflow_jobs 最终 DDL 落盘（SQLite，含租约/幂等/retry_after/evidence_json） | 总工 | 100% | 无 |
-| [ ] 基座开发 A（小步进）：tasks → logs → app_config → error_codes 表 DDL → foundation 包 → 队列 API → 测试 | 总工 | 5% | 下一步：tasks 表 DDL（总控逐步唤醒） |
+| [x] A1-2：tasks 表最终 DDL 落盘（SQLite，job_id 归属/stage/状态/错误码/租约/幂等） | 总工 | 100% | 无 |
+| [x] A1-3：复核五表 DDL（无乱码/对齐 REC-005）+ `backend/foundation/tables.py` 字段命名对齐 DDL（retry_after/evidence_json/Task 补全） | 总工 | 100% | 无 |
+| [ ] 基座开发 A（小步进）：foundation 包对齐（config/db/repo 引用字段随 tables.py 更新）→ 队列 API → 测试 | 总工 | 15% | 下一步：foundation 包对齐（repo.py 的 next_retry_at/result 引用需改 retry_after/evidence_json） |
 | [ ] 基座开发 B：调度器进程化 | 总工/子代理 | 0% | 排期 A2 |
 | [ ] 风控落地：预算三重/止损/余额/一键全停 | 总工/子代理 | 0% | 排期 A3 |
 | [ ] 工程基座：环境变量化/脱敏巡检/.env.example/迁移脚本 | 总工/子代理 | 0% | 排期 A4/A5 |

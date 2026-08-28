@@ -97,6 +97,7 @@ class ScoringConfig(BaseModel):
         default_factory=lambda: [(3.0, 10.0), (2.0, 8.0), (1.5, 6.0), (1.0, 4.0)]
     )
     ad_roi_below: float = 2.0
+    ad_data_max_age_days: float = 7.0  # 投放转化数据新鲜度阈值：generated_at 超过 N 天视为无数据（R-14 / C-2）
     top_n: int = 50  # 每日入池数量
 
 

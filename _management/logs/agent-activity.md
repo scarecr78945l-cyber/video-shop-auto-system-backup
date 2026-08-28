@@ -240,3 +240,114 @@
 - 产出文件：`database/README.md`（workflow_jobs 小节 v0.2）；`progress.md`（新增 A1-1 任务勾选 100%，基座开发 A 标注小步进 5%）；本日志追加条目。
 - 前置说明（上轮中断前遗留）：`backend/foundation/` 包（tables.py/config.py/db.py/repo.py/__init__.py）已初步落盘，但字段命名为 `next_retry_at`/`result`，与总控指示的 `retry_after`/`evidence_json` 不一致；后续小步进到「foundation 包」步骤时将对齐为总控命名并重跑测试。A1 首个子代理（ae8c8544）中断无产出，不再恢复，改由总工直接小步进执行（总控指示）。
 - 当前阻塞：无。等待总控唤醒第 2 步（tasks 表 DDL）。
+
+---
+
+### 2026-08-28 | M0 总工程师 | m0-foundation | 角色：总工（开发阶段·小步进第 2 步【补记】+ 第 3 步）
+
+- 完成任务（第 2 步补记）：在 `database/README.md` 落盘 **tasks 表最终 DDL（SQLite）v0.2 定稿**——替换 v0.1 骨架，含：`job_id` 任务归属（workflow_jobs.id，跨库不建 FK）、`stage` 与 workflow_jobs 同枚举、状态/错误码字段（error_code/error_message/retry_count/retry_after）、租约字段（lease_owner/lease_expires_at）、幂等唯一约束 `UNIQUE(job_id, task_type)`、证据字段 `evidence_json`、3 个索引（job/status/retry）；时间戳 `_at` 后缀 UTC、JSON 内金额按分 int（REC-005）。
+- 完成任务（第 3 步）：① 完整复核 `database/README.md` 五表 DDL——workflow_jobs/tasks（v0.2 定稿）与 logs/app_config/error_codes 均无乱码、字段对齐 REC-005（时间戳全部 `_at` 后缀、JSON 金额按分 int）；② 修正 REC-005 落实检查段落过时字段名（next_retry_at→retry_after、result→evidence_json）；③ **`backend/foundation/tables.py` 字段命名对齐 DDL**：WorkflowJob 改 `next_retry_at`→`retry_after`、`result`→`evidence_json`，索引改显式 Index 对齐 DDL 命名（idx_wj_*）；Task 补全 stage/error_message/retry_count/retry_after/lease_owner/lease_expires_at、job_id 改 NOT NULL、加 `uq_tk_idempotency` 幂等键与 idx_tk_* 索引、result→evidence_json；LogEntry/AppConfigRow/ErrorCode/种子数据保持不变。
+- 产出文件：`database/README.md`（tasks 小节 v0.2 + REC-005 检查修正）；`backend/foundation/tables.py`（对齐 DDL v0.2）；`progress.md`（A1-3 勾选，基座开发 A 进度 15%）；本日志追加条目。
+- 待办（下一步）：`backend/foundation/repo.py` 中 `next_retry_at`/`result` 引用需随 tables.py 改为 `retry_after`/`evidence_json`（本步未跑测试，按总控指示不执行）。
+- 当前阻塞：无。等待总控唤醒下一步（foundation 包对齐/队列 API）。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（批次 2 · 子代理恢复与重派）
+
+- 异常记录与处理（延续批次 2 派发条目）：
+  ① E（4179c644）多次中断但产出在推进（dedup.py 已落盘，调试 phash 测试数据时中断——其「渐变图距离仅 6，改随机噪声图」的判断正确），已 send_message 恢复并附断点指令；
+  ② C（487ca61b）两次中断，normalizer.py 已落盘、测试未出，已按产出进度发精确断点指令恢复（补齐 test_materials_normalizer.py + config/CLI 追加 + 验收）；
+  ③ **A（475a06d1）连续 4 次中断（含 2 次恢复后），产出仅空 `collectors/__init__.py`，判定会话不稳定而非任务问题——按「产出为空则重新派发」策略弃用 A，重派 A2=7d9dc741**（任务书自包含不变，注明可复用空 __init__.py；已派发后台运行）。
+- 当前状态：E running、C running、A2 新派发运行中；批次 2 三个任务均在执行。
+- 当前阻塞：无。待完成通知后验收（读产出 + pytest --basetemp=".pytest-tmp"）→ 更新 progress.md/台账 → 通知总控备份 → 批次 3。
+
+---
+
+### 2026-08-28 21:56 | P2 子代理 | m4-listing | 角色：子代理（重派版 · listing_gate）
+
+- 完成任务：实现 M4 上架前校验硬门禁 `backend/services/listing_gate.py`（P2）——六项硬门禁，任一不通过 → 商品不入队（结构化拒绝，不套 WorkflowJob 执行期错误码）：
+  - `ListingGateConfig`（pydantic-settings，env_prefix `LISTING_` + 构造函数注入，参考 sourcing/config.py）：标题 15/35、主图 ≥5、1:1 容差 0.02、SKU 成本下限 0（校验 cost_cents > 下限 → 默认成本必须 > 0）、类目白名单默认 9 类（复用 sourcing.config.DEFAULT_CATEGORY_WHITELIST）；
+  - `ListingCandidate/SkuInput/PurchaseSettings` 输入模型（字段对齐 context 跨模块契约 5.1/5.2：product_id/title/category_id/category_name/qualification/main_images/detail_images/skus{cost_cents,price_cents}/purchase_settings{限购 per_user+period/物流 freight_template_id/售后 after_sale}，缺字段按未提供拒绝）；
+  - 12 个门禁项 → 12 个原因码：title_length/title_compliance/category/qualification/images_count/images_ratio/images_duplicate/detail_images/sku_cost/sku_price/purchase_settings/compliance_preview；`GateResult(passed, items, rejected_reason_codes)`；
+  - 图片校验用 Pillow（宽高比容差）+ SHA256 去重（主图必须互不相同，R21「不全相同」）；合规规则复用 sourcing/compliance.py（词库单一事实源：BRAND_WORDS/PROHIBITED_WORDS/SUPPLY_CHAIN_WORDS/EFFICACY_WORDS/sanitize_title/ComplianceEngine 全量预审）——无任何真实平台调用（REC-004）。
+- 产出文件：`backend/services/listing_gate.py`、`backend/services/__init__.py`（包入口 + 重导出）；`backend/tests/test_listing_gate.py`（25 例：happy path、六项各自失败、边界 15/35 字符与恰好 5 张互不相同主图、配置注入 title 区间/主图下限/SKU 成本下限/容差/类目白名单、结构化拒绝；测试图片 Pillow 在 tmp 生成，零大文件 fixtures）。
+- 验收自测：① `python -m pytest tests/test_listing_gate.py -q --basetemp=".pytest-tmp"` → **25 passed**（首跑 2 例失败：all-identical 用例被 valid_candidate 默认图片覆盖文件导致哈希误判 + 配置注入用例数据笔误，已修复重跑全绿）；② 全量 `python -m pytest tests -q --basetemp=".pytest-tmp"` → **161 passed, 1 skipped**（既有 136 + 新增 25，无回归）。
+- 当前阻塞：无。待总工验收（P-002 共享 Chrome 登录态/OpenAPI 契约核对不属本任务范围）。
+- 备注：未运行任何 git 命令；未写任何明文密钥；未改动 sourcing/* 与 materials/*（仅只读复用 compliance.py/config.py）；全部产出 UTF-8 无 BOM（write/edit 工具）。
+
+---
+
+### 体系建立日 ｜ M1 总工程师 ｜ M1 自动选品（m1-sourcing） ｜ 角色：总工（批次 1 · S1a 验收 + S1b 处理）
+
+- 完成任务：① **S1a 验收通过**（子代理 32dfb48b）——独立复跑全量测试 `python -m pytest tests -q --basetemp=".pytest-tmp"` → **186 passed, 1 skipped**（含 M2/M3 新测试，无回归）；代码抽查确认：config.py 默认 DSN=`sqlite:///data/db/m1-sourcing.db`（REC-007 注释完整、SOURCING_DB_URL 覆盖保留）、db.py 文件型 SQLite 自动 mkdir 父目录（仅目录不存在时执行，与 M2/M3 db.py 模式一致）、新增 test_db_dsn.py 2 例质量合格（默认 DSN 断言 + 父目录自动创建/建表验证）、backend/README 快速开始同步；未触碰 S1b 范围文件（pipeline/scoring/tables/models/compliance 时间戳核验无改动）；② **S1b 验收不合格**——子代理 58579182 连续 3 次运行中断（closing message 为空），核实**零产出落盘**（tables.py 无 m1_ 表、config.py 无 ad_data_max_age_days、pipeline.py 无改动、无 test_m1_*.py、migrations 未建），判为会话环境抖动（与 M2/M3 批次中断现象一致）；③ 已第 4 次 send_message 恢复，消息含任务澄清（config.py 现可安全修改——ScoringConfig 在 config.py 内新增 ad_data_max_age_days；pydantic v2 禁止 setattr 未声明字段，测试用 load_config(**overrides) 构造）。
+- 产出文件：`progress.md`（S1a 勾选 100%、完成度 10%、S1b 标注待验收）；S1a 产出已验收：`backend/sourcing/config.py`/`db.py`、`backend/README.md`、`backend/tests/test_db_dsn.py`。
+- 当前阻塞：无。待 S1b 第 4 次恢复结果——若仍零产出则按「产出为空则重新派发」策略弃用并重派（对齐 M2-A/M3 处理先例）；S1a 验收通过后已具备派发 S2（ad_backfill，依赖 S1b 的 m1 表与过滤逻辑，故 S2 随 S1b 落地后派发）。
+- 备注：未运行任何 git 命令；未读写其他模块库（data/db 下 m2-materials.db 等仅发现未触碰）；全部文件经 write/edit 工具 UTF-8 无 BOM；无明文密钥。
+
+---
+
+### 2026-08-28 ｜ 子代理 C ｜ M2 自动收集素材（m2-materials） ｜ 角色：子代理（批次 2 · ffmpeg 标准化器）
+
+- 完成任务：实现 ffmpeg 标准化器（任务书完整项），「先实现 + 测试用 mock，环境就绪后切换」模式（本机 ffmpeg/ffprobe 未安装，已探测确认，未尝试安装）：
+  - `detect_ffmpeg()`：env MATERIALS_FFMPEG_PATH 优先 → PATH；返回版本字符串或 None，绝不抛异常；
+  - `FFmpegRunner` 抽象（probe/transcode）+ `FFmpegProcessRunner` 真实实现（subprocess.run，超时配置化；ffmpeg/ffprobe 缺失 raise `NormalizerError` 含安装指引，R-M2-15 不静默）+ `MockFFmpegRunner` 测试注入（零真实 ffmpeg 依赖，R-M2-17）；
+  - `validate_specs`：分辨率/比例(9:16±0.01)/格式/大小/时长 五维校验，返回 `{passed, failures:[{field,reason,value}]}` 逐项可解释；
+  - `Normalizer`：probe 预检 → ffmpeg 转码（命令对齐 05 示例，参数集中 config.normalize）→ 转码后复检硬规格（双校验 R-M2-12）；输出目录自动建；ffmpeg 缺失时 probe/normalize 均 raise NormalizerError；
+  - config.py **只追加** `NormalizeConfig` 子配置（嵌套 BaseSettings，MATERIALS_FFMPEG_PATH/FFPROBE_PATH 直接映射，已实测 pydantic-settings 2.15）；`__main__.py` **只追加** `normalize` 子命令（先探测 ffmpeg 缺失 → 清晰错误 exit 1；复检未通过 exit 1；输入不存在 exit 2），未覆盖 init-db/pool/download（并行子代理的 dedup-check 亦完好）。
+- 产出文件：`backend/materials/normalizer.py`、`backend/materials/config.py`（追加 NormalizeConfig）、`backend/materials/__main__.py`（追加 normalize 子命令）、`backend/tests/test_materials_normalizer.py`（34 用例：validate_specs 边界 13、probe 透传 4、normalize mock 全链路 5、detect_ffmpeg 2、ProcessRunner 缺失路径 3、行为锁定 4（ffprobe JSON 解析/命令锁定 05 示例/超时/失败 exit）、config env 映射 2、真实转码 skipif 1）。
+- 验收自测：① 单独 `python -m pytest tests/test_materials_normalizer.py -q --basetemp=".pytest-tmp"` → **33 passed, 1 skipped**；② 全量 `python -m pytest tests -q --basetemp=".pytest-tmp"` 连续两遍 → **186 passed, 1 skipped 全绿**（无回归）；③ `python -m materials normalize --input x.mp4`（ffmpeg 缺失）→ stderr 清晰错误（含「ffmpeg 缺失」+ 安装指引 winget/官网/brew/apt + MATERIALS_FFMPEG_PATH 提示），**EXIT_CODE=1**；④ 真实转码用例 `skipif(not detect_ffmpeg())` 本机自动跳过，环境就绪后自动启用无需改代码。
+- 环境坑记录：全量运行出现间歇性失败（2 failed / 79 errors），连续串行重跑即稳定全绿——判为**并发 pytest 进程共享 `.pytest-tmp` 互相清理**所致（工作区多个子代理并行跑测试），非代码问题；已记入汇报，建议总工/总控知悉。
+- 当前阻塞：无（ffmpeg 环境就绪由总控/运维处理；环境就绪后切换步骤见汇报）。
+- 备注：未运行任何 git 命令；未安装任何软件（含 ffmpeg）；未改动 backend/sourcing/* 与既有 materials 文件语义（仅追加 config/CLI）；未写任何明文密钥；全部产出 UTF-8 无 BOM（write/edit 工具）。
+
+---
+
+### 2025 体系建立日 ｜ M5 总工程师 ｜ M5 自动小店投放（商品托管） ｜ 角色：总工（v0.2 数据层派发）
+
+- 完成任务：① 落实总控验收与指示——DA-001 时间口径修订完成（context/README 数据字典、database/README、risks、data-requests 全部改为「时间存储 UTC（ISO8601 带时区）、展示转 UTC+8、时间戳 *_at」，与总控裁决一致）；② 勘察 backend 基线（sourcing/materials 包：config/db/tables/models/repo/conftest/requirements），确认 M5 落地模式（SQLAlchemy 2.0 + pydantic-settings + Database 封装 + 函数式 repo，包名 backend/ads/，D-M5-04）；③ 关键决策落档 decisions.md（D-M5-01~07：金额分/时间 UTC、英文枚举存储、evaluation 与 M2 共口径 exploring/efficient/potential、包名 ads、app_config 只读、快照幂等唯一约束、v0.3 抽象接口+fixtures 模拟）；④ 派发 v0.2 数据层子代理（id bc855a68，任务书自包含：必读文件/目标/输出路径/枚举口径/宪法纪律/验收标准）。
+- 产出文件：`_management/modules/m5-ads/context/README.md`（+时间口径修订）、`database/README.md`（+时间口径修订）、`risks.md`（+时区行修订）、`context/data-requests.md`（+时间口径修订）、`decisions.md`（D-M5-01~07）、`progress.md`（v0.2 开发中标注）；本日志追加条目。
+- **异常记录**：子代理 bc855a68 在完成前中断（closing message 为空，判为环境/会话抖动，与 M2/M3 批次中断现象一致）；核实**零产出落盘**（backend/ads/ 不存在）；已 send_message 恢复（ready 可续跑），恢复消息含任务要点重申（包结构/枚举/纪律/验收）已排队为下一回合。
+- 当前阻塞：无。待续跑子代理完成通知 → 总工验收（读产出 + 跑 pytest --basetemp=".pytest-tmp"）→ 更新 progress.md/台账 → 通知总控备份（里程碑：ad_* 表可建）。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（批次 2 · 子代理 C 验收）
+
+- 完成任务：按宪法第 9 节验收子代理 C（id 487ca61b，ffmpeg 标准化器）——
+  ① 独立复跑 `python -m pytest tests/test_materials_normalizer.py -q --basetemp=".pytest-tmp"` → **33 passed, 1 skipped**（与 C 自测一致；真实转码用例 skipif 本机自动跳过）；
+  ② 抽查代码：config.py 追加 NormalizeConfig（MATERIALS_FFMPEG_PATH/FFPROBE_PATH 映射、transcode_timeout/output_format/crf/ratio_tolerance），既有配置零改动；__main__.py 追加 normalize 子命令（init-db/pool/download 完好）；
+  ③ 行为验证：`python -m materials normalize --input x.mp4`（ffmpeg 缺失）→ stderr 清晰错误（含安装指引 winget/官网/brew/apt + 环境变量提示），**EXIT_CODE=1**；
+  ④ 编码复核：normalizer.py/config.py/__main__.py/test_materials_normalizer.py 全部 UTF-8 无 BOM（PowerShell 只读复核）。
+- 验收结论：**C 验收通过**。mock 模式交付（ffmpeg 未安装，环境待确认）；环境就绪后 detect_ffmpeg() 返回非 None，真实转码用例与 FFmpegProcessRunner 自动启用，无需改代码（切换步骤已记录）。
+- 环境事实登记：**P-011**（工作区多代理并行跑 pytest 共享 `.pytest-tmp` 互相清理 → 间歇性 errors，串行复跑即全绿；验收结果以连续两次全绿为准）。
+- 产出文件：`_management/modules/m2-materials/progress.md`（C 勾选 100%、A 行更新为 A2=7d9dc741）；`_management/logs/pitfall-log.md`（+P-011）；本日志追加条目。
+- 当前阻塞：无。批次 2 剩余：E（4179c644）运行中、A2（7d9dc741）运行中；待二者完成通知后验收 → 批次 2 收官通知总控备份。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（批次 2 · 子代理 E 验收）
+
+- 完成任务：按宪法第 9 节验收子代理 E（id 4179c644，双去重器）——
+  ① 验收命令首次复跑遇 50 errors（PermissionError，P-011 并发 pytest 共享 .pytest-tmp 互相清理）→ 按 P-011 纪律改**唯一 basetemp**（`.pytest-tmp-m2e`）串行复跑 → **55 passed**（test_materials_dedup 25 + tables 12 + repo 18），与 E 自测一致；
+  ② 抽查代码：`image_phash` 直接调用 `sourcing.dedup.phash_from_bytes/phash_hex`（逐位一致，测试锁定）；`DedupService.check_video/check_image/claim_and_register` 与 `AssetRepo.claim_fingerprint` 集成、冲突抛 `DuplicateAssetError` 不静默吞；阈值默认 `config.dedup.phash_hamming_threshold`=8 与 sourcing 口径一致；`FrameExtractor` 抽象（FFmpeg/Mock）可插拔；
+  ③ 验收 E 冒烟结论：临时库注册图片指纹 → 同图二次检查 is_duplicate=true reason=md5；视频 mock 帧路径由 pytest 覆盖；视频缺 ffmpeg 时 dedup-check CLI 清晰报错 exit 1（R-M2-15）。
+- 验收结论：**E 验收通过**。阈值校准结论：8 对压缩/缩放鲁棒（同图距离 0、随机噪声异图 ≈30）；纯色/低纹理图 DCT 判别力弱（红 vs 蓝仅 6）→ 建议 fixtures 用真实素材校准；视频关键帧阈值待装 ffmpeg 后以真实转码样本校准。
+- 产出文件：`_management/modules/m2-materials/progress.md`（E 勾选 100%）；本日志追加条目。
+- 当前阻塞：无。批次 2 剩余：A2（7d9dc741）运行中；待其完成通知后验收 → 批次 2 收官（E/C 已验收）通知总控备份。
+
+---
+
+### 2025 体系建立日 ｜ M5 总工程师 ｜ M5 自动小店投放（商品托管） ｜ 角色：总工（v0.2 数据层验收·通过）
+
+- 完成任务：按宪法第 9 节验收子代理 bc855a68（v0.2 数据层）产出——
+  ① 读交付说明 `_management/modules/m5-ads/REPORT_v0.2.md`（文件清单/测试结果/偏差/纪律核对齐全）；
+  ② 文件核验：backend/ads/ 7 文件（__init__/config/models/tables/db/repo/__main__）+ tests/test_ads_tables.py(19 例) + test_ads_repo.py(14 例) + conftest.py 仅末尾追加 cfg_ads/db_ads；
+  ③ 代码抽查：tables.py 五表字段/枚举英文存储（status/target_type/diagnosis/evaluation 与 M2 共口径/upload_status/error_code 09 码表）全部正确，金额=int 分、时间=DateTime(timezone=True)+utcnow、时间戳 *_at、snapshot 唯一约束 uq_snapshot_campaign_time、material_id unique；repo.py 函数式（read_app_config 只读+原生 SQL+表不存在兜底、campaign CRUD、run 回写、snapshot/material 幂等 upsert、account 单例+节流 0~4 封顶、sum_spend_since/count_active_campaigns 预算止损辅助）；
+  ④ **独立复跑**：定向 `pytest tests/test_ads_tables.py tests/test_ads_repo.py -q --basetemp=".pytest-tmp"` → **27 passed**；全量 `pytest tests -q --basetemp=".pytest-tmp"` → **258 passed / 5 failed / 1 skipped**（5 个失败均为 M0 foundation 既有问题：naive/aware 时间 TypeError×2、表断言列顺序、熔断时序，与 ads 无依赖，未改既有测试；子代理报告的 7 失败中 2 个 materials WinError 32 抖动本轮未复现）；
+  ⑤ 口径对齐修订：context/README.md 数据字典 `ad_account_states.status` 枚举 normal→active（以任务书/代码为准）；
+  ⑥ init-db 已建库：backend/data/db/m5-ads.db（5 表齐全）。
+- 验收结论：**v0.2 数据层验收通过**。里程碑达成：**ad_* 表可建** ✅（5 表 + repo 层可测可跑 + CLI init-db 幂等）。
+- 产出文件：`backend/ads/*`（7 文件）、`backend/tests/test_ads_tables.py`、`test_ads_repo.py`、`conftest.py`（追加）、`backend/data/db/m5-ads.db`（不入 git）、`_management/modules/m5-ads/REPORT_v0.2.md`、`progress.md`（v0.2 勾选、完成度 **30%**）、`context/README.md`（+status 枚举对齐）、本日志追加条目。
+- 当前阻塞：无。已请总控提交备份（里程碑：ad_* 表可建）；待总控确认后推进 v0.3 执行层（托管执行器 Playwright·抽象接口 + fixtures 模拟，依赖总控待用户确认清单）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；验收复跑测试命令均带 --basetemp=".pytest-tmp"（P-001）。

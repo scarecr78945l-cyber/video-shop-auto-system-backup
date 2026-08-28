@@ -1,6 +1,6 @@
 """M0 任务队列（WorkflowQueue）。
 
-语义对齐 `_management/modules/m0-foundation/database/README.md` 与 09 文档第二节：
+语义对齐 `_management/modules/m0-foundation/database/README.md`（五表最终 DDL v0.2）与 09 文档第二节：
 - enqueue：幂等——(product_id, stage, generation_version) 唯一约束，重复入队返回已有 job；
 - claim：领取可执行 job（pending 且到点 / running 但租约过期回收），写租约 45min；失败隔离
   （waiting_verification/waiting_login/blocked/success/failed 绝不被领取，不阻塞其他 job）；
@@ -8,7 +8,8 @@
   （retry → pending+退避 / manual_takeover → waiting_* / block_forever → blocked）；
 - recover_expired_leases：进程重启自愈（09 文档 resume_on_startup）。
 
-数据口径（REC-005 / DA-001）：时间一律 UTC；payload/result JSON 内金额一律「分」int。
+字段命名对齐 DDL：重试时间 `retry_after`、结果证据 `evidence_json`。
+数据口径（REC-005 / DA-001）：时间一律 UTC；payload/evidence_json JSON 内金额一律「分」int。
 """
 
 from __future__ import annotations
@@ -77,7 +78,7 @@ class WorkflowQueue:
         """领取可执行 job 并写租约（lease_minutes，默认 45min）。
 
         可选领取条件（SQL 内过滤，避免占名额）：
-        - pending 且 (next_retry_at 为空或已到点)；
+        - pending 且 (retry_after 为空或已到点)；
         - running 但租约已过期（进程崩溃回收，09 文档 recover_after_process_restart）。
         失败隔离：waiting_verification/waiting_login/blocked/success/failed 不会被领取。
         """
@@ -86,8 +87,8 @@ class WorkflowQueue:
             and_(
                 WorkflowJob.status == "pending",
                 or_(
-                    WorkflowJob.next_retry_at.is_(None),
-                    WorkflowJob.next_retry_at <= now,
+                    WorkflowJob.retry_after.is_(None),
+                    WorkflowJob.retry_after <= now,
                 ),
             ),
             and_(
@@ -118,14 +119,17 @@ class WorkflowQueue:
             return claimed
 
     # ---------------------------------------------------------------- 完成
-    def complete(self, job_id: int, worker_id: str, result: dict | None = None) -> bool:
-        """标记成功：仅当 job 为 running 且租约归属 worker_id（非持有者拒绝）。"""
+    def complete(self, job_id: int, worker_id: str, evidence: dict | None = None) -> bool:
+        """标记成功：仅当 job 为 running 且租约归属 worker_id（非持有者拒绝）。
+
+        evidence 为结果证据，写入 evidence_json（09/02 文档留痕）。
+        """
         with self.database.session() as session:
             job = session.get(WorkflowJob, job_id)
             if job is None or job.status != "running" or job.lease_owner != worker_id:
                 return False
             job.status = "success"
-            job.result = result or {}
+            job.evidence_json = evidence or {}
             job.lease_owner = None
             job.lease_expires_at = None
             return True
@@ -138,7 +142,14 @@ class WorkflowQueue:
         error_code: str,
         error_message: str = "",
     ) -> bool:
-        """按 error_codes 表策略分流失败任务（租约归属校验，非持有者拒绝）。"""
+        """按 error_codes 表策略分流失败任务（租约归属校验，非持有者拒绝）。
+
+        - retry（retryable=1）：status=pending，retry_count+1，retry_after=now+backoff_seconds；
+        - manual_takeover：VERIFICATION_REQUIRED→waiting_verification、AUTH_REQUIRED→waiting_login，
+          保留断点 payload，不自动重试；
+        - block_forever：status=blocked，记录原因转人工/修复候选；
+        - 未知错误码按 UNEXPECTED 兜底（60s 退避重试，留证据）。
+        """
         with self.database.session() as session:
             job = session.get(WorkflowJob, job_id)
             if job is None or job.status != "running" or job.lease_owner != worker_id:
@@ -152,17 +163,17 @@ class WorkflowQueue:
             if spec is not None and spec.action == "manual_takeover":
                 # 人工接管：单任务暂停，保留断点 payload，不重试
                 job.status = _MANUAL_STATUS.get(error_code, "blocked")
-                job.next_retry_at = None
+                job.retry_after = None
             elif spec is not None and spec.action == "block_forever":
                 # 平台驳回等：永久阻塞，记录原因转人工/修复候选
                 job.status = "blocked"
-                job.next_retry_at = None
+                job.retry_after = None
             else:
-                # retry：回 pending + 指数级退避由调用方决定；此处按码表退避秒数
+                # retry：回 pending + 按码表退避秒数计算下次可重试时间
                 job.status = "pending"
                 job.retry_count += 1
                 backoff = spec.backoff_seconds if spec is not None else 60
-                job.next_retry_at = _utcnow() + timedelta(seconds=backoff)
+                job.retry_after = _utcnow() + timedelta(seconds=backoff)
             job.lease_owner = None
             job.lease_expires_at = None
             return True

@@ -23,7 +23,7 @@
 | status | TEXT | `待托管` / `托管中` / `已暂停` / `不可投放` / `已结束` | 对齐后台投放管理列表 |
 | diagnosis | TEXT | `优秀` / `良好` / `1项待优化` / `N项待优化` | 智能诊断回读值 |
 | batch_id | INTEGER | 关联 ad_runs.batch_id | 批量托管批次 |
-| created_at / updated_at | TEXT | UTC+8 | — |
+| created_at / updated_at | TEXT | UTC(展示转UTC+8) | — |
 
 ### 2. ad_runs（AdRun：单次执行，复用 WorkflowJob 机制）
 
@@ -45,7 +45,7 @@
 |---|---|---|---|
 | id | INTEGER PK | — | 自增 |
 | campaign_id | INTEGER FK | → ad_campaigns.id | — |
-| recorded_at | TEXT | UTC+8 | 回读时间，(campaign_id, recorded_at) 唯一约束幂等 |
+| recorded_at | TEXT | UTC(展示转UTC+8) | 回读时间，(campaign_id, recorded_at) 唯一约束幂等 |
 | impressions | INTEGER | 次 | 商品曝光数 |
 | spend | INTEGER | 分 | 花费 |
 | gmv | INTEGER | 分 | 成交金额 |
@@ -59,7 +59,7 @@
 |---|---|---|
 | id | INTEGER PK | 自增 |
 | balance | INTEGER | 可用余额（分） |
-| status | TEXT | normal / risk_control / waiting_login / waiting_verification / paused |
+| status | TEXT | active / risk_control / waiting_login / waiting_verification / paused | 账户状态（默认 active；waiting_* 为人工接管断点续跑） |
 | throttle_level | INTEGER | 0~4 节流级（间隔 ×1/2/4/8/16） |
 | paused_until | TEXT | 暂停截止（人工接管后断点续跑） |
 | pause_reason | TEXT | 暂停原因 |

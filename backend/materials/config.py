@@ -82,6 +82,53 @@ class NormalizeConfig(BaseSettings):
     )
 
 
+class TikTokConfig(BaseSettings):
+    """TikTokDownloader 采集器参数（子代理 A；对齐 context/README.md 2.1 外部契约 + R-M2-04/R-M2-05）。
+
+    自身也是 settings 模型（env_prefix=MATERIALS_），各字段用 validation_alias 显式指定
+    **完整**环境变量名（实测 pydantic-settings 2.15：字段带别名时 env 名 = 别名原样，
+    前缀不再叠加），因此 `MATERIALS_TIKTOK_BINARY` / `MATERIALS_TIKTOK_TIMEOUT_SECONDS` /
+    `MATERIALS_TIKTOK_OUTPUT_DIR` / `MATERIALS_TIKTOK_VERSION_PIN` /
+    `MATERIALS_TIKTOK_ENABLED` 直接映射到本子配置对应字段；
+    populate_by_name=True 保证 `load_config(tiktok={...})` 按字段名覆盖可用（测试/CLI 常用）。
+    密钥纪律（P-004）：本配置只存路径/开关/版本号，不存任何凭证。
+    """
+
+    model_config = SettingsConfigDict(env_prefix="MATERIALS_", extra="ignore", populate_by_name=True)
+
+    binary_path: str | None = Field(
+        default=None,
+        validation_alias="MATERIALS_TIKTOK_BINARY",
+        description="TikTokDownloader 可执行路径（环境变量 MATERIALS_TIKTOK_BINARY 覆盖；None=走 PATH 探测）",
+    )
+    timeout_seconds: int = Field(
+        default=300,
+        validation_alias="MATERIALS_TIKTOK_TIMEOUT_SECONDS",
+        description="外部 CLI 子进程超时（秒）；超时→TIMEOUT（R-M2-06）",
+    )
+    default_output_dir: str = Field(
+        default="data/tiktok_downloads",
+        validation_alias="MATERIALS_TIKTOK_OUTPUT_DIR",
+        description="采集默认输出目录（环境变量 MATERIALS_TIKTOK_OUTPUT_DIR 覆盖）",
+    )
+    version_pin: str = Field(
+        default="4.1.x",
+        validation_alias="MATERIALS_TIKTOK_VERSION_PIN",
+        description=(
+            "推荐锁定版本线（环境变量 MATERIALS_TIKTOK_VERSION_PIN 覆盖；requirements 固定精确版本，"
+            "升级需回归，安装说明见 collectors/README.md）"
+        ),
+    )
+    enabled: dict[str, bool] = Field(
+        default_factory=lambda: {"douyin": True, "kuaishou": True, "xiaohongshu": True},
+        validation_alias="MATERIALS_TIKTOK_ENABLED",
+        description=(
+            "平台开关（环境变量 MATERIALS_TIKTOK_ENABLED 为 JSON 对象，如 {\"kuaishou\": false}）；"
+            "False=该平台禁用采集（R-M2-21 风控开关）"
+        ),
+    )
+
+
 class MaterialsConfig(BaseSettings):
     """总配置。环境变量：MATERIALS_DB_URL / MATERIALS_STORAGE_DIR 等。"""
 
@@ -104,6 +151,7 @@ class MaterialsConfig(BaseSettings):
     download: DownloadConfig = Field(default_factory=DownloadConfig)
     dedup: DedupConfig = Field(default_factory=DedupConfig)
     normalize: NormalizeConfig = Field(default_factory=NormalizeConfig)
+    tiktok: TikTokConfig = Field(default_factory=TikTokConfig)
 
 
 def load_config(**overrides: Any) -> MaterialsConfig:

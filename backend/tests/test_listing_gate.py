@@ -33,14 +33,23 @@ def make_main_images(tmp_path, n, size=(100, 100), distinct=True):
 
 
 def valid_candidate(tmp_path, **overrides):
+    # 先取出图片覆盖项，避免默认生成的主图覆盖测试自备文件（文件哈希/宽高比校验依赖内容）
+    main_images = overrides.pop("main_images", None)
+    detail_images = overrides.pop("detail_images", None)
     data = dict(
         product_id=1001,
         title=VALID_TITLE,
         category_id=1,
         category_name="家居日用",
         qualification={"qualification_id": "Q-001", "expires_at": "2027-12-31"},
-        main_images=make_main_images(tmp_path, 5),
-        detail_images=[make_image(tmp_path / "detail_0.png")],
+        main_images=(
+            make_main_images(tmp_path, 5) if main_images is None else main_images
+        ),
+        detail_images=(
+            [make_image(tmp_path / "detail_0.png")]
+            if detail_images is None
+            else detail_images
+        ),
         skus=[SkuInput(code="SKU-A", cost_cents=300, price_cents=990)],
         purchase_settings=PurchaseSettings(
             purchase_limit={"per_user": 2, "period": "month"},
@@ -217,8 +226,8 @@ def test_compliance_efficacy_word_rejected(tmp_path):
 
 
 def test_config_injection_title_range(tmp_path):
-    g = gate(title_min=5, title_max=50)
-    result = g.evaluate(valid_candidate(tmp_path, title="短标题"))
+    g = gate(title_min=3, title_max=50)
+    result = g.evaluate(valid_candidate(tmp_path, title="短标题"))  # 3 字符 = 注入下限
     assert result.passed is True
     assert item_by(result, "title_length").passed is True
 

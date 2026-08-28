@@ -1,11 +1,12 @@
 """M0 基座与数据治理：共享表 ORM。
 
-对齐 `_management/modules/m0-foundation/database/README.md` 五表 DDL：
+对齐 `_management/modules/m0-foundation/database/README.md` 五表最终 DDL（v0.2）：
 workflow_jobs / tasks / logs / app_config / error_codes（无前缀，归属 M0，全员只读）。
 
 数据口径（总控裁决 REC-005 / DA-001）：
 - 金额一律「分」int 存储（含 JSON 内金额），展示层转元；
 - 时间一律 UTC（ISO8601 带时区），时间戳字段后缀 `_at`，展示层转 UTC+8。
+字段命名与 DDL 一致：重试时间 `retry_after`、结果证据 `evidence_json`。
 """
 
 from __future__ import annotations
@@ -35,9 +36,10 @@ class Base(DeclarativeBase):
 
 
 class WorkflowJob(Base):
-    """任务队列主表（09 文档第二节）。
+    """任务队列主表（09 文档第二节；最终 DDL v0.2）。
 
-    租约 45min（config.lease_minutes 可配）；幂等键 (product_id, stage, generation_version)；
+    租约 45min（config.lease_minutes 可配，lease_expires_at 过期回收）；
+    幂等键 (product_id, stage, generation_version)；
     失败隔离：waiting_*/blocked 等状态不被 claim，不阻塞其他 job 排队。
     """
 
@@ -46,21 +48,29 @@ class WorkflowJob(Base):
         UniqueConstraint(
             "product_id", "stage", "generation_version", name="uq_wj_idempotency"
         ),
+        Index("idx_wj_status", "status"),
+        Index("idx_wj_stage", "stage"),
+        Index("idx_wj_retry", "retry_after"),
+        Index("idx_wj_lease", "lease_expires_at"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     product_id: Mapped[int] = mapped_column(Integer, nullable=False)  # 跨库业务引用，不建 FK 防跨库
-    stage: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
-    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending", index=True)
-    error_code: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    stage: Mapped[str] = mapped_column(String(40), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    error_code: Mapped[str | None] = mapped_column(String(40), nullable=True)  # 见 error_codes 表
     error_message: Mapped[str] = mapped_column(Text, default="")
-    retry_count: Mapped[int] = mapped_column(Integer, default=0)
-    next_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
-    lease_owner: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    generation_version: Mapped[str] = mapped_column(String(40), default="v1")
+    retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)  # 已重试次数
+    retry_after: Mapped[datetime | None] = mapped_column(  # 下次可重试时间（UTC；error_codes.backoff_seconds 计算）
+        DateTime(timezone=True), nullable=True
+    )
+    lease_owner: Mapped[str | None] = mapped_column(String(120), nullable=True)  # 租约持有者（worker id）
+    lease_expires_at: Mapped[datetime | None] = mapped_column(  # 租约过期时间（45min，过期回收）
+        DateTime(timezone=True), nullable=True
+    )
+    generation_version: Mapped[str] = mapped_column(String(40), nullable=False, default="v1")
     payload: Mapped[dict] = mapped_column(JSON, default=dict)  # 入队参数/断点；JSON 内金额按分 int（REC-005）
-    result: Mapped[dict] = mapped_column(JSON, default=dict)  # 结果证据（evidence_json 沿用）
+    evidence_json: Mapped[dict] = mapped_column(JSON, default=dict)  # 结果证据（09/02 文档 evidence_json 留痕）
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
@@ -68,17 +78,29 @@ class WorkflowJob(Base):
 
 
 class Task(Base):
-    """任务明细/子任务（骨架，迁移包落地后核对修订，见 decisions.md）。"""
+    """任务明细/子任务（最终 DDL v0.2；job_id 归属 workflow_jobs，跨库暂不建 FK）。"""
 
     __tablename__ = "tasks"
+    __table_args__ = (
+        UniqueConstraint("job_id", "task_type", name="uq_tk_idempotency"),  # 同一 job 下同类型子任务唯一
+        Index("idx_tk_job", "job_id"),
+        Index("idx_tk_status", "status"),
+        Index("idx_tk_retry", "retry_after"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    job_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)  # 关联 workflow_jobs.id，暂不建 FK
-    task_type: Mapped[str] = mapped_column(String(60), default="")
-    status: Mapped[str] = mapped_column(String(20), default="pending")
-    payload: Mapped[dict] = mapped_column(JSON, default=dict)
-    result: Mapped[dict] = mapped_column(JSON, default=dict)
+    job_id: Mapped[int] = mapped_column(Integer, nullable=False)  # 任务归属（workflow_jobs.id）
+    stage: Mapped[str] = mapped_column(String(40), nullable=False)  # 与 workflow_jobs.stage 同枚举
+    task_type: Mapped[str] = mapped_column(String(60), nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
     error_code: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    error_message: Mapped[str] = mapped_column(Text, default="")
+    retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    retry_after: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    lease_owner: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)  # 金额按分 int（REC-005）
+    evidence_json: Mapped[dict] = mapped_column(JSON, default=dict)  # 结果证据（留痕）
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
@@ -93,11 +115,11 @@ class LogEntry(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-    module: Mapped[str] = mapped_column(String(20), nullable=False)
+    module: Mapped[str] = mapped_column(String(20), nullable=False)  # m0/m1/.../m5
     level: Mapped[str] = mapped_column(String(10), nullable=False)
     event: Mapped[str] = mapped_column(String(120), default="")
     message: Mapped[str] = mapped_column(Text, default="")
-    evidence: Mapped[dict] = mapped_column(JSON, default=dict)
+    evidence: Mapped[dict] = mapped_column(JSON, default=dict)  # 敏感字段写入前必须 _redact_text
 
 
 class AppConfigRow(Base):
@@ -110,7 +132,7 @@ class AppConfigRow(Base):
     __tablename__ = "app_config"
 
     key: Mapped[str] = mapped_column(String(120), primary_key=True)
-    value: Mapped[dict] = mapped_column(JSON, default=dict)
+    value: Mapped[dict] = mapped_column(JSON, default=dict)  # 值一律 JSON；金额类配置按分 int
     description: Mapped[str] = mapped_column(String(500), default="")
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
@@ -123,8 +145,8 @@ class ErrorCode(Base):
     __tablename__ = "error_codes"
 
     code: Mapped[str] = mapped_column(String(40), primary_key=True)
-    retryable: Mapped[bool] = mapped_column(Boolean, default=False)
-    backoff_seconds: Mapped[int] = mapped_column(Integer, default=0)
+    retryable: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    backoff_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     action: Mapped[str] = mapped_column(String(60), nullable=False)  # retry|manual_takeover|block_forever
     description: Mapped[str] = mapped_column(String(300), default="")
 
