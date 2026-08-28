@@ -442,3 +442,12 @@
 - 文档同步：`backend/materials/collectors/README.md` 第七节测试命令改为 `.pytest-tmp-m2`（注明宪法第 12 节 / P-011 与全量回归归总控）；`backend/tests/test_materials_tiktok_wrapper.py` 文件头纪律行同步（独立 basetemp，禁止共用 `.pytest-tmp`）；context/README.md 环境事实·测试行已由总工落档（`.pytest-tmp-m2`）。
 - 当前阻塞：无。其余任务书要求不变（fake CLI 全场景、禁 git、禁明文密钥、UTF-8 无 BOM 均已满足）。
 - 备注：未运行任何 git 命令；未安装/下载任何软件；未写明文密钥；全部产出 UTF-8 无 BOM（write/edit 工具）。
+
+---
+
+### 2025 体系建立日 ｜ M5 总工程师 ｜ M5 自动小店投放（商品托管） ｜ 角色：总工（v0.3 · 投放设置验收通过 + 执行器 A2 重派）
+
+- 完成任务：① **验收投放设置子代理 91f77eec 通过**——独立复跑定向 `pytest tests/test_ads_settings.py -q --basetemp=".pytest-tmp-m5"` → **25 passed**（0.05s，新纪律独立 basetemp）；读交付说明 REPORT_v0.3_settings.md（接口/对接/测试/偏差/纪律齐全）；代码抽查 settings.py：pick_materials（仅 approved、efficient>potential>exploring、同级 (impressions,gmv) 降序稳定排序、未知标签兜底）、validate_submit（余额>素材>预算优先级、PLATFORM_REJECT）、SettingsForm（choose_target 三选一 roi/net_roi/goods、fill_roi >0 校验两位小数、bind_materials {mid} 模板、submit 读 error_banner 关键词 blocked、banner 未配置按 TIMEOUT 语义）、MockSettingsPage 独立实现（零 import executor）、扩展 read_recommended_roi/resolve_roi（系统推荐优先/覆盖策略）——全部符合任务书；config.py 仅尾部追加 target_roi_override/roi_recommended_source；② **测试纪律更新（P-011，总控指示）**：M5 统一独立 basetemp `--basetemp=".pytest-tmp-m5"` 写入 context/README.md 环境事实（全量回归由总控统一执行）；③ **执行器子代理 861a44a5 ran out of room（上下文耗尽）且零产出** → 按 M2-A 先例弃用，重派 A2=ad45ec7a（任务书精简：内嵌 PageOps/ShopAdsUiConfig 契约、延迟 import settings 兜底、独立 basetemp 纪律、禁止改动既有文件），已后台运行。
+- 产出文件：`progress.md`（投放设置勾选 100%、执行器 A2 标注）；`context/README.md`（测试命令 +P-011 独立 basetemp）；本日志追加条目。
+- 当前阻塞：无。待执行器 A2 完成通知 → 验收（读产出 + 跑 pytest --basetemp=".pytest-tmp-m5"）→ v0.3 集成（executor↔settings 联调）→ 通知总控备份 → 推进 v0.4 监控层。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥。

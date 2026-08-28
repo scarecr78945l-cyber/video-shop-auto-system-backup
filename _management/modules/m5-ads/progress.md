@@ -32,9 +32,10 @@
 | 任务 | 负责 | 进度 | 剩余工作 |
 |---|---|---|---|
 | [x] 公共骨架：ui_config.py（ShopAdsUiConfig 选择器/页面/节奏配置）+ interfaces.py（PageOps Protocol + PageChangedError） | 总工 | 100% | 无 |
-| [~] 托管执行器：会话管理/CDP 连接抽象/两步操作编排/page_changed 检测 + MockPageOps（backend/ads/executor.py + test_ads_executor.py） | 子代理 861a44a5（已派发） | 10% | 子代理开发中；总工验收 |
-| [~] 投放设置：目标三选一/ROI 填值/素材绑定（高效>潜力>探索期）/提交校验 + Mock（backend/ads/settings.py + test_ads_settings.py） | 子代理 91f77eec（已派发） | 10% | 子代理开发中；总工验收 |
-| [ ] v0.3 集成：executor ↔ settings 对接（run_batch 编排联调）+ 验收 | 总工 | 0% | 两子代理完成后执行 |
+| [~] 托管执行器：会话管理/CDP 连接抽象/两步操作编排/page_changed 检测 + MockPageOps（backend/ads/executor.py + test_ads_executor.py） | 子代理 ad45ec7a（A2 重派，已运行） | 20% | 子代理开发中；总工验收 |
+| [x] 投放设置：目标三选一/ROI 填值/素材绑定（高效>潜力>探索期）/提交校验 + Mock（backend/ads/settings.py + test_ads_settings.py） | 子代理 91f77eec | 100% | 无 |
+| [x] 投放设置验收：定向 25 passed（.pytest-tmp-m5）+ 代码抽查（优先级/排除未过审/校验优先级/错误码） | 总工 | 100% | 无 |
+| [ ] v0.3 集成：executor ↔ settings 对接（run_batch 编排联调）+ 验收 | 总工 | 0% | 执行器子代理完成后执行 |
 
 ## 开发阶段管理方式（总控已确认，2025 体系建立日）
 

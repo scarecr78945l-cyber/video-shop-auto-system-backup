@@ -43,3 +43,7 @@ Desktop.ini
 tmp/
 *.log
 backend/logs/
+
+# ===== pytest 独立 basetemp 目录（各模块专属，不入库）=====
+backend/.pytest-tmp*/
+backend/.pytest-tmp/

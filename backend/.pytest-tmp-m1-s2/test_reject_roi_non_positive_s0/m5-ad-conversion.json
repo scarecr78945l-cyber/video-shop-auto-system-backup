@@ -1,1 +1,0 @@
-{"schema_version": 1, "period": {"start": "2026-08-01", "end": "2026-08-31"}, "generated_at": "2026-08-28T00:00:00+08:00", "data": {"收纳整理": {"roi": 0.0, "sales_amount": 12800000, "sample_count": 34}, "宠物用品": {"roi": -1.0, "sales_amount": 8600000, "sample_count": 21}, "厨房用品": {"roi": 2.1, "sales_amount": 5400000, "sample_count": 12}}}
