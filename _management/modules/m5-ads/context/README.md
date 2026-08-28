@@ -143,7 +143,7 @@
 | 本模块库文件 | `backend/data/db/m5-ads.db`（SQLite，不入 git；生产切 PostgreSQL 时迁移脚本在 database/） |
 | 共享浏览器 | Playwright + 共享 Chrome，CDP 端口（环境变量，如 9222/9223 体系），复用已有标签页不重复开页 |
 | Python | 3.12；依赖锁 requirements；Playwright 版本固定 |
-| 测试命令 | `python -m pytest tests -q --basetemp=".pytest-tmp"`（P-001 坑） |
+| 测试命令 | 本模块测试一律 `python -m pytest <用例> -q --basetemp=".pytest-tmp-m5"`（P-001 默认临时目录 WinError 5 + P-011 多代理并行共享 `.pytest-tmp` 互相清理；本模块用独立 basetemp `.pytest-tmp-m5`，全量回归由总控统一执行） |
 | ffmpeg | 素材规格校验依赖（时长/分辨率/大小），M3 产出规格锁定 |
 | 环境变量（仅列名，不含值） | `M5_ADS_CDP_PORT`、`M5_ADS_PROFILE_DIR`（浏览器资料目录）、`M5_ADS_MIN_BALANCE`（余额阈值分）、`M5_ADS_BATCH_SIZE`（默认50）、`M5_ADS_BATCH_INTERVAL`（批间隔秒）、`M5_ADS_REPORT_INTERVAL`（回读秒）、`M5_ADS_STOPLOSS_IMPRESSION`（曝光阈值）、`M5_ADS_TARGET_ROI_OVERRIDE`（ROI覆盖，可空）、`M5_ADS_DAILY_BUDGET` / `M5_ADS_PLAN_BUDGET` / `M5_ADS_SINGLE_BUDGET`（预算三重约束，分） |
 | 敏感信息 | 任何 API Key/Token/Cookie/密码**只走环境变量**，绝不在 md/代码/日志写明文；日志 `_redact_text` 脱敏 |

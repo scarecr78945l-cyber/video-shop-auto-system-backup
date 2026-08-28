@@ -13,8 +13,9 @@
      config.tiktok 环境变量映射（MATERIALS_TIKTOK_BINARY 等）、CLI 子命令
      （binary 缺失非 0 退出 / 注入 fake binary 跑通解析）。
 
-纪律：pytest 一律带 --basetemp=".pytest-tmp"（P-001）；临时文件只放 tmp_path；
-全程零真实 TikTokDownloader 依赖、零外网（R-M2-17）；fake 输出中的假 Cookie/Token
+纪律：pytest 必须带独立 basetemp（宪法第 12 节 / P-011），M2 模块统一
+`--basetemp=".pytest-tmp-m2"`（禁止共用 `.pytest-tmp`，并行代理会互相清理）；临时文件只放
+tmp_path；全程零真实 TikTokDownloader 依赖、零外网（R-M2-17）；fake 输出中的假 Cookie/Token
 同样视为敏感值，断言不得出现在返回与日志中（宪法第 5 节）。
 """
 

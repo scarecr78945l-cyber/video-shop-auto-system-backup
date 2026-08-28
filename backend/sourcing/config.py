@@ -219,6 +219,10 @@ class SourcingConfig(BaseSettings):
     # 广告转化数据（回流）：按类目聚合的 ROI/成交额（AdReportSnapshot 汇总来源）
     ad_conversion_by_category: dict[str, dict[str, float]] = Field(default_factory=dict)
 
+    # M5 → M1 投放转化回写交换文件路径（契约 C-2：_management/data-exchange/m5-ad-conversion.json）。
+    # 默认 "" = 未配置：此时 ad-sync 必须 --file 显式指定；配置后 ad-sync 可缺省读此路径。
+    ad_exchange_file: str = ""
+
 
 def load_config(**overrides: Any) -> SourcingConfig:
     """加载配置，支持关键字覆盖（测试/CLI 常用）。"""

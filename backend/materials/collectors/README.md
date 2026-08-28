@@ -104,10 +104,13 @@ TikTokDownloader 对视频号支持弱（主流版本主打抖音/快手/小红�
 
 ```bash
 cd backend
-python -m pytest tests/test_materials_tiktok_wrapper.py -q --basetemp=".pytest-tmp"   # P-001
-python -m pytest tests -q --basetemp=".pytest-tmp"                                     # 全量
+python -m pytest tests/test_materials_tiktok_wrapper.py -q --basetemp=".pytest-tmp-m2"   # 本封装（P-011：M2 独立 basetemp）
+python -m pytest tests -q --basetemp=".pytest-tmp-m2" -k "materials"                    # 本模块范围（全量回归由总控统一执行）
 ```
 
+- 测试纪律（宪法第 12 节 / P-011）：pytest **必须带独立 basetemp**，M2 模块统一
+  `--basetemp=".pytest-tmp-m2"`（**禁止共用 `.pytest-tmp`**，并行代理会互相清理）；
+  全量回归由总控统一执行，子代理只跑本模块范围测试。
 - fake CLI fixtures：`tests/test_materials_tiktok_wrapper.py` 生成临时 python 脚本模拟
   TikTokDownloader 的文本/JSON 输出与退出码/超时，注入 `binary_path` 全场景覆盖
   （正常解析/参数构造/错误映射/超时/binary 缺失/脱敏）；

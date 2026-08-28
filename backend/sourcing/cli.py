@@ -9,6 +9,7 @@
   python -m sourcing scheduler --loop --interval 60
   python -m sourcing pool --limit 20
   python -m sourcing score --product-id 3
+  python -m sourcing ad-sync --file ../_management/data-exchange/m5-ad-conversion.json
   python -m sourcing config-show
 """
 
@@ -372,6 +373,46 @@ def config_show(config) -> None:
     ]:
         spec = getattr(config, name)
         click.echo(f"  {label:<12} enabled={spec.enabled} cdp_port={spec.cdp_port} profile={spec.profile_dir or '(共享)'}")
+
+
+@cli.command()
+@click.option(
+    "--file",
+    "file_path",
+    type=click.Path(dir_okay=False),
+    default=None,
+    help="M5 投放转化交换文件路径；缺省读 config.ad_exchange_file（契约 C-2）",
+)
+@click.pass_obj
+def ad_sync(config, file_path) -> None:
+    """导入 M5 投放转化回写（幂等写 m1_ad_conversion_cache / m1_ad_conversion_ingests）。"""
+    from .ad_backfill import AdBackfillError, apply_exchange, load_exchange
+    from .db import Database
+
+    if not file_path:
+        file_path = config.ad_exchange_file
+    if not file_path:
+        click.echo(
+            "未指定交换文件：请用 --file 指定，或在配置中设置 ad_exchange_file"
+            "（契约 C-2：_management/data-exchange/m5-ad-conversion.json）"
+        )
+        sys.exit(1)
+    db = Database(config)
+    db.create_all()
+    try:
+        exchange = load_exchange(file_path)
+    except AdBackfillError as e:
+        click.echo(f"交换文件校验失败：{e}")
+        sys.exit(1)
+    if exchange is None:
+        click.echo(f"交换文件不可用（不存在或解析失败）：{file_path}")
+        sys.exit(1)
+    stats = apply_exchange(db, exchange, file_path)
+    click.echo(
+        f"ad-sync 完成：类目 {stats['categories']} 个"
+        f" / 新增 {stats['inserted']} / 更新 {stats['upserted']}"
+        f" / 跳过 {stats['skipped']} / 载入 {stats['rows_loaded']}"
+    )
 
 
 if __name__ == "__main__":

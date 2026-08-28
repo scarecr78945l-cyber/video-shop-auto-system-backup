@@ -430,3 +430,15 @@
 - 环境待确认（提请总控/运维）：**ffmpeg 未安装**（标准化器 mock 模式，就绪后自动切真实 runner）；**TikTokDownloader 未安装**（封装就绪，就绪后装 4.1.x）。
 - 跨模块事项（提请总控转达 M0）：全量测试 5 failed 均为 M0 foundation 既有问题（与 M5/M1/M4 台账记录一致），本模块 sourcing+materials 范围始终全绿。
 - 当前阻塞：无。**批次 2 收官，请总控提交备份**；批准后推进批次 3（B 视频号采集器自研签名+直链、淘宝/1688 采集复测、考古加/有米云榜单图缓存）。
+
+---
+
+### 2026-08-28 ｜ 子代理 A2 ｜ M2 自动收集素材（m2-materials） ｜ 角色：子代理（测试纪律更新后的复跑确认）
+
+- 完成任务：按总控测试纪律升级（宪法第 12 节 / P-011：pytest 独立 basetemp，M2 统一 `--basetemp=".pytest-tmp-m2"`，禁止共用 `.pytest-tmp`，全量回归归总控统一执行）重跑本模块测试并同步文档：
+  - `python -m pytest tests/test_materials_tiktok_wrapper.py -q --basetemp=".pytest-tmp-m2"` → **34 passed**（fake CLI 全场景 ①~⑤ 全绿）；
+  - `python -m pytest tests/test_materials_tables.py tests/test_materials_repo.py -q --basetemp=".pytest-tmp-m2"` → **30 passed**（既有 materials 测试未破坏）；
+  - `python -m pytest tests -q --basetemp=".pytest-tmp-m2" -k "materials or db_dsn or listing_gate"` → **191 passed, 1 skipped**（materials 模块范围全绿，含并行子代理 C/E 新增用例）。
+- 文档同步：`backend/materials/collectors/README.md` 第七节测试命令改为 `.pytest-tmp-m2`（注明宪法第 12 节 / P-011 与全量回归归总控）；`backend/tests/test_materials_tiktok_wrapper.py` 文件头纪律行同步（独立 basetemp，禁止共用 `.pytest-tmp`）；context/README.md 环境事实·测试行已由总工落档（`.pytest-tmp-m2`）。
+- 当前阻塞：无。其余任务书要求不变（fake CLI 全场景、禁 git、禁明文密钥、UTF-8 无 BOM 均已满足）。
+- 备注：未运行任何 git 命令；未安装/下载任何软件；未写明文密钥；全部产出 UTF-8 无 BOM（write/edit 工具）。
