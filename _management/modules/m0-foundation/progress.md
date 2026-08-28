@@ -18,8 +18,9 @@
 | [x] A1-1：workflow_jobs 最终 DDL 落盘（SQLite，含租约/幂等/retry_after/evidence_json） | 总工 | 100% | 无 |
 | [x] A1-2：tasks 表最终 DDL 落盘（SQLite，job_id 归属/stage/状态/错误码/租约/幂等） | 总工 | 100% | 无 |
 | [x] A1-3：复核五表 DDL（无乱码/对齐 REC-005）+ `backend/foundation/tables.py` 字段命名对齐 DDL（retry_after/evidence_json/Task 补全） | 总工 | 100% | 无 |
-| [ ] 基座开发 A（小步进）：foundation 包对齐（config/db/repo 引用字段随 tables.py 更新）→ 队列 API → 测试 | 总工 | 15% | 下一步：foundation 包对齐（repo.py 的 next_retry_at/result 引用需改 retry_after/evidence_json） |
-| [ ] 基座开发 B：调度器进程化 | 总工/子代理 | 0% | 排期 A2 |
+| [x] A1-4：repo.py 字段对齐 DDL（retry_after/evidence_json）+ foundation 单测 30 个（五表可建/列对齐/唯一约束/seed 幂等/enqueue/claim/complete/fail/租约 45min 回收/幂等/错误码退避/失败隔离，SQLite 内存库 StaticPool）+ 全量回归全绿 | 总工 | 100% | 无 |
+| [x] 基座开发 A（A1 队列基座）验收：`python -m pytest tests -q --basetemp=".pytest-tmp"` → **384 passed, 1 skipped**（sourcing 39 + materials + optimization + ad_backfill 23 + foundation 30） | 总工 | 100% | 无 |
+| [ ] 基座开发 B：调度器进程化（独立进程 + resume_on_startup 断点恢复） | 总工/子代理 | 0% | 排期 A2，待总控批准派发 |
 | [ ] 风控落地：预算三重/止损/余额/一键全停 | 总工/子代理 | 0% | 排期 A3 |
 | [ ] 工程基座：环境变量化/脱敏巡检/.env.example/迁移脚本 | 总工/子代理 | 0% | 排期 A4/A5 |
 | [ ] 治理：数据字典定稿 + 跨模块契约会签 | 总工 | 0% | 排期 A6 |
@@ -27,8 +28,8 @@
 
 ## 里程碑进度
 
-- 本模块当前完成度：**15%**（筹备轮完成，开发未启动）
-- 距离目标还差：基座开发 → 风控落地 → 工程基座 → 治理 → 集成 → 验收
+- 本模块当前完成度：**30%**（筹备 15% + A1 队列基座 15%；**里程碑 v0.2 达成：workflow_jobs 建库可跑 + 队列 API 全绿**）
+- 距离目标还差：调度器进程化（A2）→ 风控落地（A3）→ 工程基座（A4/A5）→ 治理（A6）→ 集成（A7）
 
 ## 后续开发排期（可拆给子代理的任务标注 ✅）
 

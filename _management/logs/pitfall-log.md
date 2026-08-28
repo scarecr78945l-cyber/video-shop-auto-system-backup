@@ -89,4 +89,13 @@
 
 ---
 
+## P-012 ｜ pytest 独立 basetemp 目录曾被 git 误跟踪入库
+
+- **出现时间**：2026-08-28 ｜ **模块**：全局/备份 ｜ **代理**：总控
+- **现象与根因**：P-011 落地前，某模块的 `.pytest-tmp-m1-s2/` 临时目录（含测试生成的 png/mp4/bin/json 假文件）被 `git add -A` 误纳入版本库并已推送。
+- **解决方案**：`.gitignore` 追加 `backend/.pytest-tmp*/`（含 `.pytest-tmp/`）；`git rm -r --cached` 移除索引跟踪（保留工作区文件）；提交 v0.9 并推送（远程不再含临时文件）。
+- **防复发**：① `.gitignore` 已固化 `.pytest-tmp*` 排除规则；② git add 前用 `git status` 检查临时目录不出现；③ 后续提交凡见 `backend/.pytest-tmp` 一律先确认 .gitignore。
+
+---
+
 > 日志继续追加中（由所有代理共同维护）。
