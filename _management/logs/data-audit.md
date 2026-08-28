@@ -54,3 +54,16 @@
   4. M3 对外提供：M4（主图 5 张 + 详情图 ≥3 + 标题 15–35 字符）、M5（9:16 视频多版本 + 投放文案/角标 + evaluation 排序）。
 - **校验结果**：口径已按 DA-001 统一（金额=分、时间=UTC）；字段明细见 M3 context/README.md。
 - **总控核对结论**：✅ 口径通过；待 M1 筹备完成、M2/M5 相应模块就绪后由总控转达。
+
+---
+
+## DA-004 ｜ M2 数据联动登记（申请方：M2 总工 ｜ 提供方：M3/M5）
+
+- **内容**：
+  1. **从 M5（投放）接收**：evaluation 评估标签回写（asset_id + evaluation 枚举 exploring/efficient/potential + evidence）——写 `asset_evaluations` 审计 + 更新 `asset_items.evaluation`，频率=日快照批量；
+  2. **从 M3（素材优化）接收**：上传小店素材库结果回填（platform_material_id + upload_status=uploaded）——写 `asset_uploads` + 更新 `asset_items`，频率=每次上传任务完成；
+  3. **M2 对外提供**：M3（原始素材 asset_id/asset_type/source_platform/source_url/md5/phash/file_path/duration/resolution/size/tags_json/heat_score/derivation_note，**门禁 compliance_status=passed**，用途=二创原料）；M5（素材查询/绑定 asset_id/file_path/platform_material_id/upload_status=uploaded/规格字段，用途=投放优选绑定）。
+- **字段明细与口径**：见 `_management/modules/m2-materials/context/README.md`（数据字典/3.x 跨模块契约）与 `context/data-requests.md`（四类登记）；evaluation 枚举与 M5 共口径（exploring/efficient/potential）；时间 UTC（DA-001）。
+- **服务层**：`backend/materials/integration.py`（EvaluationFeedbackService / MaterialUploadService，已验收 17 例）。
+- **校验结果**：M2 侧实现与测试已完成（evaluation 回写幂等、上传抽象 mock 全链路）；待 M3/M5 侧就绪后由总控协调联调。
+- **总控核对结论**：（待填）

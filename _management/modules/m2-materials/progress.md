@@ -22,9 +22,9 @@
 | [x] 视频号采集器（自研签名+直链） | 子代理 B1 | 100% | ✅已验收：总工复跑 28 passed + CLI rc=0（fixtures JSON 合法）；signer.py 接口化（Mock 注入生效/Real 未校准清晰报错），auto 待登录态校准 |
 | [x] 淘宝/1688 商品视频与同款图采集 | 子代理 B2' | 100% | ✅已验收：总工复跑 34 passed + CLI exit 0；降级（R-M2-08）/page_changed 证据（P-003）/脱敏抽查合格；⚠️fetch_* 半成品不在工作区已记录，auto 待登录态 |
 | [x] 考古加/有米云榜单图缓存（IMAGE_CACHE） | 子代理 B3 | 100% | ✅已验收：总工复跑 25 passed（.pytest-tmp-m2）；缓存键/幂等/失败隔离锁定；多源接口 kaogujia 预留 |
-| [ ] 标签化 + 合规预审（供应链词/品牌词） | 子代理 B4-1 | 已派发 | 执行中（子代理 id 16e973e3）；复用 sourcing.compliance 词库，证据留痕 |
+| [x] 标签化 + 合规预审（供应链词/品牌词） | 子代理 B4-1 | 100% | ✅已验收：总工复跑 31 passed；词库 import 复用 sourcing.compliance（is 断言锁定），mark_disabled 幂等 |
 | [ ] 单元测试（--basetemp=".pytest-tmp-m2"，宪法第 12 节） | 各子代理 | 0% | 随功能配套 |
-| [ ] 与 M3/M5 数据联动契约联调（evaluation 回流/上传素材库） | 子代理 B4-2 | 已派发 | 执行中（子代理 id 684608a5）；evaluation 回流协议 + 上传接口抽象（mock，真实待登录态） |
+| [x] 与 M3/M5 数据联动契约联调（evaluation 回流/上传素材库） | 子代理 B4-2 | 100% | ✅已验收：总工复跑 17 passed；DA-004 已登记 data-audit；上传抽象 mock，真实待登录态 |
 | [ ] 素材流水线编排 pipeline.py（v1.0 集成支撑） | 子代理 B4-3 | 已派发 | 执行中（子代理 id a052cdfd）；采集→下载→去重→标准化→标签→合规→入库 + daily_stats |
 | [ ] 集成验收（素材库可入库/去重/预览，日采集量可观测） | 总工 | 0% | 里程碑 v1.0（批次 4 验收后执行） |
 

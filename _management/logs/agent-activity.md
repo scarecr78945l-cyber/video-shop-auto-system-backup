@@ -523,6 +523,20 @@
 - 当前阻塞：无。待总控验收（读产出 + 独立复跑 `--basetemp=".pytest-tmp-m4"`）→ 更新 progress.md/台账 → 推进 P4 拒审处理（依赖 P3）。
 - 备注：未运行任何 git 命令；未读写其他模块库（m2-materials.db/m5-ads.db 未动）；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零真实平台调用。
 
+---
+
+### 2025 体系建立日（第 5 轮）｜ M3 总工程师 ｜ M3 自动素材优化 ｜ 角色：总工（v0.3 视频二创验收通过 · 三路输出收官）
+
+- 完成任务：
+  ① **v0.3 视频二创流水线开发**（沿用 workflow「进度累积」策略）：C1 ffmpeg 层成功（video/ffmpeg.py 19.9KB + __init__.py + test_optimization_video_ffmpeg.py 20KB，**39 passed, 1 skipped**——skip 为真实转码用例，本机 ffmpeg 未安装正确跳过，环境就绪后自动启用）；C2 编排层首派中断零产出，重派成功（video/breakdown.py + templates.py + composer.py + test_optimization_video_composer.py，**27 passed**）；
+  ② **代码抽查**：ffmpeg.py（detect_ffmpeg env→PATH 双优先、VideoToolError error_code 限定码表、FFmpegProcessRunner 缺失 raise 含安装指引、MockFFmpegRunner 注入、validate_specs 五维硬规格校验、build_transcode_cmd scale+pad+libx264+crf 23+aac 参数全取 config.video）；composer.py（三段式模板规划、字幕/角标 drawtext extra_filters、文案合规预审命中换备选、spec 校验失败不落 uploaded、opt_video_variants 快照完整、run_pipeline 一站式 fixtures 可跑）；
+  ③ **全量回归**：`python -m pytest tests -q --basetemp=".pytest-tmp-m3"` → **792 passed, 2 skipped**（59.6s，全模块无回归）；
+  ④ progress.md 更新（v0.3 勾选 100%、**M3 三路输出全部完成**、完成度 **60%**）。
+- 产出文件：`backend/optimization/video/`（ffmpeg.py/__init__.py/breakdown.py/templates.py/composer.py）、`backend/tests/test_optimization_video_ffmpeg.py`（39 例）、`test_optimization_video_composer.py`（27 例）；`progress.md`（v0.3 100%、完成度 60%）；本日志追加条目。
+- 里程碑：**M3 三路输出（文案/主图详情图/视频二创）代码+测试全部验收通过**，全量 792 passed 无回归；M3 素材优化核心产出能力闭环就绪（opt_* 9 表可建、fixtures 离线全链路可跑）。
+- 下一步（待总控批准）：**v1.0 集成**——审核闸门（review：规则预审/素材评估/人工抽检）+ A/B 闭环（ab：evaluation 回写/素材评分/模板按类目重训练）+ 上传素材库（upload：UploadService 双轨 api|ui|semi，REC-002，先 fixtures 模拟）→ 端到端测试。
+- 当前阻塞：无。**已请总控提交备份（里程碑：M3 三路输出验收通过）**。
+
 ### 2026-08-28 ｜ 子代理 B3（id f833480a）｜ M2 自动收集素材 ｜ 角色：子代理（批次 3 · 榜单图缓存 BoardImageCache）
 
 - 完成任务：有米云榜单图缓存实现（多源接口化，考古加 kaogujia 预留）+ 本地 http.server fixtures 测试 + 可选 CLI。
@@ -716,3 +730,26 @@
 - 产出文件：`backend/listing/ui_fallback.py`、`backend/listing/pipeline.py`、`backend/tests/test_listing_fallback.py`（12 例）、`test_listing_pipeline.py`（11 例）（子代理产出，已验收）；`progress.md`（P5 100%、完成度 90%）；本日志追加条目。
 - 当前阻塞：无。待 P6 完成通知 → 验收（读产出 + `pytest --basetemp=".pytest-tmp-m4"`）→ **M4 模块级验收收官**（progress.md 100%、更新 brief/context 实现快照、台账）→ 通知总控备份（里程碑：M4 自动上架全链路可模拟跑通）并请总控统一执行 M4 全量回归。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零真实平台调用。
+
+---
+
+### 2025 体系建立日 ｜ 子代理-C2（视频二创编排层） ｜ M3 自动素材优化 ｜ 角色：子代理
+
+- 完成任务：实现 M3 视频二创流水线编排层（backend/optimization/video/，对齐 06 文档第一节「LLM 拆解→模板化二创→文案叠加→ffmpeg 批量出片→字幕水印规范→预审」与 C1 ffmpeg 层接口契约，ffmpeg.py 只读不改）：
+  ① **breakdown.py（LLM 拆解）**——输入 product_id/类目/sku_spec_json → 输出卖点镜头 selling_shots + 口播要点 voiceover_points 结构化列表；复用 copywriting/llm.py DeepSeekClient 结构化 JSON（BREAKDOWN_SCHEMA，失败重试 config.llm.max_retries 次）；无 Key/失败降级规则：仅按 sku_spec_json 真实字段切分要点（复用 copywriting.script._spec_facts 句式），source="rule_fallback"；任何要点产出后必过 compliance.check_text，命中剔除留 meta 证据（llm_dropped/dropped），全命中或空 → 通用安全兜底；
+  ② **templates.py（模板参数规划）**——默认值取模板参数配置（对齐 tables.OptTemplate 列默认/context README 1.2：opening_seconds=3、subtitle_style={bottom,36,stroke}、badge_position=top-right、bgm_loudness=-16.0、cut_count=3、params_version=1）+ CATEGORY_ADJUSTMENTS 类目微调（数据驱动）+ overrides 覆盖；plan_segments 输出三段式结构（片头=商品+卖点卡点、中段=原片/混剪片段序列（cut_count 均分）、片尾=行动引导 2s）；template_id 按类目确定性生成（中文保留）；
+  ③ **composer.py（编排器）**——输入（asset dict + CopywriteDraft 列表 + TemplatePlan）→ 每 variant_no（≥2 版，v1 模板原值、vN 片头+1≤5/混剪片段-1≥1/BGM-0.5 节奏差异化，v2+ 文案差异化优先投放文案 ad、v1 优先口播稿 script）生成 ffmpeg 命令（build_transcode_cmd + extra_filters：字幕 drawtext（subtitle_style 位置/字号/描边、24 字截断）与角标 drawtext（badge_position、box 底衬））；字幕内容取文案候选并过 check_text 预审，命中该版作废改用备选（rejected 留证据），全部命中 → 跳过（composer.skipped 不落库）；经 MockFFmpegRunner 出片（detect_ffmpeg() 就绪自动切 FFmpegProcessRunner，fixtures 离线可跑）；出片后 validate_specs 五维硬规格校验（失败记录 failures，upload_status 不落 uploaded）；落 opt_video_variants（product_id/source_asset_id/variant_no/template_id/copywrite_ids/template_params_snapshot（含 params+segments）/file_path/spec_check_json（含 probe 证据）/spec_ok/compliance_json/evaluation=exploration）；VideoVariantRepo 同骨架 CopywriteRepo 幂等模式；run_pipeline(asset, product, variants=2) 一站式入口（拆解→模板→口播稿+投放文案+角标候选→多版出片落库，db 缺省内存库不碰真实 m3-optimization.db）。
+- 产出文件：`backend/optimization/video/breakdown.py`、`backend/optimization/video/templates.py`、`backend/optimization/video/composer.py`（新增）；`backend/optimization/video/__init__.py`（追加 C2 重导出，C1 内容未破坏）；`backend/tests/test_optimization_video_composer.py`（27 用例）。
+- 测试：`python -m pytest tests/test_optimization_video_composer.py -q --basetemp=".pytest-tmp-m3"` → **27 passed**（P-011 独立 basetemp）；同模块回归 `tests/test_optimization_copywriting.py tests/test_optimization_images.py tests/test_optimization_video_ffmpeg.py tests/test_optimization_video_composer.py` → **131 passed, 1 skipped**（skip = C1 真实转码冒烟，本机 ffmpeg 未安装，环境就绪自动启用）无回归。
+- 当前阻塞：无。编排层按「Mock 出片 + 环境就绪自动切 FFmpegProcessRunner」交付；待总工验收后可衔接 M3 后续（审核闸门/上传素材库/A-B 评估回写）。
+- 备注：未运行任何 git 命令；未安装任何软件（含 ffmpeg）；未改动 backend/sourcing/ 与公共骨架（config/db/tables/models/repo/compliance）及 copywriting/images 子包；未读写其他模块库；未写明文密钥（密钥仅环境变量名 DEEPSEEK_API_KEY）；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零真实平台调用。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（批次 4 · B4-1/B4-2 验收）
+
+- 完成任务：按宪法第 9 节验收批次 4 前两任务——
+  ① **B4-2（id 684608a5，M3/M5 数据联动）验收通过**：独立复跑 `python -m pytest tests/test_materials_integration.py -q --basetemp=".pytest-tmp-m2"` → **17 passed**；抽查 integration.py——EvaluationFeedbackService.receive_evaluation（非法枚举→PLATFORM_REJECT 不落库/素材不存在→NO_MATCH/合法→审计+更新当前值，服务层不抛出）、UploadProvider 抽象（Mock 全实现/ShopMaterialUploadProvider 骨架 NotImplementedError 不留假凭据）、MaterialUploadService（已上传幂等 already_uploaded/失败分类结构化返回）；**已在 data-audit.md 追加 DA-004**（M2 四类数据联动登记：从 M5 收 evaluation 回写、从 M3 收上传回填、向 M3/M5 提供素材——宪法第 5 节）；context/data-requests.md 由子代理新建（四类含字段口径/用途/频率）；
+  ② **B4-1（id 16e973e3，标签化+合规预审）验收通过**：独立复跑 `python -m pytest tests/test_materials_tagger.py -q --basetemp=".pytest-tmp-m2"` → **31 passed**；抽查 tagger.py——词库全部 import 自 sourcing.compliance（BRAND/PROHIBITED/EFFICACY/SUPPLY_CHAIN，测试 is 断言同一 list 对象，materials 内零词表副本）、check_material 四类检查（供应链 6 词参数化全 reject，多类同中取最严重：禁售>品牌>供应链>功效）、evaluate_and_record 证据留痕（asset_compliance_checks 落库 + compliance_status 同步）、mark_platform_rejected（R-M2-20：upload_status=disabled + asset_uploads 台账，幂等）；repo.py 仅追加 mark_disabled。
+- 产出文件：`_management/logs/data-audit.md`（+DA-004）；`_management/modules/m2-materials/progress.md`（B4-1/B4-2 勾选 100%）；本日志追加条目。
+- 当前阻塞：无。批次 4 剩余：B4-3（a052cdfd，pipeline 编排）运行中；待其完成通知后验收 → **集成验收 v1.0（素材库可入库/去重/预览、日采集量可观测）** → 通知总控。

@@ -16,14 +16,14 @@
 | [x] 公共骨架：backend/optimization 包（config/db/tables/models/compliance）+ fixtures 样本 | 总工 | 100% | 无（骨架已建，供子代理使用） |
 | [x] 文案管线 + 规则预审扩展（v0.2） | 子代理-A（验收通过） | 100% | 无（copywriting 子包 + test_optimization_copywriting.py 27 用例全绿） |
 | [x] 主图/详情图管线（v0.4） | 子代理-B（验收通过） | 100% | 无（images 子包 + test_optimization_images.py 38 用例全绿） |
-| [ ] 视频二创流水线（v0.3） | 子代理-C1/C2（派发中） | 0% | ffmpeg 层（FFmpegRunner 抽象+硬规格校验）/编排层（拆解/模板/合成/多版本） |
-| [ ] 审核闸门 + A/B 闭环 + 上传素材库（v1.0） | 待拆子代理 | 0% | 三路集成/评估回写/UploadService（api/ui/semi）/端到端测试 |
+| [x] 视频二创流水线（v0.3） | 子代理-C1/C2（验收通过） | 100% | 无（video/ffmpeg.py 39 用例 + breakdown/templates/composer 27 用例全绿） |
+| [ ] 审核闸门 + A/B 闭环 + 上传素材库（v1.0） | 待拆子代理 | 0% | review 闸门（规则/评估/人工抽检）+ ab 闭环（evaluation 回写/模板重训练）+ upload（UploadService api/ui/semi） |
 
 ## 里程碑进度
 
-- 本模块当前完成度：**40%**（筹备 10 + 骨架 10 + 文案 10 + 主图/详情图 10）
-- 距离目标还差：v0.3 视频二创 → v1.0 集成验收 → v1.1+ 模板重训练迭代
-- 已达成：两路输出（文案/主图详情图）代码+测试全绿；全量回归 417 passed, 1 skipped（`--basetemp=".pytest-tmp-m3"`，P-011 独立 basetemp 纪律）
+- 本模块当前完成度：**60%**（筹备 10 + 骨架 10 + 三路输出各 ~13 并验收集成）
+- 已达成：**三路输出全部代码+测试完成并通过验收**——文案（27 例）、主图/详情图（38 例）、视频二创（66 例）；全量回归 792 passed, 2 skipped（`--basetemp=".pytest-tmp-m3"`，P-011 独立 basetemp 纪律）
+- 距离目标还差：v1.0 集成（审核闸门 + A/B 闭环 + UploadService 上传素材库）→ 端到端验收 → v1.1+ 模板重训练迭代
 
 ## 后续排期（可拆子代理任务包）
 
