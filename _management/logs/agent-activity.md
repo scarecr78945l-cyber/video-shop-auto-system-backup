@@ -484,3 +484,64 @@
 - 产出文件：S2 产出 `backend/sourcing/ad_backfill.py`、`backend/tests/test_ad_backfill.py`（23 例）、`backend/fixtures/m5-ad-conversion.example.json`、`config.py`（+ad_exchange_file）、`cli.py`（+ad-sync）；`progress.md`（S2 勾选 100%、完成度 25%）、`context/README.md`/`risks.md`（+P-011 纪律）。
 - 当前阻塞：无。**S3（真实采集）待派发**——前置：① S1a/S1b/S2 已验收（满足）；② **共享 Chrome 登录态就绪确认（商机中心/抖店罗盘/1688/淘宝 9223 + 有米云 9555）** 需总控/用户确认；若未就绪可先行「launch-browsers/probe-browsers 探测 + 选择器校准」子任务（fixtures 对照，不依赖登录态）。
 - 备注：未运行任何 git 命令；未读写其他模块库；全部文件经 write/edit 工具 UTF-8 无 BOM；无明文密钥。
+
+---
+
+### 2025 体系建立日（第 4 轮）｜ M3 总工程师 ｜ M3 自动素材优化 ｜ 角色：总工（文案/主图两路验收通过 · v0.3 派发）
+
+- 完成任务：
+  ① **子代理机制异常处置**：4 个 subagent 实例（首轮 829cdbb9/af860c10 + 重派 08a85d20/1cc57a9e，含 2 次 send_message 续跑）全部中断零产出（closing message 空）；改投 **workflow 工具**（全新 agent + 容错）两轮 4 次 agent 调用，虽最终 ok:false，但**产出逐轮累积落盘**——images 子包（5 文件 + 27KB 测试）与 copywriting 子包（cleaner/script/ads/llm + 收尾轮补 __init__.py + 21KB 测试）全部落盘；
+  ② **验收文案管线 v0.2 通过**：`python -m pytest tests/test_optimization_copywriting.py -q --basetemp=".pytest-tmp-m3"` → **27 passed**；代码抽查 cleaner.py（清洗链：去标签/营销词/品牌词/广告禁用词/供应链词/功效词 + 15–35 长度策略 + removed 证据）、script.py（LLM 优先 + 规则降级仅拼接 SKU 真实规格 + sku_basis 审计）、ads.py（ad/badge 各 ≥2 套差异化 + 合规必过 + 规则补齐兜底）、llm.py（DeepSeek 结构化 JSON + 轻量 schema 校验 + 重试 + 无 Key 返回 None）——全部符合任务书，无明文密钥；
+  ③ **验收主图/详情图管线 v0.4 通过**：`python -m pytest tests/test_optimization_images.py -q --basetemp=".pytest-tmp-m3"` → **38 passed**（planner 差异化 prompts/provider Pillow 占位图/quality_gate phash 判同图+打回重生成/memory 类目记忆）；
+  ④ **全量回归**：`python -m pytest tests -q --basetemp=".pytest-tmp-m3"` → **417 passed, 1 skipped**（既有 sourcing/materials/ads 等全部无回归；期间因其他模块并发共用 `.pytest-tmp` 出现 WinError 32 文件锁误报，改用独立 basetemp 后全绿——与 P-011 纪律一致）；
+  ⑤ progress.md 更新（文案/主图勾选 100%、完成度 **40%**）。
+- 产出文件：`backend/optimization/copywriting/`（5 文件 + 27 用例）、`backend/optimization/images/`（5 文件 + 38 用例）、`backend/tests/test_optimization_copywriting.py`、`test_optimization_images.py`；`progress.md`（两路 100%、完成度 40%）；本日志追加条目。
+- 里程碑：**M3 三路输出中两路代码+测试完成**（文案/主图详情图），全量 417 passed 无回归。
+- 下一步：派发 **v0.3 视频二创流水线**（C1 ffmpeg 层：FFmpegRunner 抽象（Process/Mock）+ ffprobe 硬规格校验，本机 ffmpeg 未安装故 mock 模式 + skipif 保护；C2 编排层：LLM 拆解/模板三段式/文案叠加/多版本出片编排/落 opt_video_variants），沿用 workflow「进度累积」策略与 `.pytest-tmp-m3` 独立 basetemp。
+- 当前阻塞：无。已请总控提交备份（里程碑：两路素材管线验收通过）。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（批次 3 · 子代理中断处置）
+
+- 异常记录与处理（延续批次 3 派发条目）：
+  ① **B1（f331c395，视频号采集器）三次中断零产出**（closing message 空/「断点继续」），前两次恢复后仍中断；第 3 次恢复已改为「最小化阅读（只读 3 文件）+ 六步顺序落盘（signer.py → wechat_video.py → fixtures → config → CLI → 测试）」策略，指令已排队；
+  ② **B2（03904cb8，淘宝/1688 采集）ran out of room（上下文耗尽）且零产出**——与 M5 执行器先例一致，**弃用 B2，重派 B2'=4b3c6002**（精简任务书：必读 3 文件、最小文件集 6 步落盘、明确 fixtures 离线为主/auto 仅骨架），已后台运行；
+  ③ B3（f833480a，榜单图缓存）运行中。
+- 当前阻塞：无。待 B1（第 3 次）/B2'/B3 完成通知 → 逐个验收（读产出 + pytest --basetemp=".pytest-tmp-m2"）→ 更新 progress.md/台账 → 批次 3 收官通知总控备份 → 批次 4。
+
+---
+
+### 2025 体系建立日 ｜ P3 子代理 ｜ m4-listing ｜ 角色：子代理
+
+- 完成任务：**P3 上架状态机与证据留痕（listing 状态机 + listing_* 表落地 + 断点续跑）落地完成**：
+  - 新建 `backend/listing/` 包 8 文件：`config.py`（LISTING_ 前缀 pydantic-settings：db_url=sqlite:///data/db/m4-listing.db、lease_minutes=45、audit_poll_interval_seconds=60、audit_poll_max_attempts=30、link_verify_timeout_seconds=10）；`models.py`（ListingTask 字段与 DDL 一致，`_at` 时间戳统一 ISO8601 UTC 文本）；`tables.py`（SQLAlchemy 2.0 ORM 严格对齐 database/README.md DDL v0 的 7 表：listing_tasks 唯一 UNIQUE(product_id,stage,generation_version)+status/product 索引、listing_spus、listing_skus 唯一(spu_id,product_sku_code)、listing_upload_assets 唯一(task_id,file_sha256)、listing_op_logs(task_id,created_at 索引)、listing_audit_records 唯一(task_id,audit_id)、listing_quota_states 主键 api）；`db.py`（ListingDatabase，create_all 幂等，默认 data/db/m4-listing.db，本验收用 LISTING_DB_URL 指临时目录未触碰真实库）；`repo.py`（create_task 重复抛 DuplicateTaskError、update_status 带 updated_at+附加字段、claim_task 仅非终态且租约空/过期可领（45min 过期回收）、release_task、append_op_log 证据留痕 payload_digest 脱敏、upsert_quota_state ON CONFLICT(api)）；`state_machine.py`（ListingStateMachine 9 态 ALLOWED_TRANSITIONS + IllegalTransitionError + **R22 断言固化：listed 必须携带 link_url 非空且 verified=True 证据否则抛 ListedLinkVerificationError** + 每次迁移写 listing_op_logs 一条证据 + is_terminal）；`__main__.py`（`python -m listing init-db` 幂等建表并打印清单）。
+  - 追加 `backend/tests/conftest.py` 末尾 fixtures（cfg_listing/db_listing/repo_listing/machine_listing，仅末尾追加未改动既有内容）；
+  - 新建 `backend/tests/test_listing_tables.py`（14 例：7 表存在、create_all 幂等、4 项唯一约束 set 比较、关键列、2 项索引、重复入队抛 DuplicateTaskError）与 `backend/tests/test_listing_state_machine.py`（17 例：合法链 pending→creating→draft→platform_auditing→listed 含证据、非法迁移 pending→listed/draft→listed、R22 三例断言（无证据/verified=False/空链接）、rejected→retry_candidate→creating、终态判定、迁移证据留痕可回查、payload_digest 不含敏感值、租约领取/过期回收/按 task_id 领取/终态不可领/release、update_status 时间戳）。
+- 验收：`cd backend && python -m pytest tests/test_listing_tables.py tests/test_listing_state_machine.py -q --basetemp=".pytest-tmp-m4"` → **31 passed（2.41s）**；`LISTING_DB_URL=sqlite:///<临时目录>/m4-initdb-check-*.db python -m listing init-db` 连跑两次均 EXIT=0 且 7 表清单一致（幂等），临时库已清理，真实 m4-listing.db 未创建。
+- 产出文件：`backend/listing/__init__.py`、`backend/listing/config.py`、`backend/listing/models.py`、`backend/listing/tables.py`、`backend/listing/db.py`、`backend/listing/repo.py`、`backend/listing/state_machine.py`、`backend/listing/__main__.py`；`backend/tests/test_listing_tables.py`、`backend/tests/test_listing_state_machine.py`；`backend/tests/conftest.py`（末尾追加 4 个 fixtures）。
+- 当前阻塞：无。待总控验收（读产出 + 独立复跑 `--basetemp=".pytest-tmp-m4"`）→ 更新 progress.md/台账 → 推进 P4 拒审处理（依赖 P3）。
+- 备注：未运行任何 git 命令；未读写其他模块库（m2-materials.db/m5-ads.db 未动）；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零真实平台调用。
+
+### 2026-08-28 ｜ 子代理 B3（id f833480a）｜ M2 自动收集素材 ｜ 角色：子代理（批次 3 · 榜单图缓存 BoardImageCache）
+
+- 完成任务：有米云榜单图缓存实现（多源接口化，考古加 kaogujia 预留）+ 本地 http.server fixtures 测试 + 可选 CLI。
+- 产出文件：`backend/materials/collectors/board_image_cache.py`（BoardImageCache 全实现）；`backend/tests/test_materials_board_image_cache.py`（25 用例）；`backend/materials/config.py`（仅追加 `board_cache` 子配置）；`backend/materials/collectors/__init__.py`（导出 BoardImageCache）；`backend/materials/__main__.py`（仅追加 `board-cache` 子命令）；`decisions.md` 追加 B3 决策行；`context/README.md` 2.4 同步实现快照。
+- 测试结果：新测试 `tests/test_materials_board_image_cache.py` → **25 passed**；既有回归 `test_materials_tables.py + test_materials_repo.py` → **30 passed**（任务书口径）；全 `test_materials_*` 套件 → **179 passed, 1 skipped**（skip 为真实 ffmpeg 保护用例）。全部 `--basetemp=".pytest-tmp-m2"`，零外网零登录态。
+- 关键行为：缓存键 `board_cache/{source}/{board_id}/{item_id}.jpg`（组件消毒）；幂等（hit 不重复下载，计数器验证）；批量单条失败隔离（404→NO_MATCH/429→RATE_LIMIT 不影响其他条）；失败分类对齐 downloader.py 码表；本类任何异常不抛出。
+- 上报事项：①考古加采集器未开发（M1 REC-006）→ 多源接口化预留 register_source("kaogujia")；②真实有米云下载需登录态环境，本任务以 fixtures 离线模式交付，真实下载仅留接口；③发现既有 `normalize` CLI 潜在 NameError（`Path` 未导入，仅在 ffmpeg 就绪后触发），已登记 pitfall-log P-013，建议总工安排一行修复。
+- 当前阻塞：无。
+
+---
+
+### 2025 体系建立日 ｜ M5 总工程师 ｜ M5 自动小店投放（商品托管） ｜ 角色：总工（v0.3 执行层验收通过 · 收官）
+
+- 完成任务：按宪法第 9 节验收执行器子代理 ad45ec7a（A2 重派版）产出——
+  ① 读交付说明 REPORT_v0.3_executor.md（文件清单/接口/对接/测试/偏差/纪律齐全）；
+  ② **独立复跑**：定向 `pytest tests/test_ads_executor.py -q --basetemp=".pytest-tmp-m5"` → **25 passed**（0.18s）；协同 `pytest tests/test_ads_settings.py tests/test_ads_executor.py -q --basetemp=".pytest-tmp-m5"` → **50 passed**（0.21s，含 run_batch ↔ 真实 settings.py 全链集成用例）；
+  ③ 代码抽查 executor.py：ShopAdsSession（login_state 枚举校验、created_at naive 自动补 timezone.utc）、check_login 三态（logged_in/expired/unknown，锚点配置语义正确）、BrowserConnector ABC + Mock + PlaywrightBrowserConnector 骨架（NotImplementedError，零 playwright import/调用）、MockPageOps（脚本化行为字典+history/ops 时间戳+截图写临时文件）、verify_page_signature（多锚点、缺失抛 PageChangedError evidence={page_key,missing,current_url,screenshot_path}、目录自动创建、未配置不阻塞）、ShopAdsExecutor.add_product（{pid} 模板勾选、>batch_size 截断 truncated、item_interval_s 防风控间隔、空列表 NO_MATCH）+ run_batch（_load_settings_form 延迟 import + getattr 兜底、settings 缺失返回 settings_unavailable 不崩、choose_target→fill_roi(系统推荐/覆盖)→bind_materials→submit 全链、错误映射 page_changed/AUTH_REQUIRED/TIMEOUT/NO_MATCH/PLATFORM_REJECT/UNEXPECTED 按 09 码表）——全部符合任务书与决策 D-M5-07；
+  ④ **v0.3 集成验证**：executor↔settings 通过 PageOps/ShopAdsUiConfig 契约对接，run_batch 真实 settings 全链跑通，无需改接口。
+- 验收结论：**v0.3 执行层全部验收通过**（执行器 + 投放设置 + 集成）。里程碑达成：**托管执行器+投放设置可跑（fixtures 模拟）** ✅——托管两步 ①添加商品 ②投放设置（目标/ROI/素材绑定/提交校验）+ page_changed 检测 + 错误分类映射全链可测。
+- 产出文件：`backend/ads/executor.py`、`backend/tests/test_ads_executor.py`（25 例）、`_management/modules/m5-ads/REPORT_v0.3_executor.md`、`progress.md`（v0.3 全部勾选、完成度 **45%**）；本日志追加条目。
+- 当前阻塞：无。**已请总控提交备份（里程碑：v0.3 执行层验收通过）**；批准后推进 v0.4 监控层（监控回读 + 止损规则引擎，可拆 2 子代理）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；ads 包现有测试 77 例（tables 19 + repo 14 + settings 25 + executor 25），全量回归请总控统一执行（建议独立 basetemp）。

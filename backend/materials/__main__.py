@@ -5,6 +5,7 @@
   python -m materials pool --limit 20    # 列素材（人工验收用；空库输出空列表不报错）
   python -m materials download --once    # 下载中台单轮（子代理 F）
   python -m materials download --serve --port 8787   # 启动多实例下载中台 HTTP API
+  python -m materials board-cache --source youmi --board B1 --json '[...]'  # 榜单图缓存（子代理 B3）
 """
 
 from __future__ import annotations
@@ -236,6 +237,98 @@ def tiktok_download(config, keyword, author_url, count, output_dir, as_json) -> 
                 f"{r['file_path'] or '（未落盘）'}"
             )
         click.echo(f"共 {len(results)} 个作品")
+
+
+@cli.command()
+@click.option(
+    "--source", default="youmi", show_default=True,
+    help="数据源（youmi=有米云；kaogujia=考古加，预留待考古加采集器落地后注册）",
+)
+@click.option("--board", "board_id", required=True, help="榜单 id（缓存键组成部分）")
+@click.option(
+    "--json", "items_json", required=True,
+    help="商品 JSON 数组，如 [{\"item_id\": \"1\", \"image_url\": \"http://...\"}]",
+)
+@click.option("--cache-dir", "cache_dir", default=None, type=click.Path(), help="缓存目录（默认 config.board_cache.cache_dir）")
+@click.pass_obj
+def board_cache(config, source, board_id, items_json, cache_dir) -> None:
+    """榜单图缓存（R-M2-09）：批量下载有米云/考古加榜单商品图到本地缓存目录。
+
+    缓存键=榜单 id+商品 id（board_cache/{source}/{board_id}/{item_id}.jpg）；
+    已缓存直接命中不重复下载（幂等）；单条失败隔离不影响其他条；
+    失败分类对齐 downloader.py 码表（404→NO_MATCH、超时→TIMEOUT、频控→RATE_LIMIT）。
+    真实有米云下载需登录态环境；开发/CI 请用本地 http.server（fixtures）验证（R-M2-17）。
+    """
+    import json as _json
+    from pathlib import Path as _Path
+
+    from .collectors.board_image_cache import BoardImageCache
+    from .storage import LocalStorage
+
+    try:
+        items = _json.loads(items_json)
+    except ValueError as exc:
+        click.echo(f"错误：--json 不是合法 JSON: {exc}", err=True)
+        raise SystemExit(2)
+    if not isinstance(items, list):
+        click.echo("错误：--json 必须是 JSON 数组", err=True)
+        raise SystemExit(2)
+    storage = LocalStorage(_Path(cache_dir)) if cache_dir else None
+    cache = BoardImageCache(config, storage=storage)
+    result = cache.cache_board_images(source, board_id, items)
+    click.echo(_json.dumps(result, ensure_ascii=False, indent=2, default=str))
+    if result["ok"] == 0 and result["failed"]:
+        raise SystemExit(1)
+
+
+@cli.command()
+@click.option(
+    "--mode",
+    type=click.Choice(["fixtures", "auto"]),
+    default="fixtures",
+    show_default=True,
+    help="fixtures=离线样本（零浏览器零登录态，默认）；auto=共享 Chrome（需登录态，待抓包校准）",
+)
+@click.option("--limit", type=int, default=10, show_default=True, help="返回条目上限")
+@click.option("--board", default=None, help="板块名（默认配置首个，如 热门视频）")
+@click.option(
+    "--with-direct-url",
+    "with_direct_url",
+    is_flag=True,
+    help="每条附带直链（fixtures 模式返回样本直链；演示 Mock 签名器注入链路，不写真实签名）",
+)
+@click.pass_obj
+def wechat_collect(config, mode, limit, board, with_direct_url) -> None:
+    """视频号采集器：热门/达人视频清单 + 直链解析（自研签名接口化，R-M2-03/R-M2-05）。
+
+    fixtures 模式输出 JSON 清单（含 source_platform="视频号"），不连接浏览器不崩溃；
+    auto 模式需共享浏览器登录态（P-002 登录失效→AUTH_REQUIRED 转人工），
+    待登录态 + 选择器/签名抓包校准后启用（R-M2-03：签名变化只改 collectors/signer.py）。
+    """
+    import json as _json
+
+    from .collectors.signer import MockSignatureProvider
+    from .collectors.wechat_video import WechatVideoCollector, WechatVideoError
+
+    cfg = config.wechat_video.model_copy(update={"fixtures_mode": mode == "fixtures"})
+    if not cfg.enabled:
+        click.echo("视频号采集器未启用（wechat_video.enabled=False），跳过", err=True)
+        raise SystemExit(2)
+    collector = WechatVideoCollector(cfg)
+    try:
+        items = collector.list_hot_videos(board=board, limit=limit)
+    except WechatVideoError as exc:
+        click.echo(f"采集失败 [{exc.error_code}]：{exc.message}", err=True)
+        raise SystemExit(1)
+    if with_direct_url:
+        signer = MockSignatureProvider(fixed_query={"sign": "mock"}) if mode == "fixtures" else None
+        for it in items:
+            try:
+                it["direct_url"] = collector.resolve_direct_url(it["video_id"], signer=signer)
+            except WechatVideoError as exc:
+                it["direct_url"] = None
+                it["direct_url_error"] = exc.error_code
+    click.echo(_json.dumps(items, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

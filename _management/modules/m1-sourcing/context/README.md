@@ -144,6 +144,18 @@
 | 测试基线 | sourcing 域 62 passed（41 基线 + S1b 21 新增，体系建立日复核）；全量含 M0 foundation 4~5 个既有失败（跨模块已知，勿修） |
 | 依赖 | Python 3.12、Playwright、pydantic v2、SQLAlchemy、pydantic-settings |
 
+### 环境探测快照（S3a 实测，体系建立日）
+| 项 | 值（不含密钥） |
+|---|---|
+| Python 实测 | 3.13.14（`python --version`，2026 环境；requirements 声明 3.12 兼容） |
+| Playwright | 已安装，**1.61.0**（`python -m playwright --version`，≥1.44 满足） |
+| Chrome 可执行文件 | `SOURCING_CHROME_PATH` 未设置；PATH 中无 `chrome/chromium/msedge`；标准路径存在：`C:/Program Files/Google/Chrome/Application/chrome.exe`（`cli._find_chrome` 首选命中）、`C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe` 兜底 |
+| CDP 端口可达性 | **9223 ✓（共享浏览器）/ 9555 ✓（有米云）/ 9222 ✓（历史口径，config 未用）**，`socket.create_connection(timeout=2)` 实测 |
+| launch-browsers 输出 | 幂等跳过：`浏览器已存在（跳过启动）：视频号商机中心 → CDP :9223`、`有米云 → CDP :9555`（未启动任何新浏览器） |
+| probe-browsers 输出 | 5 来源全部 `CDP ✓`：共享 9223 打开页面含 `store.weixin.qq.com/shop/home`（商机中心）、`compass.jinritemai.com/shop` 与 `/shop/chance/rank-product`（抖店罗盘）；有米云 9555 打开 `console.youshu.youcloud.com/goods/sale?site_id=10502&...`（与 config url_template 一致） |
+| 浏览器可用性 | **浏览器已启动且持有登录态页面（商机中心/抖店罗盘/有米云）**；1688/淘宝共享同一 9223 浏览器（采集时新开标签页）。真实采集仍待登录态确认后由总控批准（S3 第二阶段） |
+| 选择器校准 | 详见 `selector-log.md`（v1.0，S3a）：5 来源 config.selectors 均为空 → 生效选择器=代码 DEFAULT_SELECTORS；待实测项清单已登记 |
+
 ## 五、本目录文件索引
 - `README.md`（本文）
 - `data-requests.md`（跨模块数据需求登记，宪法第 5 节）

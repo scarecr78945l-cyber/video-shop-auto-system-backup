@@ -129,6 +129,148 @@ class TikTokConfig(BaseSettings):
     )
 
 
+class BoardCacheConfig(BaseModel):
+    """榜单图缓存参数（子代理 B3；R-M2-09 + context 2.4：缓存键=榜单 id+商品 id、
+    缓存目录配置化、失败不影响选品主流程）。
+
+    多源接口化：sources 白名单默认 ["youmi"]（有米云，sourcing 链路已实测打通）；
+    "kaogujia"（考古加）为预留源——考古加采集器尚未开发（M1 REC-006 降级为可选第四源），
+    落地后由上层通过 BoardImageCache.register_source("kaogujia") 注册，本配置不硬编码依赖。
+    """
+
+    cache_dir: Path = Field(
+        default_factory=lambda: Path("data/board_cache"),
+        description="榜单图缓存目录（默认 data/board_cache；可用 load_config(board_cache=...) 覆盖，或 CLI --cache-dir）",
+    )
+    enabled: bool = Field(
+        default=True,
+        description="总开关（False=禁用缓存，cache_image 直接返回失败不发起下载；对齐 tiktok.enabled 风控开关模式）",
+    )
+    sources: list[str] = Field(
+        default_factory=lambda: ["youmi"],
+        description="来源白名单（默认 youmi=有米云；kaogujia=考古加预留，待考古加采集器落地后注册）",
+    )
+    timeout_seconds: float = Field(
+        default=30.0, description="图片下载超时（秒）；超时→TIMEOUT（对齐 downloader.py 码表，R-M2-06）"
+    )
+    max_bytes: int = Field(
+        default=10 * 1024 * 1024, description="单张图片大小上限（字节），超限即失败不落盘（防缓存垃圾大文件）"
+    )
+
+
+class WechatVideoConfig(BaseSettings):
+    """视频号采集器参数（自研，R-M2-03/R-M2-05；对齐 context/README.md 2.2 外部契约）。
+
+    与 TikTokConfig 同模式（env_prefix=MATERIALS_ + validation_alias 显式完整环境变量名 +
+    populate_by_name=True），`load_config(wechat_video={...})` 按字段名覆盖可用（测试/CLI 常用）。
+    cdp_port 默认 9223（共享浏览器，以 sourcing config 为准）；profile_dir="shared" 复用
+    共享登录态（P-002 不重复开页）；fixtures_mode 默认 True：零浏览器零登录态可跑通全链路
+    （R-M2-17），auto 模式待登录态 + 选择器抓包校准后开启。
+    密钥纪律（P-004）：本配置只存路径/端口/开关/选择器，不存任何凭证。
+    """
+
+    model_config = SettingsConfigDict(env_prefix="MATERIALS_", extra="ignore", populate_by_name=True)
+
+    enabled: bool = Field(
+        default=True,
+        validation_alias="MATERIALS_WECHAT_VIDEO_ENABLED",
+        description="视频号采集器总开关（False=禁用该来源，R-M2-21 风控开关）",
+    )
+    cdp_port: int = Field(
+        default=9223,
+        validation_alias="MATERIALS_WECHAT_VIDEO_CDP_PORT",
+        description="共享浏览器 CDP 端口（默认 9223，以 sourcing config 为准；登录态在共享 profile）",
+    )
+    profile_dir: str = Field(
+        default="shared",
+        validation_alias="MATERIALS_WECHAT_VIDEO_PROFILE_DIR",
+        description="共享浏览器 user-data-dir 标识（复用登录态，P-002）",
+    )
+    fixtures_mode: bool = Field(
+        default=True,
+        validation_alias="MATERIALS_WECHAT_VIDEO_FIXTURES_MODE",
+        description="True=离线样本模式（默认，零浏览器零登录态）；False=auto 连共享浏览器解析",
+    )
+    boards: list[str] = Field(
+        default_factory=lambda: ["热门视频"],
+        validation_alias="MATERIALS_WECHAT_VIDEO_BOARDS",
+        description="板块名（如 热门视频/达人）；fixtures 样本与 board_url_<board> 选择器按名匹配",
+    )
+    selectors: dict[str, str] = Field(
+        default_factory=dict,
+        validation_alias="MATERIALS_WECHAT_VIDEO_SELECTORS",
+        description="覆盖默认选择器/URL 模板（P-003 平台改版只改配置不崩代码）",
+    )
+
+
+class TaobaoRefsConfig(BaseSettings):
+    """淘宝商品视频与同款图采集器参数（子代理 B2'；对齐 context/README.md 2.3 外部契约 + R-M2-08）。
+
+    与 WechatVideoConfig/TikTokConfig 同模式（env_prefix=MATERIALS_ + validation_alias 显式
+    完整环境变量名 + populate_by_name=True），`load_config(taobao_refs={...})` 按字段名覆盖可用。
+    环境事实：共享 Chrome 登录态待确认 → 本阶段只交付 fixtures 离线模式（fixtures_mode=True）；
+    auto 真实浏览器（Playwright 共享 Chrome CDP）仅留配置与接口骨架，未验证不实现细节。
+    选择器/URL 全配置化（P-003 平台改版只改配置不崩代码）；page_changed 检测留证据。
+    密钥纪律（P-004）：本配置只存开关/端口/选择器，不存任何凭证/Cookie。
+    """
+
+    model_config = SettingsConfigDict(env_prefix="MATERIALS_", extra="ignore", populate_by_name=True)
+
+    enabled: bool = Field(
+        default=True,
+        validation_alias="MATERIALS_TAOBAO_REFS_ENABLED",
+        description="淘宝采集总开关（False=禁用采集，R-M2-21 风控开关）",
+    )
+    fixtures_mode: bool = Field(
+        default=True,
+        validation_alias="MATERIALS_TAOBAO_REFS_FIXTURES_MODE",
+        description="True=离线样本模式（默认，读 backend/fixtures/materials/taobao_refs.json）；False=auto 连共享浏览器解析（骨架）",
+    )
+    cdp_port: int = Field(
+        default=9223,
+        validation_alias="MATERIALS_TAOBAO_REFS_CDP_PORT",
+        description="共享 Chrome CDP 端口（auto 模式用；默认 9223，以 sourcing config 为准）",
+    )
+    selectors: dict[str, str] = Field(
+        default_factory=dict,
+        validation_alias="MATERIALS_TAOBAO_REFS_SELECTORS",
+        description="页面必需选择器（键=语义名，值=正则）；auto 模式 page_changed 检测用，未命中→PLATFORM_REJECT+P-003 证据",
+    )
+
+
+class AlibabaConfig(BaseSettings):
+    """1688 商品视频与同款图采集器参数（子代理 B2'；同构于 TaobaoRefsConfig，source_platform="1688"）。
+
+    `MATERIALS_ALIBABA_ENABLED` / `MATERIALS_ALIBABA_FIXTURES_MODE` /
+    `MATERIALS_ALIBABA_CDP_PORT` / `MATERIALS_ALIBABA_SELECTORS` 直接映射；
+    populate_by_name=True 保证 `load_config(alibaba={...})` 字典覆盖可用。
+    密钥纪律（P-004）：本配置只存开关/端口/选择器，不存任何凭证/Cookie。
+    """
+
+    model_config = SettingsConfigDict(env_prefix="MATERIALS_", extra="ignore", populate_by_name=True)
+
+    enabled: bool = Field(
+        default=True,
+        validation_alias="MATERIALS_ALIBABA_ENABLED",
+        description="1688 采集总开关（False=禁用采集，R-M2-21 风控开关）",
+    )
+    fixtures_mode: bool = Field(
+        default=True,
+        validation_alias="MATERIALS_ALIBABA_FIXTURES_MODE",
+        description="True=离线样本模式（默认，读 backend/fixtures/materials/alibaba_1688.json）；False=auto 连共享浏览器解析（骨架）",
+    )
+    cdp_port: int = Field(
+        default=9223,
+        validation_alias="MATERIALS_ALIBABA_CDP_PORT",
+        description="共享 Chrome CDP 端口（auto 模式用；默认 9223，以 sourcing config 为准）",
+    )
+    selectors: dict[str, str] = Field(
+        default_factory=dict,
+        validation_alias="MATERIALS_ALIBABA_SELECTORS",
+        description="页面必需选择器（键=语义名，值=正则）；auto 模式 page_changed 检测用",
+    )
+
+
 class MaterialsConfig(BaseSettings):
     """总配置。环境变量：MATERIALS_DB_URL / MATERIALS_STORAGE_DIR 等。"""
 
@@ -152,6 +294,10 @@ class MaterialsConfig(BaseSettings):
     dedup: DedupConfig = Field(default_factory=DedupConfig)
     normalize: NormalizeConfig = Field(default_factory=NormalizeConfig)
     tiktok: TikTokConfig = Field(default_factory=TikTokConfig)
+    board_cache: BoardCacheConfig = Field(default_factory=BoardCacheConfig)
+    wechat_video: WechatVideoConfig = Field(default_factory=WechatVideoConfig)
+    taobao_refs: TaobaoRefsConfig = Field(default_factory=TaobaoRefsConfig)
+    alibaba: AlibabaConfig = Field(default_factory=AlibabaConfig)
 
 
 def load_config(**overrides: Any) -> MaterialsConfig:

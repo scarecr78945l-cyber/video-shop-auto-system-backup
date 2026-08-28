@@ -69,17 +69,18 @@ class ShopAdsSession:
 
 # ---------------------------------------------------------------- 登录态检查
 def check_login(page: PageOps, ui_config: ShopAdsUiConfig) -> str:
-    """按 page_signature 特征选择器判断登录态（返回 "logged_in" / "expired"）。
+    """按 page_signature 特征选择器判断登录态（返回 "logged_in" / "expired" / "unknown"）。
 
     - 优先取 page_signature["home"] 锚点；home 未配置时取任意已配置锚点；
-    - 锚点全部 exists → "logged_in"；任一缺失或未配置任何锚点 → "expired"
-      （保守语义：无法确认登录即按过期处理，上层映射 error_code=AUTH_REQUIRED 人工接管）。
+    - 锚点全部 exists → "logged_in"；
+    - 锚点已配置但任一缺失（特征选择器缺失）→ "expired"（上层映射 error_code=AUTH_REQUIRED 人工接管）；
+    - 未配置任何锚点（fixtures 阶段默认）→ "unknown"（无法探测，不阻断流程）。
     """
     signature = ui_config.page_signature or {}
     anchor = signature.get("home") or next(iter(signature.values()), "")
     anchors = _split_anchors(anchor)
     if not anchors:
-        return "expired"
+        return "unknown"  # 未配置特征锚点：无法确认登录态（保守不阻断，由选择器/page_changed 兜底）
     return "logged_in" if all(page.exists(a) for a in anchors) else "expired"
 
 
@@ -194,7 +195,7 @@ class MockPageOps:
 
     def _raise_if_error(self, selector: str) -> None:
         action = self._spec(selector).get("action")
-        if action in ("error", "missing"):
+        if action in ("error", "missing") or selector in self._missing:
             raise RuntimeError(
                 f"[MockPageOps] 元素不可用/缺失（模拟超时/page_changed）: {selector!r}"
             )
@@ -497,25 +498,13 @@ class ShopAdsExecutor:
                 "error_code": step1.get("error_code", "UNEXPECTED"),
             }
 
-        # ② 延迟 import（getattr 兜底）：settings 模块缺失/无 SettingsForm → settings_unavailable
-        try:
-            from . import settings as _settings_mod
-        except Exception as exc:  # noqa: BLE001 —— settings 缺失不得崩（return 兜底）
-            evidence.append(
-                self._record("settings_import", "ads.settings", time.perf_counter(), error=str(exc))
-            )
-            return {
-                "ok": False, "batch_id": batch_id,
-                "selected": step1["selected_count"], "truncated": step1["truncated"],
-                "submit_result": None, "evidence": evidence,
-                "error": "settings_unavailable", "error_code": "UNEXPECTED",
-            }
-        settings_form_cls = getattr(_settings_mod, "SettingsForm", None)
+        # ② 延迟加载 settings.SettingsForm（getattr 兜底）：模块缺失/类不存在 → settings_unavailable
+        settings_form_cls = _load_settings_form()
         if settings_form_cls is None:
             evidence.append(
                 self._record(
                     "settings_import", "ads.settings.SettingsForm",
-                    time.perf_counter(), error="SettingsForm 不存在",
+                    time.perf_counter(), error="settings 模块缺失或 SettingsForm 不存在",
                 )
             )
             return {
@@ -597,6 +586,20 @@ class ShopAdsExecutor:
 
 
 # ---------------------------------------------------------------- 纯工具
+def _load_settings_form() -> Any:
+    """延迟加载 settings.SettingsForm（函数内 import + getattr 兜底）；失败 → None。
+
+    满足「延迟 import（函数内 import，用 getattr 兜底）」：settings 模块缺失或
+    SettingsForm 不存在一律返回 None，调用方映射 {ok: False, error: "settings_unavailable"}，
+    不抛 import 错误崩掉（并行子代理产物尚未就绪时本模块照常可 import/可测）。
+    """
+    try:
+        from . import settings as _mod
+    except Exception:  # noqa: BLE001 —— settings 缺失不得崩（调用方兜底）
+        return None
+    return getattr(_mod, "SettingsForm", None)
+
+
 def _classify_error(exc: BaseException) -> str:
     """错误分类映射（09 码表）：page_changed / TIMEOUT / UNEXPECTED。"""
     if isinstance(exc, PageChangedError):

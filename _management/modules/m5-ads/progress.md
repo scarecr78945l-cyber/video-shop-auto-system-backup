@@ -23,19 +23,19 @@
 
 ## 里程碑进度
 
-- 本模块当前完成度：**30%**（v0.1 筹备 15% + v0.2 数据层 15%）
-- 已达成里程碑：**ad_* 表可建** ✅（backend/data/db/m5-ads.db 5 表 + repo 层可测可跑）
-- 距离目标还差：执行层 v0.3（Playwright 托管执行器·抽象接口+fixtures 模拟）→ 监控层 v0.4 → 回流层 v0.5 → 集成验收 → 真实实投
+- 本模块当前完成度：**45%**（v0.1 筹备 15% + v0.2 数据层 15% + v0.3 执行层 15%）
+- 已达成里程碑：**ad_* 表可建** ✅（v0.2）→ **托管执行器+投放设置可跑（fixtures 模拟）** ✅（v0.3：executor+settings 全链 50 协同用例）
+- 距离目标还差：监控层 v0.4（回读+止损引擎）→ 回流层 v0.5 → 集成验收 → 真实实投
 
-## 当前迭代：v0.3（执行层·开发中）
+## 当前迭代：v0.3（执行层·已完成）
 
 | 任务 | 负责 | 进度 | 剩余工作 |
 |---|---|---|---|
 | [x] 公共骨架：ui_config.py（ShopAdsUiConfig 选择器/页面/节奏配置）+ interfaces.py（PageOps Protocol + PageChangedError） | 总工 | 100% | 无 |
-| [~] 托管执行器：会话管理/CDP 连接抽象/两步操作编排/page_changed 检测 + MockPageOps（backend/ads/executor.py + test_ads_executor.py） | 子代理 ad45ec7a（A2 重派，已运行） | 20% | 子代理开发中；总工验收 |
+| [x] 托管执行器：会话管理/CDP 连接抽象/两步操作编排/page_changed 检测 + MockPageOps（backend/ads/executor.py + test_ads_executor.py） | 子代理 ad45ec7a | 100% | 无 |
 | [x] 投放设置：目标三选一/ROI 填值/素材绑定（高效>潜力>探索期）/提交校验 + Mock（backend/ads/settings.py + test_ads_settings.py） | 子代理 91f77eec | 100% | 无 |
-| [x] 投放设置验收：定向 25 passed（.pytest-tmp-m5）+ 代码抽查（优先级/排除未过审/校验优先级/错误码） | 总工 | 100% | 无 |
-| [ ] v0.3 集成：executor ↔ settings 对接（run_batch 编排联调）+ 验收 | 总工 | 0% | 执行器子代理完成后执行 |
+| [x] v0.3 集成：executor ↔ settings 对接（run_batch 编排联调）——协同 50 passed（.pytest-tmp-m5） | 总工 | 100% | 无 |
+| [x] v0.3 验收：executor 定向 25 + settings 定向 25 + 协同 50 全绿；代码抽查（会话 UTC/三态登录/连接器骨架零 playwright/错误映射） | 总工 | 100% | 无 |
 
 ## 开发阶段管理方式（总控已确认，2025 体系建立日）
 

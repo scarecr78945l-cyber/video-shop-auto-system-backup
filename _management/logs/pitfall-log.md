@@ -98,4 +98,15 @@
 
 ---
 
+---
+
+## P-013 ｜ materials CLI `normalize` 子命令潜在 NameError（Path 未导入，ffmpeg 就绪后才触发）
+
+- **出现时间**：2026-08-28 ｜ **模块**：M2 素材收集 ｜ **代理**：子代理 B3（f833480a）
+- **现象与根因**：`backend/materials/__main__.py` 的 `normalize` 命令在第 148 行使用 `Path(input_path).exists()`，但模块顶部未 `from pathlib import Path`。当前 ffmpeg 缺失时命令在更早的 ffmpeg 探测（`runner._resolve_ffmpeg()`）即 SystemExit(1)，`Path` 行不可达，故既有测试全绿未暴露；**一旦本机 ffmpeg 就绪，normalize 必然 NameError**（潜藏缺陷）。
+- **解决方案**：暂未修复（不在任务书范围内；子代理 B3 仅登记上报）。修复 = `__main__.py` 顶部补一行 `from pathlib import Path`（一行 import，无行为副作用）。
+- **防复发措施**：① 已上报总工排入下批任务；② CLI 子命令新增/修改时检查是否使用了未导入的模块级名字；③ ffmpeg 环境就绪后跑 `python -m materials normalize` 冒烟必现该问题，修复后补 CLI 冒烟用例。
+
+---
+
 > 日志继续追加中（由所有代理共同维护）。

@@ -80,3 +80,42 @@ def db_ads(cfg_ads):
     database = Database(cfg_ads)
     database.create_all()
     return database
+
+
+# ---------------------------------------------------------------- M4 listing
+# 自动上架（listing）基座 fixtures：临时 SQLite（不动其他模块 fixtures）。
+# 内部 import：listing 包异常时不连带拖垮既有测试。
+
+
+@pytest.fixture()
+def cfg_listing(tmp_path):
+    """M4 自动上架隔离配置（临时 SQLite，不碰真实 m4-listing.db）。"""
+    from listing.config import load_config
+
+    return load_config(db_url=f"sqlite:///{tmp_path / 'listing-test.db'}")
+
+
+@pytest.fixture()
+def db_listing(cfg_listing):
+    """M4 listing Database（建好 7 张 listing_* 表）。"""
+    from listing.db import ListingDatabase
+
+    database = ListingDatabase(cfg_listing)
+    database.create_all()
+    return database
+
+
+@pytest.fixture()
+def repo_listing(db_listing):
+    """M4 listing 仓储。"""
+    from listing.repo import ListingRepo
+
+    return ListingRepo(db_listing)
+
+
+@pytest.fixture()
+def machine_listing(repo_listing):
+    """M4 上架状态机（9 态迁移 + R22 断言）。"""
+    from listing.state_machine import ListingStateMachine
+
+    return ListingStateMachine(repo_listing)

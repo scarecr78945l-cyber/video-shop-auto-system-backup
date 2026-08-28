@@ -132,6 +132,26 @@
 
 - 采集候选时顺带缓存；缓存键=榜单 id+商品 id；仅缓存图片，不爬榜单以外的页面。
 
+#### 实现快照（子代理 B3，2026-08-28，文档同步 decisions.md）
+
+- 封装位置：`backend/materials/collectors/board_image_cache.py`（`BoardImageCache`）；
+  测试 `backend/tests/test_materials_board_image_cache.py`（本地 http.server fixtures 全场景，
+  零外网零登录态，R-M2-17）。
+- 缓存键：`board_cache/{source}/{board_id}/{item_id}.jpg`（组件消毒：非安全字符→`_`、去前导点；
+  `LocalStorage._resolve` 路径穿越防护双保险）；**幂等**：已缓存（storage.exists）直接命中
+  返回 `{cached:True, hit:True}` 不重复下载。
+- 失败分类对齐 downloader.py 码表（复用 `classify_http_status`）：404/410→`NO_MATCH`、
+  429/403→`RATE_LIMIT`、401→`AUTH_REQUIRED`、其他 4xx→`PLATFORM_REJECT`、超时→`TIMEOUT`、
+  网络/存储/其余→`UNEXPECTED`；**本类任何异常不抛出**（缓存失败不影响选品主流程 R-M2-09）。
+- 多源接口化：`sources` 白名单（默认 `["youmi"]`）+ `register_source(name)` 动态注册；
+  **kaogujia（考古加）预留**：考古加采集器尚未开发（M1 REC-006 降级为可选第四源），
+  落地后由上层 `register_source("kaogujia")` 注册即可，本模块零硬编码依赖。
+- 配置：`config.board_cache`（`cache_dir` 默认 `data/board_cache`、`enabled`、`sources`、
+  `timeout_seconds`、`max_bytes` 大小上限）；`enabled=False` 为总开关不发起下载
+  （对齐 tiktok.enabled 风控开关模式）。
+- CLI：`python -m materials board-cache --source youmi --board B1 --json '[{"item_id":"1","image_url":"http://..."}]'`
+  （可选 `--cache-dir` 覆盖缓存目录；`--json` 为 JSON 数组，条目须含 item_id/image_url）。
+
 ---
 
 ## 三、跨模块数据契约

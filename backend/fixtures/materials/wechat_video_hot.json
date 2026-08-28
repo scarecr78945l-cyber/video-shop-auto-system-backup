@@ -1,0 +1,54 @@
+{
+  "board": "热门视频",
+  "note": "视频号采集器离线样本（R-M2-17）：非真实平台数据，仅用于零浏览器零登录态零网络全链路测试；direct_url 为占位直链，用于演示 signer 注入链路。",
+  "items": [
+    {
+      "video_id": "wxv_fixture_1001",
+      "title": "【美妆】15秒学会清透底妆｜新手必看",
+      "author": "达人A_美妆",
+      "heat_score": 98.6,
+      "source_url": "https://channels.weixin.qq.com/video/wxv_fixture_1001",
+      "direct_url": "https://fixtures.local/materials/videos/wxv_fixture_1001.mp4"
+    },
+    {
+      "video_id": "wxv_fixture_1002",
+      "title": "厨房收纳神器实测，小空间逆袭",
+      "author": "达人B_家居",
+      "heat_score": 91.2,
+      "source_url": "https://channels.weixin.qq.com/video/wxv_fixture_1002",
+      "direct_url": "https://fixtures.local/materials/videos/wxv_fixture_1002.mp4"
+    },
+    {
+      "video_id": "wxv_fixture_1003",
+      "title": "宠物用品开箱：自动饮水机值不值",
+      "author": "达人C_宠物",
+      "heat_score": 85.4,
+      "source_url": "https://channels.weixin.qq.com/video/wxv_fixture_1003",
+      "direct_url": "https://fixtures.local/materials/videos/wxv_fixture_1003.mp4"
+    },
+    {
+      "video_id": "wxv_fixture_1004",
+      "title": "30天居家健身计划｜全身燃脂",
+      "author": "达人D_运动",
+      "heat_score": 79.8,
+      "source_url": "https://channels.weixin.qq.com/video/wxv_fixture_1004",
+      "direct_url": "https://fixtures.local/materials/videos/wxv_fixture_1004.mp4"
+    },
+    {
+      "video_id": "wxv_fixture_1005",
+      "title": "数码配件横评：快充头怎么选",
+      "author": "达人E_数码",
+      "heat_score": 72.1,
+      "source_url": "https://channels.weixin.qq.com/video/wxv_fixture_1005",
+      "direct_url": "https://fixtures.local/materials/videos/wxv_fixture_1005.mp4"
+    },
+    {
+      "video_id": "wxv_fixture_1006",
+      "title": "通勤穿搭公式｜一周不重样",
+      "author": "达人F_穿搭",
+      "heat_score": 66.3,
+      "source_url": "https://channels.weixin.qq.com/video/wxv_fixture_1006",
+      "direct_url": "https://fixtures.local/materials/videos/wxv_fixture_1006.mp4"
+    }
+  ]
+}

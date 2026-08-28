@@ -18,8 +18,7 @@
 | [x] S1a 基线改造+DSN 切换（config/db/README） | 子代理 32dfb48b | 100% | ✅ 验收通过（186 passed, 1 skipped） |
 | [x] S1b 打分扩展+白名单接线+m1 表（tables/pipeline/迁移/测试） | 子代理 58579182 | 100% | ✅ 验收通过（sourcing 62 passed；全量 331 passed / 4 failed 均为 M0 foundation 既有问题） |
 | [x] S2 投放转化回写：`ad_backfill.py` + CLI `ad-sync` + 单测 | 子代理 3e6fd497 | 100% | ✅ 验收通过（sourcing 域 85 passed 串行复跑；子代理自测全量 417 passed, 1 skipped） |
-| [ ] S2 投放转化回写：`ad_backfill.py` + CLI `ad-sync` + 单测 | 待派发 | 0% | 依赖 S1b 验收 |
-| [ ] S3 真实采集：共享 Chrome 三源实测、选择器校准、page_changed 证据 | 待派发 | 0% | 依赖 S1a/S1b 验收+登录态就绪 |
+| [ ] S3 真实采集：S3a 探测+选择器校准先发（fixtures 对照），真实采集待登录态 | 子代理 00389792 | 已派发 | S3a 执行中；真实采集部分待登录态就绪 |
 | [ ] S4 联调与验收：M4/M5 交换联调、日有效候选≥200 度量、打分可解释抽查 | 总工 | 0% | 全部 |
 | [ ] S5 迭代：闸门放松、LLM 复核（可选）、PostgreSQL 迁移配合 | 总工 | 0% | 全部 |
 
