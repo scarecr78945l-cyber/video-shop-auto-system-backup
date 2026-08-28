@@ -475,3 +475,12 @@
 - 产出文件：`backend/adapters/wechat_openapi.py`、`backend/adapters/__init__.py`、`backend/tests/test_wechat_openapi.py`（子代理产出，已验收）；`decisions.md`（+D11/D12）、`progress.md`（P1 100%、完成度 45%、v0.2 里程碑）；本日志追加条目。
 - 当前阻塞：无。待 P3 完成通知 → 验收（读产出 + `pytest --basetemp=".pytest-tmp-m4"`）→ 更新 progress.md/台账 → 推进 P4 拒审处理（依赖 P3）。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM。
+
+---
+
+### 体系建立日 ｜ M1 总工程师 ｜ M1 自动选品（m1-sourcing） ｜ 角色：总工（批次 1 · S2 验收 + S1/S2 收官 + P-011 纪律落档）
+
+- 完成任务：① 落实总控测试纪律更新（P-011/宪法第 12 节）：M1 模块 pytest 统一 `--basetemp=".pytest-tmp-m1"`，已 send_message 同步 S2 子代理，并落档 `context/README.md`（环境事实·测试行）、`risks.md`（R-40 更新）；② **S2 验收通过**（子代理 3e6fd497）——代码抽查：`ad_backfill.py` 错误分层（结构级抛 AdBackfillError / 文件级返回 None 优雅降级 / 类目级单条 skipped 不强杀整批）、幂等 upsert（cache 按 category+period 唯一键、ingests 按 source_file+period+generated_at 唯一键）、时间归一化（Z→+00:00、naive 按 UTC、其他时区转 UTC）、弱样本留痕（可用性由消费端 `_fresh_ad_by_category` 判定）、错误消息不含敏感值；`cli.py` ad-sync（--file 覆盖、缺省读 config.ad_exchange_file、错误 exit 1、统计输出）正确；`config.py` 仅追加 `ad_exchange_file`；**独立串行复跑 sourcing 域 11 文件 → 85 passed**（41 基线+21 S1b+23 S2 精确吻合）；子代理自测全量 417 passed, 1 skipped（skip=M2 ffmpeg 前置既有）；③ 验收过程 P-011 现场实录：首次/二次复跑与 S2 子代理并发共用 `.pytest-tmp-m1` 出现 PermissionError 抖动（84+1 error / 31+54 errors），S2 结束后串行复跑 85 passed 全绿——再次验证「结果以串行复跑为准，独立 basetemp 且避免并发」；④ S1+S2 收官：progress.md 完成度 20%→**25%**，投放转化第 5 维数据闭环里程碑达成（M5 回写接入器+消费端过滤全链路，REC-007/008）。
+- 产出文件：S2 产出 `backend/sourcing/ad_backfill.py`、`backend/tests/test_ad_backfill.py`（23 例）、`backend/fixtures/m5-ad-conversion.example.json`、`config.py`（+ad_exchange_file）、`cli.py`（+ad-sync）；`progress.md`（S2 勾选 100%、完成度 25%）、`context/README.md`/`risks.md`（+P-011 纪律）。
+- 当前阻塞：无。**S3（真实采集）待派发**——前置：① S1a/S1b/S2 已验收（满足）；② **共享 Chrome 登录态就绪确认（商机中心/抖店罗盘/1688/淘宝 9223 + 有米云 9555）** 需总控/用户确认；若未就绪可先行「launch-browsers/probe-browsers 探测 + 选择器校准」子任务（fixtures 对照，不依赖登录态）。
+- 备注：未运行任何 git 命令；未读写其他模块库；全部文件经 write/edit 工具 UTF-8 无 BOM；无明文密钥。
