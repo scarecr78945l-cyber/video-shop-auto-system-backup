@@ -753,3 +753,28 @@
   ② **B4-1（id 16e973e3，标签化+合规预审）验收通过**：独立复跑 `python -m pytest tests/test_materials_tagger.py -q --basetemp=".pytest-tmp-m2"` → **31 passed**；抽查 tagger.py——词库全部 import 自 sourcing.compliance（BRAND/PROHIBITED/EFFICACY/SUPPLY_CHAIN，测试 is 断言同一 list 对象，materials 内零词表副本）、check_material 四类检查（供应链 6 词参数化全 reject，多类同中取最严重：禁售>品牌>供应链>功效）、evaluate_and_record 证据留痕（asset_compliance_checks 落库 + compliance_status 同步）、mark_platform_rejected（R-M2-20：upload_status=disabled + asset_uploads 台账，幂等）；repo.py 仅追加 mark_disabled。
 - 产出文件：`_management/logs/data-audit.md`（+DA-004）；`_management/modules/m2-materials/progress.md`（B4-1/B4-2 勾选 100%）；本日志追加条目。
 - 当前阻塞：无。批次 4 剩余：B4-3（a052cdfd，pipeline 编排）运行中；待其完成通知后验收 → **集成验收 v1.0（素材库可入库/去重/预览、日采集量可观测）** → 通知总控。
+
+---
+
+### 2026-08-28 23:13 ｜ P6 子代理 ｜ m4-listing ｜ 角色：子代理
+
+- 完成任务：**M5 衔接——销售中商品候选池只读视图 + 错峰参数 + data-audit 登记落地完成**：
+  ① 新建 `backend/listing/candidate_pool.py`：`CandidatePoolConfig`（pydantic-settings，env_prefix `LISTING_`：`candidate_batch_max=50`（≤50 错峰批量，P-006）、`peak_avoid_window={"start":"10:00","end":"12:00"}` 上架批次与 M5 托管提交互斥时段）；`CandidatePool`（构造注入 repo）——`get_sale_candidates(limit=None)` **只读查询** listing_tasks 中 `status=="listed"` 且 `link_verified_at` 非空 且 `product_link` 非空（含空串排除）的任务（仅销售中商品，07 文档六节；草稿/审核中/驳回/人工/待重提一律不出现），关联 listing_spus 取 title/category_id（无 SPU 置 None）、关联 listing_skus 聚合 price_min_cents/price_max_cents（分，无 SKU 置 None），返回 {product_id/task_id/title/category_id/product_link/link_verified_at/price_min_cents/price_max_cents}，按 link_verified_at 升序（先上架先出），limit 生效且不超过 candidate_batch_max（超出截断并附 evidence 提示 → self.last_evidence）；`in_peak_avoid_window(now=None)` 左闭右开 [start,end)，跨天窗口（start>end，如 22:00→02:00）按环形处理，比较粒度 HH:MM；配置缺键/非法格式构造时 fail-fast ValueError；纯只读幂等；
+  ② 新建 `backend/tests/test_listing_candidate_pool.py`（10 例）：仅返回 listed 且链接验证过（含异常数据直接 UPDATE 模拟：listed 但 link_verified_at/product_link 清空、空串链接均不出现）/非 listed 五状态（draft/platform_auditing/rejected/manual/retry_candidate）不出现/字段完整性/价格聚合（多 SKU min/max、无 SKU None、无 SPU title/category None）/link_verified_at 升序/limit 与 candidate_batch_max 截断（含 last_evidence 断言）/空库空列表幂等/默认窗口边界（start 含 end 不含、分钟粒度）/跨天窗口环形/配置错误 fail-fast；造数走 P3 state_machine 合法迁移链到 listed（R22 证据 link_url+verified=True）；
+  ③ `_management/logs/data-audit.md` 末尾追加 **DA-005｜M4 → M5 数据提供登记**（提供内容=销售中商品候选池 status=listed+链接已验证、字段口径、提供方式=CandidatePool.get_sale_candidates 只读查询、频率=按需/批次错峰、负责人=M4 总工、校验=仅已上架商品（07 文档六节），对齐 context/README.md 5.3 节）。
+- 验收：`cd backend && python -m pytest tests/test_listing_candidate_pool.py -q --basetemp=".pytest-tmp-m4"` → **10 passed（1.51s）**（首跑 10 失败为测试造数缺 task_id 与 candidate_pool.py `import time as _time` 误用函数作 isinstance 类型参数两处笔误，已修复重跑全绿）。
+- 产出文件：`backend/listing/candidate_pool.py`、`backend/tests/test_listing_candidate_pool.py`（10 例）；`_management/logs/data-audit.md`（+DA-005）；本日志追加条目。
+- 当前阻塞：无。待总工验收（读产出 + 独立复跑 `--basetemp=".pytest-tmp-m4"`）→ M4 模块级验收收官。
+- 备注：未运行任何 git 命令；未使用 web_search；未写明文密钥；零建库零网络零真实平台调用（全部 tmp_path SQLite + Mock）；未改动 backend/sourcing|materials|optimization|ads|foundation|adapters|services 与 backend/listing/ 下任何既有文件及 backend/tests/conftest.py（fixtures cfg_listing/db_listing/repo_listing/machine_listing 直接复用）；仅新建 2 个代码文件 + 登记 2 处日志；全部文件经 write/edit 工具 UTF-8 无 BOM。
+
+---
+
+### 2025 体系建立日（第 8 轮）｜ M4 总工程师 ｜ M4 自动上架（m4-listing） ｜ 角色：总工（P6 验收通过 · M4 模块级收官）
+
+- 完成任务：
+  ① **P6 验收通过**（子代理 62253f5d，一次性完成）——独立复跑 `python -m pytest tests/test_listing_candidate_pool.py -q --basetemp=".pytest-tmp-m4"` → **10 passed**（1.50s）；代码抽查 `backend/listing/candidate_pool.py`：CandidatePoolConfig（LISTING_ 前缀、candidate_batch_max 1~50 校验、peak_avoid_window 错峰互斥时段）、get_sale_candidates（只读查询 status=listed + link_verified_at 非空 + product_link 非空，关联 spus 标题/类目 + skus 价格区间聚合，link_verified_at 升序，limit ≤ batch_max 截断附 evidence）、in_peak_avoid_window（左闭右开/跨天环形/配置 fail-fast）、纯只读幂等；data-audit.md **DA-005（M4→M5 候选池数据提供登记）**已确认落盘；
+  ② **M4 模块级收官**：P1~P6 全部验收通过（模块单测 **131 passed**：6+25+31+36+23+10，`--basetemp=".pytest-tmp-m4"`）；progress.md 完成度 **100%**、验收门全部勾选、迭代 v1.3；brief.md（+实现快照 v1.3）、context/README.md（+实现快照与代码位置映射）更新。
+- 产出文件：`backend/listing/candidate_pool.py`、`backend/tests/test_listing_candidate_pool.py`（10 例）、`_management/logs/data-audit.md`（+DA-005）（子代理产出，已验收）；`progress.md`（100%、验收门勾选、v1.3）、`brief.md`（+实现快照）、`context/README.md`（+实现快照）；本日志追加条目。
+- **里程碑达成：M4 自动上架全链路可模拟跑通**（门禁→SPU/SKU/图→审核→真实链接验证 R22→已上架|拒审处理→M5 候选池），mock 模式零网络零真实平台，全程不提交真实商品（REC-004）。
+- 当前阻塞：无。**已请总控提交备份（M4 模块级收官里程碑）**；请总控统一执行 M4 全量回归（test_listing_* 8 文件 + test_wechat_openapi + test_listing_gate 共 131 例）；M4 侧剩余仅外部条件：官方 OpenAPI 契约核对（T1~T7，web 额度恢复后销项，live 模式依赖 T1/T2）+ 企业主体/类目资质开通（用户确认后切 live）。
+- 备注：未运行任何 git 命令；未读写其他模块库（m4-listing.db 真实库未创建）；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零真实平台调用。

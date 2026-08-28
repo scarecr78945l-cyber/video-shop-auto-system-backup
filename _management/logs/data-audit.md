@@ -67,3 +67,32 @@
 - **服务层**：`backend/materials/integration.py`（EvaluationFeedbackService / MaterialUploadService，已验收 17 例）。
 - **校验结果**：M2 侧实现与测试已完成（evaluation 回写幂等、上传抽象 mock 全链路）；待 M3/M5 侧就绪后由总控协调联调。
 - **总控核对结论**：（待填）
+
+---
+
+## DA-005 ｜ M4 → M5 数据提供登记（销售中商品候选池）
+
+- **提供方**：M4 总工（m4-listing）｜ **接收方**：M5（小店投放/商品托管）。
+- **提供内容**：销售中商品候选池——`listing_tasks` 中 `status=listed` 且 `link_verified_at` 非空 且 `product_link` 非空 的任务（**仅已上架商品**，07 文档六节；草稿/审核中/驳回/人工/待重提一律不出现）。
+- **字段口径**：`product_id` / `task_id` / `title` / `category_id` / `product_link`（已验证真实链接，R22）/ `link_verified_at` / `price_min_cents` / `price_max_cents`（金额单位=分 int，DA-001）；title/category_id 关联 `listing_spus`（无 SPU 置空），价格区间聚合 `listing_skus.price_cents`（无 SKU 置 None）。
+- **提供方式**：`CandidatePool.get_sale_candidates()` 只读查询（纯只读、幂等，不修改任何任务状态）；按 `link_verified_at` 升序（先上架先出）；`limit` 生效且不超过 `candidate_batch_max`（≤50 错峰批量，P-006），超出截断并附 evidence 提示。
+- **频率**：按需 / 批次错峰——上架批次与 M5 托管提交互斥时段 `peak_avoid_window`（默认 10:00–12:00，左闭右开；start>end 跨天窗口按环形处理，如 22:00→02:00）。
+- **负责人**：M4 总工。
+- **校验**：仅已上架商品（07 文档六节）；口径对齐 `_management/modules/m4-listing/context/README.md` 5.3 节「向 M5 提供」。
+- **总控核对结论**：（待总控核对）
+
+---
+
+## DA-006 ｜ M5 数据回写提供登记（提供方：M5 总工 ｜ 接收方：M1/M2）
+
+- **内容**（M5 v0.5 回流层产出，载体 data-exchange JSON，由总控协调落盘与转达；M5 未写任何其他模块库）：
+  1. **M5-OUT-01 → M1 选品**：类目级托管转化数据（契约 C-2，载体 `m5-ad-conversion.json`）——`category / roi / sales_amount(分 int) / sample_count / period{start,end} / generated_at(ISO8601 UTC)`；M5 按「与 products.category 完全一致」的类目名聚合（product→category 映射经协调提供）；弱样本（sample_count<5）仍输出由 M1 消费端过滤；spend=0 类目与未知商品不入 data（skipped 留痕）。**消费端**：M1 `sourcing.ad_backfill.backfill(db, path)`（已会签）。
+  2. **M5-OUT-02 → M2 素材**：素材评估回流（载体 `m5-material-evaluation.json`）——`asset_id / evaluation(exploring/efficient/potential) / evidence{impressions, gmv_fen, spend_fen, source_agent=M5}`；对齐 M2 `EvaluationFeedbackService.receive_evaluation` evidence 语义（幂等审计，与 DA-004 第 1 项互为对端）。
+  3. **M5-OUT-03 → M1 商品主表**：托管失败/不可投放原因（载体 `m5-review-reason.json`）——`product_id / review_reason / campaign_id / failed_at(UTC)`；写入 `products.review_reason` 由 M1 消费端负责。
+- **字段明细与口径**：见 `_management/modules/m5-ads/context/README.md`（数据字典）与 `context/data-requests.md`（M5-OUT-01~03）；口径按 DA-001 统一（金额=分 int、时间=UTC 带时区、枚举英文）。
+- **实现层**：`backend/ads/feedback.py`（aggregate_by_category / build_exchange_file / write_exchange_file / build_material_evaluation_file / build_review_reason_file / load_category_map，纯函数+JSON IO，零 DB 写）。
+- **校验结果**：
+  1. **C-2 契约会签交叉验证通过**——M5 产出经 M1 消费端 `sourcing.ad_backfill.load_exchange` 校验 `schema_version=1` 且逐类目条目口径通过（roi>0、sales_amount 分 int、sample_count int），弱样本保留（总工独立复跑确认）；
+  2. M5 侧 28 用例全绿 + 全 ads 套件 **158 passed**（零回归）；
+  3. M5-OUT-02/03 结构对齐 M2/DA-004 契约，待 M2 侧联调消费（receive_evaluation 已就绪）。
+- **总控核对结论**：（待总控核对字段/单位/时间格式后填写；C-2 会签建议双方总工在文件头签字）

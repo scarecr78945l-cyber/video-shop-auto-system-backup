@@ -6,6 +6,8 @@
   python -m materials download --once    # 下载中台单轮（子代理 F）
   python -m materials download --serve --port 8787   # 启动多实例下载中台 HTTP API
   python -m materials board-cache --source youmi --board B1 --json '[...]'  # 榜单图缓存（子代理 B3）
+  python -m materials pipeline --source 视频号 --json '[...]' --mode fixtures  # 素材流水线编排（B4-3）
+  python -m materials daily-stats [--date 2026-08-28]  # 日采集量统计（B4-3）
 """
 
 from __future__ import annotations
@@ -372,6 +374,104 @@ def taobao_refs(config, url_or_id, mode, limit) -> None:
         click.echo(f"错误：{exc}", err=True)
         raise SystemExit(1)
     click.echo(_json.dumps(result, ensure_ascii=False, indent=2, default=str))
+
+
+@cli.command()
+@click.option(
+    "--source", default="视频号", show_default=True,
+    help="来源平台（数据字典口径，如 视频号/抖音/快手/小红书）",
+)
+@click.option(
+    "--json", "items_json", required=True,
+    help="素材条目 JSON 数组（字段对齐 wechat_video 输出：source_platform/source_url/source_author/title/heat_score/video_id；可附加 asset_type/md5/phash/size/duration/resolution）",
+)
+@click.option(
+    "--mode",
+    type=click.Choice(["fixtures", "auto"]),
+    default="fixtures",
+    show_default=True,
+    help="fixtures=离线（默认）；auto=真实链路",
+)
+@click.option(
+    "--downloader",
+    type=click.Choice(["fixtures", "real"]),
+    default="fixtures",
+    show_default=True,
+    help="fixtures=占位下载器（零外网，R-M2-17）；real=下载中台（需环境/登录态）",
+)
+@click.pass_obj
+def pipeline(config, source, items_json, mode, downloader) -> None:
+    """素材流水线端到端编排：采集→下载→去重→标准化→标签→合规→入库（B4-3）。
+
+    结果 JSON 输出（stats/errors/env），退出码 0（结果在 JSON 内）；
+    全部失败（failed+rejected==total 且无 passed）时退出码 1。
+    组件降级：ffmpeg 未安装 → 标准化 skipped + 环境待确认；tagger/compliance 未就绪
+    （并行子代理 B4-1）→ 对应阶段 skipped，不崩流水线（defer 断点续跑）。
+    """
+    import json as _json
+
+    from .db import Database
+    from .pipeline import DownloaderServiceAdapter, FixtureDownloader, MaterialPipeline
+
+    try:
+        items = _json.loads(items_json)
+    except ValueError as exc:
+        click.echo(f"错误：--json 不是合法 JSON: {exc}", err=True)
+        raise SystemExit(2)
+    if not isinstance(items, list):
+        click.echo("错误：--json 必须是 JSON 数组", err=True)
+        raise SystemExit(2)
+
+    db = Database(config)
+    db.create_all()  # 幂等建表（宪法第 8 节）
+    components: dict = {}
+    if downloader == "real":
+        from .downloader import DownloaderService, SqlAlchemyDownloadJobRepo
+        from .storage import LocalStorage
+
+        job_repo = SqlAlchemyDownloadJobRepo(db_url=config.db_url)
+        components["download_service"] = DownloaderServiceAdapter(
+            DownloaderService(job_repo, storage=LocalStorage(config.storage_dir), config=config)
+        )
+    else:
+        components["download_service"] = FixtureDownloader()
+    # 标准化器：注入真实 runner；ffmpeg 缺失时流水线内降级 skipped + 环境待确认（R-M2-15）
+    from .normalizer import FFmpegProcessRunner, Normalizer
+
+    ncfg = config.normalize
+    components["normalizer"] = Normalizer(
+        FFmpegProcessRunner(
+            ffmpeg_path=ncfg.ffmpeg_path,
+            ffprobe_path=ncfg.ffprobe_path,
+            timeout_seconds=ncfg.transcode_timeout_seconds,
+        ),
+        config=config,
+    )
+    pipe = MaterialPipeline(config, db=db, **components)
+    result = pipe.run_source(source, items, mode=mode)
+    click.echo(_json.dumps(result, ensure_ascii=False, indent=2, default=str))
+    st = result["stats"]
+    if st["total"] > 0 and st["passed"] == 0 and (st["failed"] + st["rejected"]) == st["total"]:
+        raise SystemExit(1)
+
+
+@cli.command()
+@click.option("--date", "date_str", default=None, help="YYYY-MM-DD（UTC 当日）；缺省=全量")
+@click.pass_obj
+def daily_stats(config, date_str) -> None:
+    """日采集量统计：按 source_platform/asset_type/upload_status 聚合 asset_items.created_at 当日数据。
+
+    支撑 v1.0「日采集量可观测」验收；空库输出全零结构不报错。
+    """
+    import json as _json
+
+    from .db import Database
+    from .pipeline import MaterialPipeline
+
+    db = Database(config)
+    db.create_all()  # 幂等建表（只读统计前保证表存在）
+    pipe = MaterialPipeline(config, db=db)
+    click.echo(_json.dumps(pipe.daily_stats(db, date_str), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

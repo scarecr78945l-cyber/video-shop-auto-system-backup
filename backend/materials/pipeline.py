@@ -9,13 +9,17 @@
 - 组件可注入（download_service/dedup_service/normalizer/tagger/compliance/upload），
   缺省用延迟 import + getattr 存在性检测；组件缺失时该阶段降级并标记 skipped，
   不崩整条流水线（R-M2-17：fixtures 零外网零浏览器零真实 ffmpeg 可全链路跑通）。
-- 并行子代理 B4-1（tagger.py：generate_tags + MaterialCompliance.evaluate_and_record）
-  未就绪时延迟 import 兜底（ImportError → 组件缺失 → 跳过并标记）；本任务不创建 tagger.py。
-  流水线消费协议（B4-1 对接口径）：
-    * tagger.generate_tags(item: dict) -> list[str] | dict{"tags":[...]}（kwargs/位置均可，防御式探测）
-    * compliance.evaluate_and_record(item: dict, tags: list|None) -> {"result": "pass"|"reject"|"review",
-      "hit_words": [...], "note": str}；若 B4-1 实现为 asset_id 式签名，流水线探测失败会
-      降级 skipped 并提示「签名不兼容」，待总工协调后统一协议。
+- 并行子代理 B4-1（tagger.py）已就绪时自动对接其真实协议，未就绪时延迟 import 兜底
+  （ImportError → 组件缺失 → 跳过并标记）；本任务不创建/修改 tagger.py。对接口径（双兼容）：
+    * tagger：模块级函数 `generate_tags(source_platform, source_author, title,
+      category_hint, max_tags, config)`（B4-1 真实协议）或 `Tagger` 类实例的
+      `generate_tags(item)`（通用协议），防御式逐级探测；
+    * compliance：`MaterialCompliance(config)` 实例 —— 入库前用 `check_material(title,
+      extra_text, asset_type)` 做预审门（reject → 不入终态），入库后用
+      `evaluate_and_record(repo, asset_id, title, extra_text, ...)` 落证据审计；
+      也兼容通用 `evaluate_and_record(item, tags) -> {"result": ...}` 协议（Mock）。
+- 组件显式禁用：`MaterialPipeline(config, db=..., tagger=None, compliance=None, ...)`
+  显式传 None 即强制缺失（不做延迟导入），供降级测试/断点场景确定性使用。
 - 每条目流程（阶段 → 终态）：
     ① 必填校验（source_url/source_platform/asset_type 缺失 → failed）
     ② 去重预检（DedupService.check：MD5 精确；命中即 deduped；ffmpeg 缺失抽帧 → skipped 环境待确认）
@@ -56,6 +60,7 @@ from typing import Any, Optional, Protocol
 from sqlalchemy import select
 
 from .config import MaterialsConfig, load_config
+from .dedup import FFmpegNotFoundError
 from .downloader import (
     AUTH_REQUIRED,  # noqa: F401  码表常量（供上层统一引用）
     NO_MATCH,  # noqa: F401
@@ -67,6 +72,7 @@ from .downloader import (
     redact_url,
 )
 from .normalizer import NormalizerError, detect_ffmpeg
+from .repo import DuplicateAssetError
 
 log = logging.getLogger("materials.pipeline")
 
@@ -311,10 +317,8 @@ class MaterialPipeline:
             "download_service": components.get("download_service"),
             "dedup_service": components.get("dedup_service", self._default_dedup()),
             "normalizer": components.get("normalizer"),
-            "tagger": self._coerce_component(components.get("tagger"), "tagger", ("tagger", "Tagger")),
-            "compliance": self._coerce_component(
-                components.get("compliance"), "compliance", ("tagger", "MaterialCompliance")
-            ),
+            "tagger": self._resolve_tagger(components),
+            "compliance": self._resolve_compliance(components),
             "upload": components.get("upload"),
         }
 
@@ -337,6 +341,21 @@ class MaterialPipeline:
             return getattr(mod, attr, None)
         except ImportError:
             return None
+
+    def _resolve_tagger(self, components: dict[str, Any]) -> Any:
+        """tagger 组件：显式传 None 即强制缺失（禁用延迟导入）；缺省按 B4-1 真实协议探测。"""
+        if "tagger" in components:
+            return self._coerce_component(components["tagger"], "tagger")
+        lazy = self._lazy_import("tagger", "generate_tags") or self._lazy_import("tagger", "Tagger")
+        if lazy is None:
+            return None
+        return self._coerce_component(lazy, "tagger")
+
+    def _resolve_compliance(self, components: dict[str, Any]) -> Any:
+        """compliance 组件：显式传 None 即强制缺失；缺省延迟导入 MaterialCompliance（B4-1）。"""
+        if "compliance" in components:
+            return self._coerce_component(components["compliance"], "compliance")
+        return self._coerce_component(None, "compliance", ("tagger", "MaterialCompliance"))
 
     def _coerce_component(self, value: Any, name: str, lazy_spec: Optional[tuple[str, str]] = None) -> Any:
         """组件归一：缺省延迟导入 → 类自动实例化（构造签名防御式探测）→ 实例原样返回。"""
@@ -1008,8 +1027,3 @@ class MaterialPipeline:
             "by_upload_status": {},
             "granular": [],
         }
-
-
-# 重导出（上层统一从此模块引用；dedup.py 已重导出 DuplicateAssetError/FFmpegNotFoundError）
-from .dedup import FFmpegNotFoundError  # noqa: E402
-from .repo import DuplicateAssetError  # noqa: E402

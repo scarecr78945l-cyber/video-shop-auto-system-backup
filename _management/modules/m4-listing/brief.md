@@ -1,7 +1,7 @@
 # M4 自动上架 · 模块任务书（brief）
 
 > 本模块总工程师撰写（对照宪法第 2 节）。必读设计文档：07-自动上架模块设计.md、09、10、11、03、01（上架部分）。
-> 版本：v0.1 ｜ 日期：2025 体系建立日 ｜ 模块 ID：m4-listing
+> 版本：v1.3（实现完成）｜ 日期：2025 体系建立日 ｜ 模块 ID：m4-listing
 
 ## 一、模块目标
 
@@ -74,3 +74,18 @@
 2. 全部写入幂等、可重试、可断点续跑；错误分类复用 WorkflowJob 码表。
 3. 任何文件/日志无明文密钥；AppID/Secret 仅环境变量。
 4. 测试运行统一 `python -m pytest tests/test_<模块>_*.py -q --basetemp=".pytest-tmp-m4"`（P-001 临时目录坑 + P-011 多代理并行必须用本模块独立 basetemp，禁止共用 `.pytest-tmp`；全量回归由总控统一执行）。
+
+## 六、实现快照（v1.3 收官，2025 体系建立日）
+
+| P | 交付物（backend/） | 测试 | 状态 |
+|---|---|---|---|
+| P1 | `adapters/wechat_openapi.py`（薄封装，mock 零网络，live 待核对 T1/T2） | test_wechat_openapi.py 6 例 | ✅ 验收通过 |
+| P2 | `services/listing_gate.py`（六项硬门禁，失败不入队） | test_listing_gate.py 25 例 | ✅ 验收通过 |
+| P3 | `listing/` 包（config/models/tables/db/repo/state_machine/__main__，7 表 + 9 态状态机 + R22 断言 + 租约断点续跑） | test_listing_tables.py 14 + test_listing_state_machine.py 17 | ✅ 验收通过 |
+| P4 | `listing/platform_rejection.py`（七分类 + 修复候选 + 二次门禁） | test_listing_rejection.py 36 例 | ✅ 验收通过 |
+| P5 | `listing/ui_fallback.py`（UI 兜底 + page_changed）+ `listing/pipeline.py`（端到端编排） | test_listing_fallback.py 12 + test_listing_pipeline.py 11 | ✅ 验收通过 |
+| P6 | `listing/candidate_pool.py`（M5 候选池只读视图 + 错峰） | test_listing_candidate_pool.py 10 例 | ✅ 验收通过 |
+
+- **模块单测合计 131 passed**（`--basetemp=".pytest-tmp-m4"`），全量回归由总控统一执行。
+- 铁律落地：R22（真实链接验证才标已上架，代码断言固化）；REC-004（全程 mock，不提交真实商品）；数据审计 DA-005（M4→M5 候选池）已登记。
+- 待外部条件：官方 OpenAPI 契约核对（external-contracts.md T1~T7，web 额度恢复后销项，live 模式依赖 T1/T2）；企业主体/类目资质开通（用户确认后切 live）。

@@ -3,6 +3,7 @@
 > 模块的持久记忆，跨会话不丢失。任何代理重启后先读本目录。
 > 必须维护：数据字典、API 契约、环境事实、跨模块数据契约。**禁止写明文密钥**（AppID/Secret 只写环境变量名）。
 > 库：`backend/data/db/m4-listing.db`（SQLite，不入 git；生产切 PostgreSQL 见 database/README.md）。
+> **实现快照（v1.3 收官）**：代码位置 = `backend/adapters/wechat_openapi.py`（P1）、`backend/services/listing_gate.py`（P2）、`backend/listing/`（P3~P6：tables/db/repo/state_machine/platform_rejection/ui_fallback/pipeline/candidate_pool/__main__）；模块单测 131 passed（`--basetemp=".pytest-tmp-m4"`）；外部契约核对稿见 `external-contracts.md`（待核对项 T1~T7）；数据审计 DA-005（M4→M5 候选池）已登记。
 
 ---
 

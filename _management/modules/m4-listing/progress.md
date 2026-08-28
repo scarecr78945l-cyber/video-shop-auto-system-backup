@@ -1,7 +1,7 @@
 # M4 自动上架 · 进度看板（progress）
 
 > 由总工程师持续维护。迭代版本号规则：每次重要返工/改版 +0.1（v1.0 → v1.1）。
-> 当前迭代：**v1.0（开发中）** ｜ 最近更新：2025 体系建立日 ｜ 模块完成度：**30%**
+> 当前迭代：**v1.3（M4 模块级收官）** ｜ 最近更新：2025 体系建立日 ｜ 模块完成度：**100%**
 
 ## 一、筹备任务（P0，已完成）
 
@@ -23,7 +23,7 @@
 | [x] P3 状态机与证据（listing_tasks 状态机迁移+证据 JSON+断点续跑+前端任务卡片）**可拆子代理** | 子代理 P3（`b57d2057`） | 100% ✅ | 验收通过：31 passed（`.pytest-tmp-m4`），backend/listing/ 包 8 文件，R22 断言固化 | v1.1 |
 | [x] P4 拒审处理 `platform_rejection.py`（原因分类+自动修复候选+二次门禁）**可拆子代理** | 子代理 P4（`11d4d391`） | 100% ✅ | 验收通过：36 passed（`.pytest-tmp-m4`），七分类+修复候选+二次门禁复用 ListingGate | v1.1 |
 | [x] P5 Playwright 兜底降级+集成（UI 兜底通道、page_changed、与 M1/M3 数据契约联调、端到端模拟）**可拆子代理** | 子代理 P5（`d0e6e336`） | 100% ✅ | 验收通过：23 passed（`.pytest-tmp-m4`），ui_fallback + pipeline 端到端模拟 | v1.2 |
-| [ ] P6 M5 衔接+验收（销售中商品候选池只读视图、错峰参数、data-audit 登记） | 子代理 P6（派发中） | 5%（派发中） | 候选池查询→错峰→data-audit 登记→验收 | v1.3 |
+| [x] P6 M5 衔接+验收（销售中商品候选池只读视图、错峰参数、data-audit 登记） | 子代理 P6（`62253f5d`） | 100% ✅ | 验收通过：10 passed（`.pytest-tmp-m4`），candidate_pool + DA-005 登记 | v1.3 |
 | [ ] P5 Playwright 兜底降级+集成（UI 兜底通道、page_changed、与 M1/M3 数据契约联调、端到端模拟）**可拆子代理** | 待派发（依赖 P1–P3） | 0% | 全部 | v1.2 |
 | [ ] P6 M5 衔接+验收（销售中商品候选池只读视图、错峰参数、data-audit 登记） | 待派发（依赖 P5 + M5 就绪） | 0% | 全部 | v1.3 |
 
@@ -44,10 +44,22 @@
 
 ## 三、里程碑进度
 
-- 本模块当前完成度：**90%**（P1~P5 全部验收通过；P6 M5 衔接派发中，完成后模块级验收收官）
-- 已完成：筹备 P0 全部；P1 OpenAPI 薄封装（6 测试）；P2 上架校验硬门禁（25 测试）；P3 状态机与证据（31 测试，R22 断言固化）；P4 拒审处理（36 测试）；P5 兜底降级+集成（23 测试，端到端模拟）；P1 文档核对（context/external-contracts.md）
-- 剩余：P6 M5 衔接（候选池只读视图 + 错峰参数 + data-audit 登记）→ 模块级验收收官
-- 依赖外部：官方 channels OpenAPI 文档核对（待核对项 T1~T7 需 web 额度恢复后销项；live 模式实现依赖 T1/T2）；企业主体/类目资质开通状态 → 待用户/总控确认（REC-004 不阻塞，mock 模式先行）
+- **本模块当前完成度：100%（P1~P6 全部验收通过，M4 模块级收官）** ｜ 迭代 v1.3
+- 已完成：
+  - P0 筹备（任务书/风险/数据字典/Schema/排期）
+  - P1 OpenAPI 薄封装 `backend/adapters/wechat_openapi.py`（6 测试，mock 模式零网络，live 待核对 T1/T2）
+  - P2 上架校验硬门禁 `backend/services/listing_gate.py`（25 测试，六项门禁失败不入队）
+  - P3 状态机与证据 `backend/listing/`（31 测试，7 表 ORM + 9 态迁移 + **R22 铁律断言固化** + 租约断点续跑）
+  - P4 拒审处理 `backend/listing/platform_rejection.py`（36 测试，七分类 + 修复候选 + 二次门禁）
+  - P5 兜底降级+集成 `backend/listing/ui_fallback.py` + `pipeline.py`（23 测试，端到端模拟）
+  - P6 M5 衔接 `backend/listing/candidate_pool.py`（10 测试，候选池只读视图 + 错峰 + DA-005 登记）
+  - P1 文档核对 `context/external-contracts.md`（待核对项 T1~T7 标注来源）
+- 模块级验收门：
+  - [x] 端到端模拟流程跑通（不提交真实商品）；真实链接才标「已上架」（R22 铁律，代码断言固化）
+  - [x] 模块单测独立 basetemp 全绿：`--basetemp=".pytest-tmp-m4"`（**131 passed**：6+25+31+36+23+10；全量回归由总控统一执行）
+  - [x] 无明文密钥；错误码复用 WorkflowJob 码表；幂等/断点续跑验证
+  - [x] 数据审计登记完成（data-audit.md DA-005）；与 M1/M3/M5 口径核对一致（金额分/时间 UTC/状态枚举）
+- 待外部条件（不阻塞 mock 模式）：官方 channels OpenAPI 文档核对（T1~T7 需 web 额度恢复后销项，live 模式实现依赖 T1/T2）；企业主体/类目资质开通状态（REC-004，用户确认后切 live）
 
 ## 四、验收门（模块级）
 
