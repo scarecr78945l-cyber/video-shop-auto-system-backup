@@ -906,7 +906,7 @@ class MaterialPipeline:
         for fn in attempts:
             try:
                 return fn()
-            except TypeError as exc:
+            except (TypeError, AttributeError) as exc:
                 last = exc
         raise last  # type: ignore[misc]
 
@@ -939,7 +939,7 @@ class MaterialPipeline:
         for fn in attempts:
             try:
                 return fn()
-            except TypeError as exc:
+            except (TypeError, AttributeError) as exc:
                 last = exc
         raise last  # type: ignore[misc]
 
@@ -976,7 +976,7 @@ class MaterialPipeline:
             try:
                 fn()
                 return
-            except TypeError as exc:
+            except (TypeError, AttributeError) as exc:
                 last = exc
                 continue
             except Exception as exc:

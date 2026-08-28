@@ -537,6 +537,22 @@
 - 下一步（待总控批准）：**v1.0 集成**——审核闸门（review：规则预审/素材评估/人工抽检）+ A/B 闭环（ab：evaluation 回写/素材评分/模板按类目重训练）+ 上传素材库（upload：UploadService 双轨 api|ui|semi，REC-002，先 fixtures 模拟）→ 端到端测试。
 - 当前阻塞：无。**已请总控提交备份（里程碑：M3 三路输出验收通过）**。
 
+---
+
+### 2025 体系建立日（第 5 轮·续）｜ M3 总工程师 ｜ M3 自动素材优化 ｜ 角色：总工（P-011 纪律同步 + test_optimization_images 2 个失败排查加固）
+
+- 任务来源：总控全量回归报告 `test_optimization_images.py` 有 2 个失败（TestMemory::test_policy_injected、TestFullChain::test_plan_generate_gate_memory），要求先看失败详情、区分代码缺陷与测试断言问题，用 `.pytest-tmp-m3` 复跑确认全绿。
+- 排查结论：
+  ① **当前代码库无法复现**：单文件 38 passed、M3 全范围（-k "optimization or video or copywriting"）168 passed、两次全量（802 / 846 passed）M3 相关测试均全绿——总控报告时点大概率处于并发 pytest 抖动（P-011）或当时代码中间态；
+  ② **根因假设（测试断言脆弱性）**：provider 占位图为确定性大色块图，dHash（9x8 相邻亮度比较）对低纹理图判别力弱（M2 双去重验收已记录「纯色/低纹理图距离仅 6」），不同 Pillow 渲染（字体/缩放）下 variant 组合汉明距离可能 ≤8 → full_chain 的 `similar_pairs == []` 断言裕量不足；test_policy_injected 存在 env 依赖窗口（M3_MEMORY_* 环境变量）。
+- 修复（均属测试/占位数据加固，非业务逻辑缺陷）：
+  ① `provider.py::_draw_placeholder` 叠加 **variant 相关确定性斜纹纹理**（密度 step=10+v*3、斜度 slant=8+v*6），显著拉开不同 variant 的 dHash 距离裕量，保持确定性不引入随机；
+  ② `test_policy_injected` 加 monkeypatch.delenv(M3_MEMORY_REJECT_RATE_THRESHOLD/MIN_SAMPLES) 防御 + 双类目正反面断言（负面：通过不触发；正面：仅 1 次拒审 rate=1.0 ≥ 0.9 触发切换）——首版正面断言设计有误（1 通过+1 拒审=拒审率 0.5 < 0.9 不触发），已修正；
+  ③ M3 测试 docstring 同步 P-011 纪律（`.pytest-tmp` → `.pytest-tmp-m3`，禁止共用）。
+- 验证：`test_optimization_images.py` → **38 passed**；M3 全范围 → **168 passed, 1 skipped**；全量 → **848 passed, 2 skipped**（唯一失败 `test_materials_pipeline.py::test_daily_stats_aggregation` 为 **M2 materials 模块** DuplicateAssetError，与 M3 零依赖，提请总控转达 M2）。
+- 产出文件：`backend/optimization/images/provider.py`（+斜纹纹理加固）、`backend/tests/test_optimization_images.py`（test_policy_injected 加固 + docstring 纪律同步）；本日志追加条目。
+- 当前阻塞：无。M3 全部测试稳定全绿；待总控确认备份与 v1.0 集成排期。
+
 ### 2026-08-28 ｜ 子代理 B3（id f833480a）｜ M2 自动收集素材 ｜ 角色：子代理（批次 3 · 榜单图缓存 BoardImageCache）
 
 - 完成任务：有米云榜单图缓存实现（多源接口化，考古加 kaogujia 预留）+ 本地 http.server fixtures 测试 + 可选 CLI。

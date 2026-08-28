@@ -276,8 +276,9 @@ def test_run_source_download_failure_classified_and_redacted(db_materials):
     assert err["item_key"] == "wxv_0002"
     assert err["error_code"] == "TIMEOUT"
     dump = json.dumps(result, ensure_ascii=False)
-    assert "SECRET123" not in dump and "abc" not in dump     # 敏感参数脱敏
-    assert "***" in err["message"]                            # redact_url 掩码可见
+    assert "SECRET123" not in dump and "abc" not in dump     # 敏感参数值脱敏（P-004）
+    assert "SECRET123" not in err["message"] and "abc" not in err["message"]
+    assert "token=" in err["message"] and "sig=" in err["message"]  # 键保留、值掩码（%2A%2A%2A）
 
 
 def test_run_source_missing_required_field_failed(db_materials):
@@ -330,21 +331,24 @@ def test_run_source_upload_callback_after_insert(db_materials):
 
 # ------------------------------------------------------------ daily_stats
 def _seed_asset(db_materials, *, day, platform, atype, upload_status="local", idx=0):
-    """直插一条素材并覆写 created_at 到指定 UTC 日期。"""
+    """直插一条素材并覆写 created_at/upload_status 到指定值。"""
     repo = AssetRepo(db_materials)
     md5 = f"{idx:032d}"
+    if atype == "video":
+        phash = json.dumps([f"{idx:016x}", f"{idx + 1:016x}", f"{idx + 2:016x}"], ensure_ascii=False)
+    else:
+        phash = f"{idx:016x}"
     aid = repo.create_asset(
         asset_type=atype,
         source_platform=platform,
         source_url=f"https://example.com/{platform}/{idx}.mp4",
         md5=md5,
-        phash="0f0f0f0f0f0f0f00" if atype == "video" else "1010101010101010",
+        phash=phash,
         file_path=f"{atype}/202608/{idx}.mp4",
         size=1000,
         duration=15 if atype == "video" else None,
         resolution="720x1280" if atype == "video" else None,
         compliance_status="passed",
-        upload_status="local",
     )
     with db_materials.session() as s:
         a = s.get(T.AssetItem, aid)

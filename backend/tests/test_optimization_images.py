@@ -2,7 +2,8 @@
 
 覆盖 4 能力：planner / provider / quality_gate / memory，全部 fixtures 离线模式
 （autouse 删除 KIMI_API_KEY / WAN_API_KEY），零网络、零第三方新依赖。
-运行：python -m pytest tests/test_optimization_images.py -q --basetemp=".pytest-tmp"（P-001）
+运行：python -m pytest tests/test_optimization_images.py -q --basetemp=".pytest-tmp-m3"
+（P-001/P-011：pytest 必须带本模块独立 basetemp，禁止共用 .pytest-tmp）
 """
 
 from __future__ import annotations
@@ -487,12 +488,21 @@ class TestMemory:
         mem.record("宠物用品", passed=False, reject_reason="r")
         assert mem.strategy_for("宠物用品").get("background") == "gradient"
 
-    def test_policy_injected(self, db, cfg):
-        # 阈值 0.9、1 样本：通过记录 → 拒审率 0 < 0.9，不触发切换
+    def test_policy_injected(self, db, cfg, monkeypatch):
+        # 防御：清除类目记忆策略环境变量，确保测试只受显式注入的 policy 影响
+        # （P-011 纪律：即使并发环境设了 M3_MEMORY_* 也不影响本用例）
+        monkeypatch.delenv("M3_MEMORY_REJECT_RATE_THRESHOLD", raising=False)
+        monkeypatch.delenv("M3_MEMORY_MIN_SAMPLES", raising=False)
+        # 阈值 0.9、1 样本：通过记录 → 拒审率 0 < 0.9，不触发切换（负面断言）
         policy = MemoryPolicy(reject_rate_threshold=0.9, min_samples=1)
         mem = CategoryListingMemory(db, cfg, policy=policy)
         mem.record("家居日用", passed=True)
         assert mem.get("家居日用").image_strategy == {}
+        # 正面验证注入确实生效：min_samples=1 + 仅 1 次拒审 → 拒审率 1.0 ≥ 0.9 → 触发切换
+        mem.record("宠物用品", passed=False, reject_reason="r_injected")
+        strategy = mem.get("宠物用品").image_strategy
+        assert strategy.get("background") == "scenario"
+        assert strategy.get("reject_rate") == pytest.approx(1.0, abs=0.01)
 
 
 # ---------------------------------------------------------------- 全链路（fixtures 离线）
