@@ -2,6 +2,7 @@
 
 > 本模块独立数据库：开发库文件 `backend/data/db/m0-foundation.db`（SQLite，不入 git；可暂不建库，本轮为 Schema 规划）。
 > 铁律：只操作本模块库；共享表其他模块只读（宪法第 4 节）；生产切 PostgreSQL 时迁移脚本放本目录。
+> **数据口径（总控裁决 REC-005 / DA-001，M4/M5 已按此实现）**：金额一律「分」int 存储（含 JSON 内金额），展示层转元；时间一律 UTC（ISO8601 带时区），时间戳字段名后缀 `_at`，展示层转 UTC+8。
 
 ## 一、表清单与前缀约定
 
@@ -65,15 +66,15 @@ CREATE TABLE tasks (
 
 ```sql
 CREATE TABLE logs (
-    id       INTEGER PRIMARY KEY AUTOINCREMENT,
-    ts       DATETIME NOT NULL,
-    module   VARCHAR(20) NOT NULL,             -- m0/m1/.../m5
-    level    VARCHAR(10) NOT NULL,
-    event    VARCHAR(120),
-    message  TEXT,
-    evidence JSON                              -- 敏感字段写入前必须 _redact_text
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at DATETIME NOT NULL,              -- 时间戳字段统一 _at 后缀（REC-005）
+    module     VARCHAR(20) NOT NULL,           -- m0/m1/.../m5
+    level      VARCHAR(10) NOT NULL,
+    event      VARCHAR(120),
+    message    TEXT,
+    evidence   JSON                            -- 敏感字段写入前必须 _redact_text
 );
-CREATE INDEX idx_logs_module_ts ON logs(module, ts);
+CREATE INDEX idx_logs_module_ts ON logs(module, created_at);
 ```
 
 ### `app_config` — 全局配置（键值+JSON，M0 拥有，全员只读）

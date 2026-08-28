@@ -3,7 +3,9 @@
 > 本模块独立数据库：开发库文件 `backend/data/db/m2-materials.db`（SQLite，不入 git，备份由总控统一执行）。
 > 铁律：只操作本模块库；本模块全部表前缀 `asset_*`（宪法第 4 节）；基座共享表（`workflow_jobs`/`app_config`/`logs`）只读。
 > 生产切换 PostgreSQL 时，迁移脚本放本目录（对齐 11 文档 M4 里程碑：SQLite→PostgreSQL + MinIO + Redis）。
-> 本文件仅做 Schema 规划（v0.1 筹备阶段暂不建库，DDL 已按 SQLite 语法可直接执行）。
+> 本文件是 M2 素材模块 Schema 的唯一口径：DDL 已由 `backend/materials/tables.py`（ORM）
+> 完整实现（v1，见下方迁移记录），开发库由 `python -m materials init-db` 幂等建表
+> （在 `backend` 目录运行，SQLite 自动创建 `data/db/` 父目录）。
 
 ---
 
@@ -177,5 +179,16 @@ CREATE INDEX IF NOT EXISTS idx_asset_up_asset ON asset_uploads (asset_id, status
 | 版本 | 说明 | 日期 |
 |---|---|---|
 | v0 | 初始 Schema 规划（7 表，SQLite 语法，暂未建库） | 2025 体系建立日 |
+| v1 | 基座实现（子代理 D）：`backend/materials/` 包 7 表 ORM + `AssetRepo` + `init-db`/`pool` CLI + 单元测试；表/列/CHECK/唯一约束与 DDL 完全一致（无表结构差异） | 2025 体系建立日 |
 
-> 迁移纪律：v0.1 筹备阶段只规划不建库；开发阶段由总工执行 `init-db`（对齐 sourcing `python -m sourcing init-db` 模式）；任何表结构变更必须：①更新本文件 DDL；②写迁移脚本放本目录；③记入 `decisions.md` 与 `progress.md`。
+### v1 实现说明（与 DDL 的口径对齐与实现细节）
+
+1. **时间戳**：按 DDL 用 `TEXT ISO8601 UTC`（`models.iso_now()`，固定 microseconds 宽度），同格式字符串可字典序比较，支撑租约回收/退避续跑判断（sourcing 用 DateTime，本模块以本文件 DDL 为唯一口径）。
+2. **指纹认领**（`asset_dedup_fingerprints`）：`create_asset` 在**同一事务**内先落 `asset_items` 取 id，再认领 `md5` + `{asset_type}_phash` 两组指纹；任一冲突 → 抛 `DuplicateAssetError`（事务整体回滚，asset 与新指纹不残留），冲突指纹 `hits+1` 留证据；`(fingerprint_type, fingerprint_value)` 唯一约束是并发兜底（IntegrityError 也按重复处理，不静默吞）。
+3. **下载任务**（`asset_download_jobs`）：`claim_next_download_job` 先回收过期租约（running 且 `lease_expires_at < now` → queued，断点自愈），再领取 queued 或到期可重试的 failed 任务；`finish_download_job` 失败时 `AUTH_REQUIRED/VERIFICATION_REQUIRED` → `blocked`（人工接管不自动重试，P-002），其余 → `failed` + `retry_count+1`，`next_run_at` 未给时按 `throttle_level` 退避（间隔 ×2^level，基数 `MATERIALS_DOWNLOAD_BACKOFF_BASE_SECONDS`）。
+4. **合规门禁**：`record_compliance_check` 落审计的同时同步 `asset_items.compliance_status`（`pass`→`passed`、`reject`→`rejected`），满足「入库前必须存在 pass 记录且 compliance_status='passed'」的对外提供门禁。
+5. **上传幂等**：`mark_uploaded` 同素材同 `platform_material_id` 重复调用直接返回（不重复插上传记录）；该 ID 被其他素材占用 → 抛 `DuplicateUploadError`。
+6. **硬规格**：集中在 `backend/materials/config.py`（`MIN_WIDTH=720`、`MIN_HEIGHT=1280`、`MIN_RATIO=9/16`、`MAX_SIZE_BYTES=524288000`、`MIN_DURATION=5`、`MAX_DURATION=300`、`ALLOWED_FORMATS=["mp4","mov"]`），供标准化器（子代理 C）/入库/投放绑定复用；DDL 层不做跨表校验（R-M2-12 代码层强制）。
+
+> 迁移纪律：任何表结构变更必须：①更新本文件 DDL；②写迁移脚本放本目录；③记入 `decisions.md` 与 `progress.md`。
+> 生产切 PostgreSQL 时：迁移脚本放本目录；`claim_next_download_job` 可改为 `FOR UPDATE SKIP LOCKED`（SQLite 开发环境无行锁）。

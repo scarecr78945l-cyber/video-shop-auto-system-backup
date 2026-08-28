@@ -40,14 +40,14 @@
 CREATE TABLE IF NOT EXISTS m1_ad_conversion_cache (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     category      VARCHAR(80)  NOT NULL,            -- 类目锚点（与 products.category 一致，C-1）
-    roi           REAL         NOT NULL DEFAULT 0,   -- 期间托管 ROI（成交额/花费）
-    sales_amount  REAL         NOT NULL DEFAULT 0,   -- 期间托管成交额（元）
+    roi           REAL         NOT NULL DEFAULT 0,   -- 期间托管 ROI（成交额/花费，比值无量纲）
+    sales_amount  INTEGER      NOT NULL DEFAULT 0,   -- 期间托管成交额（分，int；与 M5 口径对齐，禁元/分混用）
     sample_count  INTEGER      NOT NULL DEFAULT 0,   -- 计入商品数（<5 弱样本，打分降权/视为无数据）
     period_start  VARCHAR(20)  NOT NULL,             -- 快照期起 YYYY-MM-DD
     period_end    VARCHAR(20)  NOT NULL,             -- 快照期止 YYYY-MM-DD
-    generated_at  DATETIME     NOT NULL,             -- M5 生成时间（新鲜度判定基准，R-14）
+    generated_at  DATETIME     NOT NULL,             -- M5 生成时间（新鲜度判定基准，R-14；ISO-8601 带时区）
     source_file   VARCHAR(300) NOT NULL DEFAULT '',  -- 来源交换文件（审计）
-    ingested_at   DATETIME     NOT NULL,             -- 本模块导入时间
+    ingested_at   DATETIME     NOT NULL,             -- 本模块导入时间（UTC）
     UNIQUE (category, period_start, period_end)      -- 幂等键：同周期重复导入覆盖
 );
 CREATE INDEX IF NOT EXISTS idx_m1_ad_cache_category ON m1_ad_conversion_cache (category);

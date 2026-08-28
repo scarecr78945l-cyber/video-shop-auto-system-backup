@@ -150,6 +150,7 @@
 | 表前缀 | `asset_*`（本模块全部表） |
 | 环境变量 | `MATERIALS_DB_URL`（默认 sqlite:///m2-materials.db）、`MATERIALS_STORAGE_DIR`（素材存储根目录）、`MATERIALS_CHROME_PATH`、`MATERIALS_LOG_LEVEL`、`MATERIALS_FFMPEG_PATH`、`MATERIALS_DOWNLOAD_CONCURRENCY`（前缀 `MATERIALS_`，值不入库不写文档） |
 | 共享 Chrome | CDP 9222（共享 profile；视频号/淘宝/1688）；独立浏览器见 sourcing（youmi 9230 / doudian 9231），本模块尽量复用共享，不重复开页（P-002） |
+| 下载中台 API 端口 | 默认 **8788**（`--port` 可覆盖）；**8787 已被工作区 captcha-vision-gateway 占用**，禁止使用（P-008） |
 | ffmpeg | 版本待确认（11 文档前置条件）；启动探测，缺失即报错不静默 |
 | Python | 3.12；Node 20+（前端素材库页） |
 | 测试 | pytest 必须带 `--basetemp=".pytest-tmp"`（P-001） |

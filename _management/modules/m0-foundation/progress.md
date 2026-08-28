@@ -15,7 +15,7 @@
 | [x] 决策记录 `decisions.md`（首轮 6 项关键决策） | 总工 | 100% | 无 |
 | [x] P-001 落实：`backend/README.md` 测试命令补 `--basetemp=".pytest-tmp"` | 总工 | 100% | 无 |
 | [x] 登记工作台账 `agent-activity.md` | 总工 | 100% | 无 |
-| [ ] 基座开发 A：workflow_jobs/tasks/logs/error_codes 建表 + 队列 API | 总工/子代理 | 0% | 见下方排期 A1 |
+| [ ] 基座开发 A：workflow_jobs/tasks/logs/error_codes 建表 + 队列 API | 总工/子代理 | 进行中（A1 子代理已派发） | 子代理完成后验收 |
 | [ ] 基座开发 B：调度器进程化 | 总工/子代理 | 0% | 排期 A2 |
 | [ ] 风控落地：预算三重/止损/余额/一键全停 | 总工/子代理 | 0% | 排期 A3 |
 | [ ] 工程基座：环境变量化/脱敏巡检/.env.example/迁移脚本 | 总工/子代理 | 0% | 排期 A4/A5 |

@@ -1,0 +1,17 @@
+{
+  "asset_id": "a_video_001",
+  "asset_type": "video",
+  "source_platform": "视频号",
+  "source_url": "https://example.com/videos/demo_720x1280.mp4",
+  "md5": "d41d8cd98f00b204e9800998ecf8427e",
+  "phash": "",
+  "file_path": "fixtures/optimization/demo_720x1280.mp4",
+  "duration": 18.5,
+  "resolution": "720x1280",
+  "size_mb": 12.3,
+  "tags_json": {"category": "家居日用", "scene": "开箱"},
+  "heat_score": 85.0,
+  "evaluation": "exploration",
+  "upload_status": "local",
+  "platform_material_id": ""
+}

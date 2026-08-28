@@ -3,15 +3,15 @@
 > 模块的持久记忆，跨会话不丢失。任何代理重启后先读本目录。
 > 铁律：本目录只写字段名与约定，**绝不写明文密钥/Token/Cookie 值**（宪法第 4 节）。
 
-## 数据字典（骨架 v0.1）
+## 数据字典（骨架 v0.1，口径已按总控裁决 REC-005 / DA-001 修订）
 
-### 全局字段口径（全系统强制一致）
+### 全局字段口径（全系统强制一致，M4/M5 已按此实现）
 
 | 约定项 | 口径 | 说明 |
 |---|---|---|
 | 主键 ID | 自增整数（Integer PK） | 业务键（如 fingerprint）另建唯一索引 |
-| 金额 | 元（人民币），Float | 平台 API 以「分」计处须在适配层换算，字段名注明 `*_fen` |
-| 时间 | UTC，timestamptz / ISO8601 字符串 | 入库用 `utcnow()`；展示层转本地时区 |
+| 金额 | **分（人民币），int**（整数存储） | 与微信小店 channels API、投放后台口径一致；展示层由前端/报表转「元」；JSON 内金额同样按分 int（总控裁决 REC-005，见 logs/data-audit.md DA-001） |
+| 时间 | **UTC（ISO8601 带时区）存储** | 时间戳字段名一律后缀 `_at`；展示层转 UTC+8（东八区）；SQLite 开发库存 aware UTC（近似 ISO8601），PostgreSQL 用 TIMESTAMPTZ（真带时区）（总控裁决 REC-005 / DA-001） |
 | 指纹 | SHA-256 hex（64 位小写） | `product_fingerprint` / 素材指纹共用此规格 |
 | 枚举值 | 小写下划线（snake_case） | 见 `error_code` / `status` 枚举 |
 | 布尔 | 0/1（Boolean） | — |

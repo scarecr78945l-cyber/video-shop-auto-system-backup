@@ -91,21 +91,23 @@
 
 ### C-2 M5 → M1：投放转化回写（输入契约草案）
 - 载体：`_management/data-exchange/m5-ad-conversion.json`（M5 总工产出，双方在文件头签字）。
+- **口径对齐（重要）**：M5 context 约定「金额统一「分」int、时间 UTC+8」——本契约对齐该口径：`sales_amount` 单位为**分**（int）；时间戳 ISO-8601 带时区（建议 +08:00 与 M5 一致，或 UTC 但必须显式标注）；`roi` 为比值无量纲。**禁止出现金额单位混用（元/分）。**
 - 结构：
 ```json
 {
   "schema_version": 1,
   "period": {"start": "2026-08-01", "end": "2026-08-31"},
-  "generated_at": "2026-09-01T00:00:00Z",
+  "generated_at": "2026-09-01T00:00:00+08:00",
   "data": {
-    "收纳整理": {"roi": 3.2, "sales_amount": 128000.0, "sample_count": 34},
-    "宠物用品": {"roi": 2.4, "sales_amount": 86000.0, "sample_count": 21}
+    "收纳整理": {"roi": 3.2, "sales_amount": 12800000, "sample_count": 34},
+    "宠物用品": {"roi": 2.4, "sales_amount": 8600000, "sample_count": 21}
   }
 }
 ```
-- 字段口径：`roi`=期间托管成交额/花费（>0）；`sales_amount`=成交额（元）；`sample_count`=计入商品数（<5 建议视为弱样本）；`generated_at` 用于**数据新鲜度判定**（>7 天视为无数据，R-14）。
+- 字段口径：`roi`=期间托管成交额/花费（>0）；`sales_amount`=成交额（**分**，int）；`sample_count`=计入商品数（<5 建议视为弱样本）；`generated_at` 用于**数据新鲜度判定**（>7 天视为无数据，R-14）。
 - 导入端：M1 `ad_backfill.py`（幂等：以 `period+generated_at` 为唯一键，重复导入覆盖）→ `m1_ad_conversion_cache`。
 - 无文件/无数据时：打分维度自动不生效（已实现），**不报错**。
+- 待总控确认：`sales_amount` 口径最终以 M5 总工签发的契约为准（BLOCKER-003）。
 
 ### C-3 M1 → M4：商品池出池（输出契约草案）
 - 载体：`_management/data-exchange/m1-pool-<YYYYMMDD>.json`（每日快照）或总控裁定的只读视图。
