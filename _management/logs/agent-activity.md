@@ -683,3 +683,36 @@
 - 产出文件：`backend/ads/report.py`、`backend/ads/stop_loss.py`、`backend/tests/test_ads_report.py`（25 例）、`test_ads_stop_loss.py`（28 例）、`_management/modules/m5-ads/REPORT_v0.4_report.md`、`REPORT_v0.4_stop_loss.md`、`decisions.md`（+D-M5-08）、`progress.md`（v0.4 全部勾选、完成度 **60%**）；本日志追加条目。
 - 当前阻塞：无。**已请总控提交备份（里程碑：v0.4 监控层验收通过）**；批准后推进 v0.5 回流层（数据回写：选品「投放转化」维度 + 素材评估回流 + review_reason，可拆 1 子代理）。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；ads 包测试现 **130 例**（tables 19 + repo 14 + settings 25 + executor 25 + report 25 + stop_loss 28），全量回归请总控统一执行。
+
+### 2026-08-28 23:04 ｜ P5 子代理 ｜ m4-listing ｜ 角色：子代理
+
+- 完成任务：M4 自动上架模块 **Playwright 兜底降级通道 + 上架流水线编排 + 端到端模拟**（零真实浏览器/零真实平台调用，全部抽象接口 + Mock 注入）——
+  ① **`backend/listing/ui_fallback.py`（新建）**：`UiFallbackConfig`（env_prefix `LISTING_UI_`，batch_size=50/item_interval_s=5.0/page_timeout_ms=15000/screenshot_dir/signatures）；`PageOps` Protocol（goto/click/fill/screenshot/current_url/has_selector）；`MockPageOps`（script 字典驱动行为 + ops 历史含时间戳 + 截图写盘自动建目录，独立实现不 import ads 包）；`PageChangedError`（evidence 含 page_key/missing/current_url/screenshot_path，P-003 改版留证）；`verify_page_signature`（锚点全过放行/缺失截图抛错）；`FallbackRunner`（verify→goto→操作序列 select_category/set_purchase_limit/fill_custom_param，成功 {ok:True,evidence} / 失败结构化 {ok:False,error_code:"page_changed"|"NO_MATCH"|"TIMEOUT"|"UNEXPECTED"} 不抛到队列层，连续失败 ≥2 → UNEXPECTED + 人工接管建议 R10/R11，run_batch ≤batch_size/批串行 + item_interval_s 防风控间隔 P-006）；
+  ② **`backend/listing/pipeline.py`（新建）**：`ListingPipeline`（构造注入 gate/adapter/repo/state_machine/rejection/link_verifier 默认恒 True）；`submit`（门禁失败不入队 stage="gate" → 幂等复用 existing → 入队 pending→creating → SPU/SKU/主图×N+详情图 → draft → submit_audit → platform_auditing → 查审通过 + get_product_link + link_verifier → listed[R22 证据 link_url 非空+verified=True] / 驳回 → rejected → rejection.handle → retry_candidate|manual；全程异常 → 结构化失败留最近合法状态，断点续跑不伪造状态；op_log 证据留痕 payload_digest 脱敏）；`requalify_and_resubmit`（仅 retry_candidate 可重提，P4 二次门禁通过后复用原任务 retry_candidate→creating 继续全链）；
+  ③ **测试（新建）**：`backend/tests/test_listing_fallback.py`（12 例：MockPageOps 历史/签名校验通过/缺失抛 PageChangedError 含 evidence+截图写盘/成功路径/改版结构化失败/NO_MATCH/TIMEOUT 映射/连续失败 UNEXPECTED 人工接管/batch_size 截断/item_interval 时间戳间隔/fill 参数落值/未知操作）、`backend/tests/test_listing_pipeline.py`（11 例：happy path 全链状态+product_link+link_verified_at+op_log 齐全/gate 失败不入队/驳回 retry_candidate/驳回 manual/幂等/R22 负面 link_verifier=False 停留 platform_auditing/requalify 全链（限流窗口重置）/requalify 非 retry_candidate/requalify 二次门禁不过/RATE_LIMIT 失败状态停 creating/op_log 脱敏摘要）；
+  ④ 验收：`cd backend && python -m pytest tests/test_listing_fallback.py tests/test_listing_pipeline.py -q --basetemp=".pytest-tmp-m4"` → **23 passed**（fallback 12 + pipeline 11）；复用 conftest fixtures（cfg_listing/db_listing/repo_listing/machine_listing）+ tmp_path SQLite 零建库，P1 adapter 用 WechatOpenApiConfig(mode="mock")。
+- 产出文件：`backend/listing/ui_fallback.py`、`backend/listing/pipeline.py`、`backend/tests/test_listing_fallback.py`（12 例）、`backend/tests/test_listing_pipeline.py`（11 例）；本日志追加条目。
+- 当前阻塞：无。请总控统一执行 M4 全量回归（P1~P5 全部用例）。
+- 备注：未运行任何 git 命令；未使用 web_search；未写明文密钥；未 import playwright / 无真实浏览器与网络调用；未改动 backend/sourcing|materials|optimization|ads|foundation|adapters|services 与 backend/listing/ 下既有文件及 tests/conftest.py；仅新建 4 个文件。
+
+---
+
+### 2025 体系建立日 ｜ M5 总工程师 ｜ M5 自动小店投放（商品托管） ｜ 角色：总工（v0.5 回流层派发）
+
+- 完成任务：总控批准 v0.5 回流层排期（数据回写 1 子代理，总控已提交 v0.17 备份）；**契约勘察与会签准备**——通读 M1 消费端 `backend/sourcing/ad_backfill.py`（C-2 权威：schema_version=1/period{start,end:YYYY-MM-DD}/generated_at ISO8601/data{category:{roi>0,sales_amount 分int,sample_count}}，load_exchange 校验逻辑、弱样本留痕消费端过滤、导入幂等）、M1 C-2 契约草案（m1 context/README：sales_amount 分 int、generated_at 新鲜度>7 天、M5 按与 products.category 完全一致的类目名聚合、载体 `_management/data-exchange/m5-ad-conversion.json`）、M2 消费端 `backend/materials/integration.py`（EvaluationFeedbackService.receive_evaluation(asset_id,evaluation,evidence,source_agent="M5")，EVALUATION_VALUES=exploring/efficient/potential，幂等审计）——确认 M5 侧产出结构可与 M1 ad_backfill 直接对接（**避免双写冲突：M5 只产 data-exchange JSON 载体，绝不写 M1/M2 库**）；架构设计 feedback.py 五能力（aggregate_by_category 类目聚合含 spend=0 类目跳过/弱样本仍输出；build_exchange_file C-2 结构校验；write_exchange_file UTF-8 幂等写；build_material_evaluation_file M2 对齐 evidence；build_review_reason_file；load_category_map 映射加载）；派发自包含子代理任务书（背景/必读 8 文件/目标/验收含 **C-2 契约交叉验证（M1 load_exchange 读 M5 产出必须通过）**/宪法要点/禁改 sourcing·materials·ads 既有文件/`.pytest-tmp-m5`）。
+- 派发子代理：**数据回写=cc1f830a**（backend/ads/feedback.py + test_ads_feedback.py 18~28 例 + REPORT_v0.5_feedback.md 含 data-audit 登记建议文本）。
+- 产出文件：`progress.md`（v0.5 开发中标注、子代理已派发、v1.0 集成验收待办行）；本日志追加条目。
+- 当前阻塞：无。待子代理完成通知 → 总工验收（读产出 + 定向 pytest + **C-2 契约交叉验证**）→ data-audit 登记（M5-OUT-01/02/03 提供记录）→ v1.0 集成验收 → 通知总控备份。
+- 备注：未运行任何 git 命令；未读写其他模块库（本次仅勘察 M1/M2 源码与契约文档）；未写明文密钥。
+
+---
+
+### 2025 体系建立日（第 7 轮）｜ M4 总工程师 ｜ M4 自动上架（m4-listing） ｜ 角色：总工（P5 验收通过 · P6 派发）
+
+- 完成任务：
+  ① **P5 验收通过**（子代理 d0e6e336，一次性完成）——独立复跑 `python -m pytest tests/test_listing_fallback.py tests/test_listing_pipeline.py -q --basetemp=".pytest-tmp-m4"` → **23 passed**（7.41s，与子代理自测 7.44s 一致）；代码抽查 `backend/listing/pipeline.py`：ListingPipeline 构造注入（gate/adapter/repo/state_machine/rejection/link_verifier 默认恒 True）、submit 全链（门禁失败不入队 stage="gate" → 幂等复用 → pending→creating→draft→platform_auditing→listed（R22 证据 link_url+verified=True）| 驳回→rejection.handle→retry_candidate|manual）、全程异常结构化失败留最近合法状态（断点续跑不伪造状态）、requalify_and_resubmit（仅 retry_candidate 可重提）——07 文档「失败不阻塞队列」与 R22 铁律在编排层落地；ui_fallback.py 抽查（PageOps Protocol + MockPageOps + verify_page_signature page_changed 留证 + FallbackRunner 失败结构化返回不抛队列层 + run_batch ≤50 串行防风控）；
+  ② **P6 M5 衔接已派发**（子代理 62253f5d，全内联任务书：backend/listing/candidate_pool.py——CandidatePoolConfig（LISTING_ 前缀：candidate_batch_max=50、peak_avoid_window 错峰互斥时段）+ CandidatePool.get_sale_candidates（只读查询 status=listed + link_verified_at 非空 + product_link 非空，仅销售中商品，关联 spus 标题/类目 + skus 价格区间聚合，≤batch_max 截断）+ in_peak_avoid_window（上架与 M5 托管错峰）；测试 ≥8 例；并在 _management/logs/data-audit.md 末尾登记 M4→M5 数据提供（宪法第 5 节）），运行中；
+  ③ progress.md P5 勾选 100%、完成度 **90%**、P6 行更新。
+- 产出文件：`backend/listing/ui_fallback.py`、`backend/listing/pipeline.py`、`backend/tests/test_listing_fallback.py`（12 例）、`test_listing_pipeline.py`（11 例）（子代理产出，已验收）；`progress.md`（P5 100%、完成度 90%）；本日志追加条目。
+- 当前阻塞：无。待 P6 完成通知 → 验收（读产出 + `pytest --basetemp=".pytest-tmp-m4"`）→ **M4 模块级验收收官**（progress.md 100%、更新 brief/context 实现快照、台账）→ 通知总控备份（里程碑：M4 自动上架全链路可模拟跑通）并请总控统一执行 M4 全量回归。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零真实平台调用。

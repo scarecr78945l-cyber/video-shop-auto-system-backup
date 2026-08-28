@@ -67,8 +67,8 @@ class TemplatePlan:
 
 
 def _sanitize_id(part: str) -> str:
-    """类目 → 安全 id 片段（仅保留字母数字下划线）。"""
-    return re.sub(r"[^0-9a-zA-Z_]", "_", part or "default").strip("_") or "default"
+    """类目 → 安全 id 片段（保留字母数字与中文，其余替换为 _）。"""
+    return re.sub(r"[^\w]", "_", part or "default").strip("_") or "default"
 
 
 def _resolve_params(category: str, defaults: dict[str, Any], overrides: Optional[dict[str, Any]]) -> dict[str, Any]:

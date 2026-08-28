@@ -271,6 +271,60 @@ class AlibabaConfig(BaseSettings):
     )
 
 
+class TaggerConfig(BaseModel):
+    """素材标签化参数（子代理 B4-1；对齐 context 1.1 tags_json 口径 + R-M2-18/R-M2-19）。
+
+    max_tags：单素材标签总数上限（去重保序后截断，默认 8）；
+    tag_keyword_stopwords：标题关键词提取停用词（小表默认，命中即剔除）。
+    只追加本子配置，不改既有项；测试/CLI 用 `load_config(tagger={...})` 覆盖。
+    """
+
+    max_tags: int = Field(
+        default=8,
+        description="标签总数上限（平台/达人/类目/标题关键词去重保序后截断）",
+    )
+    tag_keyword_stopwords: list[str] = Field(
+        default_factory=lambda: [
+            "视频", "短视频", "热门", "推荐", "分享", "好物", "种草", "开箱", "测评", "素材",
+        ],
+        description="标题关键词提取停用词（命中即剔除，小表默认）",
+    )
+
+
+class UploadConfig(BaseSettings):
+    """小店素材库上传配置（子代理 B4-2；对齐 context 1.4/3.3 与 database asset_uploads DDL）。
+
+    上传链路以「接口抽象 + fixtures mock」交付（backend/materials/integration.py）：
+    真实小店素材库 API/登录态未确认前 mode 恒为 mock（默认，零外网零登录态可测），
+    shop 模式为真实 provider 骨架（ShopMaterialUploadProvider 方法抛 NotImplementedError）。
+    与 TikTokConfig 同模式（env_prefix=MATERIALS_ + validation_alias 显式完整环境变量名 +
+    populate_by_name=True），`load_config(upload={"mode": "shop"})` 按字段名覆盖可用。
+    密钥纪律（P-004）：本配置只存模式/参数占位，不存任何 API Key/Cookie/Token；
+    provider_params 只允许放**环境变量名/非敏感参数**，绝不写明文凭据。
+    """
+
+    model_config = SettingsConfigDict(env_prefix="MATERIALS_", extra="ignore", populate_by_name=True)
+
+    mode: str = Field(
+        default="mock",
+        validation_alias="MATERIALS_UPLOAD_MODE",
+        description=(
+            "上传 provider 模式：mock（默认，fixtures 离线）/ shop（真实小店素材库，"
+            "待 API/登录态确认后实现，见 integration.py ShopMaterialUploadProvider）"
+        ),
+    )
+    provider_params: dict[str, Any] = Field(
+        default_factory=dict,
+        validation_alias="MATERIALS_UPLOAD_PROVIDER_PARAMS",
+        description=(
+            "真实 provider 参数占位（JSON，环境变量覆盖），如 "
+            '{"api_base_url_env": "MATERIALS_UPLOAD_API_BASE_URL", '
+            '"credential_env": "MATERIALS_UPLOAD_CREDENTIAL", "timeout_seconds": 60}；'
+            "只存环境变量名/非敏感参数，不存明文凭据（P-004）"
+        ),
+    )
+
+
 class MaterialsConfig(BaseSettings):
     """总配置。环境变量：MATERIALS_DB_URL / MATERIALS_STORAGE_DIR 等。"""
 
@@ -298,6 +352,8 @@ class MaterialsConfig(BaseSettings):
     wechat_video: WechatVideoConfig = Field(default_factory=WechatVideoConfig)
     taobao_refs: TaobaoRefsConfig = Field(default_factory=TaobaoRefsConfig)
     alibaba: AlibabaConfig = Field(default_factory=AlibabaConfig)
+    tagger: TaggerConfig = Field(default_factory=TaggerConfig)
+    upload: UploadConfig = Field(default_factory=UploadConfig)
 
 
 def load_config(**overrides: Any) -> MaterialsConfig:

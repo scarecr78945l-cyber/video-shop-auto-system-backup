@@ -47,7 +47,7 @@ def test_mock_page_ops_basic_records_history():
 
     assert ops.current_url() == "https://mock.page/category_form"
     assert ops.has_selector(".category-tree") is True
-    assert [e["op"] for e in ops.ops] == ["goto", "click", "fill"]
+    assert [e["op"] for e in ops.ops] == ["goto", "click", "fill", "has_selector"]
     assert ops.ops[0]["selector"] == "category_form"
     assert ops.ops[2]["selector"] == "#purchase-limit"
     assert ops.ops[2]["value"] == "2"

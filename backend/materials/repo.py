@@ -539,3 +539,28 @@ class AssetRepo:
                 asset.compliance_status = "passed"
             elif result == "reject":
                 asset.compliance_status = "rejected"
+
+    # ---------------------------------------------------------- 拒审下架（R-M2-20）
+    def mark_disabled(self, asset_id: int, reason: str) -> None:
+        """平台拒审/源文件损坏 → upload_status=disabled（幂等，R-M2-20）。
+
+        对齐 05 设计：平台判「审核不通过或源文件损坏」的素材自动下架标记，避免继续投放；
+        每次标记在 asset_uploads 留一条 status=disabled 台账（evidence_json 记拒审原因，
+        证据留痕）。幂等：已 disabled 的素材重复调用直接返回，不重复记台账。
+        资产不存在 → AssetNotFoundError。
+        """
+        with self.db.session() as s:
+            asset = s.get(T.AssetItem, asset_id)
+            if asset is None:
+                raise AssetNotFoundError(asset_id)
+            if asset.upload_status == "disabled":
+                return  # 幂等：已下架不再重复记台账
+            asset.upload_status = "disabled"
+            s.add(
+                T.AssetUpload(
+                    asset_id=asset_id,
+                    attempt=1,
+                    status="disabled",
+                    evidence_json=_as_json({"reason": reason, "action": "platform_reject"}),
+                )
+            )
