@@ -646,3 +646,14 @@
 - 产出文件：`backend/listing/platform_rejection.py`、`backend/tests/test_listing_rejection.py`（子代理产出，已验收）；`progress.md`（P4 100%、完成度 75%）；本日志追加条目。
 - 当前阻塞：无。待 P5 完成通知 → 验收（读产出 + `pytest --basetemp=".pytest-tmp-m4"`）→ 更新 progress.md/台账 → P6 M5 衔接验收（销售中商品候选池只读视图 + 错峰参数 + data-audit 登记，依赖 P5 + M5 就绪）。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零真实平台调用。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（批次 3 · B2' 验收 + 批次 3 收官）
+
+- 完成任务：按宪法第 9 节验收子代理 B2'（id 4b3c6002，淘宝/1688 采集器）——
+  ① 独立复跑 `python -m pytest tests/test_materials_taobao_1688.py -q --basetemp=".pytest-tmp-m2"` → **34 passed**；CLI `python -m materials taobao-refs --url https://item.taobao.com/item.htm?id=710000001 --mode fixtures --limit 3` → **EXIT_CODE=0**（合法 JSON）；验收命令（URL 不在 fixtures）→ NO_MATCH 结构化失败 exit 0（正确语义）；
+  ② 抽查 taobao_refs.py——`_RefsCollectorBase.collect` 结构化返回、**降级 R-M2-08**（视频缺失/TIMEOUT → images 照常 + videos=[] + note）、**page_changed P-003**（选择器未命中 → HTML 快照落盘 data_dir/evidence/page_changed/ + PLATFORM_REJECT + missing_selectors 证据）、错误分类 align downloader 码表、URL 经 redact_url 脱敏（P-004）；alibaba_1688.py 同构复用（source_platform="1688"）。**验收通过**。
+- **批次 3 收官**：B1（视频号采集器）+ B2'（淘宝/1688）+ B3（榜单图缓存）全部验收通过；progress.md 三任务 100%、完成度 45%→**60%**、里程碑 8 项达成；本日志追加条目。
+- 环境待确认（提请总控/运维）：ffmpeg 未安装（mock，就绪自动切真实）；TikTokDownloader 未安装（就绪装 4.1.x）；**共享浏览器登录态**（三采集器 auto 模式待登录态+选择器/签名抓包校准）。
+- 当前阻塞：无。**批次 3 收官，请总控提交备份**；批准后推进批次 4（标签化+合规预审、M3/M5 数据联动联调）→ 集成验收 v1.0。

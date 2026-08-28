@@ -193,10 +193,10 @@ def test_parse_snapshot_row_recorded_at_variants():
     # datetime 输入：naive 补 UTC
     parsed4 = parse_snapshot_row(_row(1, recorded_at=datetime(2025, 1, 1, 8, 0)))
     assert parsed4["recorded_at"] == datetime(2025, 1, 1, 8, 0, tzinfo=timezone.utc)
-    # 缺省 → 当前 UTC（带时区）
+    # 缺省 → 当前 UTC（带时区；recorded_at 于解析时取 now，与断言时刻应接近）
     parsed5 = parse_snapshot_row(_row(1))
     assert parsed5["recorded_at"].tzinfo is not None
-    assert 0 <= (parsed5["recorded_at"] - utcnow()).total_seconds() < 60
+    assert abs((parsed5["recorded_at"] - utcnow()).total_seconds()) < 60
 
 
 def test_parse_snapshot_row_invalid_raises():

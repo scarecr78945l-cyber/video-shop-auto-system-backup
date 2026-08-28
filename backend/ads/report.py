@@ -53,15 +53,12 @@ _STATUS_EXACT: dict[str, str] = {
     "已结束": "ended",
 }
 
-# 金额字段（元→分解析走 parse_amount_fen）
-_AMOUNT_FIELDS: tuple[str, ...] = ("spend", "gmv", "platform_subsidy")
-
 
 # ---------------------------------------------------------------- 归一化纯函数
 def normalize_diagnosis(raw: str | None) -> str:
     """中文诊断 → 英文枚举（大小写/空白容忍：strip 后匹配）。
 
-    优秀→excellent；良好→good；`(\d+)项待优化`：N==1→optimize_1、N≥2→optimize_n；
+    优秀→excellent；良好→good；`(\\d+)项待优化`：N==1→optimize_1、N≥2→optimize_n；
     空/未知（含英文输入、0项待优化）→unknown。
     """
     if raw is None:
