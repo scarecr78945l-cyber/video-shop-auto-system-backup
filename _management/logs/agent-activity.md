@@ -213,3 +213,30 @@
   - **A=475a06d1**（backend/materials/collectors/tiktok_wrapper.py：TikTokDownloaderCLI search/author 下载 + 错误映射对齐下载中台码表 + config 追加 tiktok 子配置 + collectors/README.md 版本锁定与安装说明 + __main__ 追加 tiktok-download + test_materials_tiktok_wrapper.py fake CLI 全场景）
 - 产出文件：`_management/modules/m2-materials/progress.md`（批次 2 三任务标记「已派发」+子代理 id + 环境待确认标注，任务书撰写 100%）；本日志追加条目。
 - 当前阻塞：无。待批次 2 子代理完成通知 → 总工验收（读产出+跑 pytest --basetemp=".pytest-tmp"）→ 更新 progress.md/台账 → 通知总控提交备份 → 批次 2 收官后推进批次 3（B 视频号采集器、淘宝1688 复测）。
+
+---
+
+### 2025 体系建立日（第 3 轮）｜ M3 总工程师 ｜ M3 自动素材优化 ｜ 角色：总工
+
+- 完成任务：① 落实总控两项裁决——REC-001（图片资产域归 M3，自建 opt_image_*；迁移包遗留表由 M0 评估归档）与 REC-002（上传双轨 UploadService，M3_UPLOAD_MODE=api|ui|semi，默认 api，先 fixtures 模拟）写入 decisions.md；② 按宪法第 9.2 节承担核心/骨架代码：新建 `backend/optimization/` 公共包（__init__/config.py（M3_* 环境变量配置：视频硬规格/图片规格/文案规格/LLM 参数/审核抽检/上传双轨）/models.py（领域模型 7 类）/tables.py（opt_* 9 表 ORM，对齐 database/README.md）/db.py（本模块独立库 data/db/m3-optimization.db）/compliance.py（复用 sourcing.compliance 词库 + 素材专用扩展：供应链词扩展、AD_BADGE_FORBIDDEN）/repo.py（CopywriteRepo/ImageRepo/CategoryMemoryRepo/EvaluationRepo 共享数据访问））；③ fixtures/optimization/ 落 3 个离线样本（product_fixture.json 家居日用含脏词、product_fixture_pet.json 宠物用品含供应链词、source_asset_fixture.json 原始素材契约）；④ 更新 progress.md（排期已批准、骨架完成、子代理 A/B 派发中）；⑤ 派发两个并行子代理。
+- 产出文件：`backend/optimization/`（7 文件）、`backend/fixtures/optimization/`（3 JSON）、`_management/modules/m3-optimization/decisions.md`（+REC-001/REC-002）、`progress.md`（开发阶段状态）；本日志追加条目。
+- **异常记录**：首轮派发的子代理-A（文案管线 v0.2，id 829cdbb9）与子代理-B（主图/详情图管线 v0.4，id af860c10）均在完成前中断（closing message 为空，判为环境/会话抖动，与 M2 批次 1 现象一致）；验收检查确认两子代理**均未落盘任何产出**（backend/optimization/copywriting/ 与 images/ 子包、test_optimization_*.py 均不存在，仅总工骨架在位）。
+- 处理：按总控指示「产出为空则重新派发」——将重新派发子代理-A'（文案管线 v0.2）与子代理-B'（主图/详情图管线 v0.4），任务书保持自包含（背景/必读/目标/输出路径/验收标准/宪法要点/P-001/禁 git/禁明文密钥/UTF-8）。
+- 当前阻塞：无。待重派子代理完成通知 → 总工验收（读产出 + 跑 pytest --basetemp=".pytest-tmp"）→ 更新 progress.md/decisions.md/台账 → 通知总控备份 → 验收通过后推进视频二创流水线（v0.3）。
+
+---
+
+### 2025 体系建立日（第 3 轮·续）｜ M3 总工程师 ｜ M3 自动素材优化 ｜ 角色：总工
+
+- 异常记录（续）：重派的子代理-A'（id 08a85d20）与子代理-B'（id 1cc57a9e）亦在完成前中断（无 closing message，未落盘）。list_agents 显示 4 个实例（首轮 829cdbb9/af860c10 + 重派 08a85d20/1cc57a9e）均处于 **ready（可续跑）** 状态，产出仍为空——与 M2 批次 1 完全一致（环境/会话抖动导致首轮中断，send_message 可恢复）。
+- 处理：按 M2 验证过的恢复路径——仅对**重派两个实例**发 send_message 续跑（消息已排队为下一回合）：08a85d20（文案管线 v0.2）、1cc57a9e（主图/详情图管线 v0.4）；**首轮两个实例不再唤醒**（任务重复，避免双写 backend/optimization/copywriting 与 images/ 冲突）。恢复消息重申：骨架只读、禁 git、禁明文密钥、UTF-8 无 BOM、pytest --basetemp=".pytest-tmp"。
+- 当前阻塞：无。等待续跑子代理完成通知 → 验收（读产出 + 跑 pytest）→ 更新 progress.md/台账 → 通知总控备份 → 验收通过后推进视频二创流水线（v0.3）。
+
+---
+
+### 2026-08-28 | M0 总工程师 | m0-foundation | 角色：总工（开发阶段·小步进第 1 步）
+
+- 完成任务（本步仅 1 件事，按总控极小程序化指示）：在 `_management/modules/m0-foundation/database/README.md` 落盘 **workflow_jobs 最终 DDL（SQLite）v0.2 定稿**——替换 v0.1 骨架，含：租约字段 `lease_owner`/`lease_expires_at`（45min 过期回收）、幂等唯一约束 `UNIQUE(product_id, stage, generation_version)`、错误码字段 `error_code`/`retry_after`（由 error_codes.backoff_seconds 计算）、证据字段 `evidence_json`（09/02 文档留痕）、`retry_count`、stage/status 枚举注释、4 个索引（status/stage/retry/lease）；时间戳 `_at` 后缀 UTC、JSON 内金额按分 int（REC-005/DA-001）。
+- 产出文件：`database/README.md`（workflow_jobs 小节 v0.2）；`progress.md`（新增 A1-1 任务勾选 100%，基座开发 A 标注小步进 5%）；本日志追加条目。
+- 前置说明（上轮中断前遗留）：`backend/foundation/` 包（tables.py/config.py/db.py/repo.py/__init__.py）已初步落盘，但字段命名为 `next_retry_at`/`result`，与总控指示的 `retry_after`/`evidence_json` 不一致；后续小步进到「foundation 包」步骤时将对齐为总控命名并重跑测试。A1 首个子代理（ae8c8544）中断无产出，不再恢复，改由总工直接小步进执行（总控指示）。
+- 当前阻塞：无。等待总控唤醒第 2 步（tasks 表 DDL）。

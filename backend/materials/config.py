@@ -45,6 +45,43 @@ class DedupConfig(BaseModel):
     phash_hamming_threshold: int = 8      # 汉明距离 ≤8 视为疑似重复（fixtures 离线校准后定默认值）
 
 
+class NormalizeConfig(BaseSettings):
+    """标准化器参数（子代理 C；对齐 05 文档第三节 ffmpeg 输出参数锁定示例，参数集中便于按素材源微调）。
+
+    自身也是 settings 模型（env_prefix=MATERIALS_），因此 `MATERIALS_FFMPEG_PATH` /
+    `MATERIALS_FFPROBE_PATH` 直接映射到本子配置的 ffmpeg_path / ffprobe_path
+    （已实测：pydantic-settings 2.15 嵌套 BaseSettings 可读环境变量；普通嵌套 BaseModel 不读）。
+    密钥纪律（P-004）：本配置只存路径，不存任何凭证。
+    """
+
+    model_config = SettingsConfigDict(env_prefix="MATERIALS_", extra="ignore")
+
+    ffmpeg_path: str | None = Field(
+        default=None,
+        description="ffmpeg 可执行路径（环境变量 MATERIALS_FFMPEG_PATH 覆盖；None=走 PATH 自动探测）",
+    )
+    ffprobe_path: str | None = Field(
+        default=None,
+        description="ffprobe 可执行路径（环境变量 MATERIALS_FFPROBE_PATH 覆盖；None=走 PATH 或 ffmpeg 同目录自动探测）",
+    )
+    transcode_timeout_seconds: int = Field(
+        default=300, description="ffmpeg 转码/ffprobe 探测超时（秒）；R-M2-16 转码资源占用双重保护之一"
+    )
+    output_format: str = Field(default="mp4", description="标准化输出容器格式（默认 mp4）")
+    crf: int = Field(default=23, description="libx264 质量档位（05 示例 -crf 23）")
+    ratio_tolerance: float = Field(
+        default=0.01, description="宽高比与 9/16 的容差（默认 ±0.01；normalizer.validate_specs 模块常量同值）"
+    )
+    duration_limit: int = Field(default=300, description="转码 -t 截断上限（秒），对齐 MAX_DURATION")
+    video_filter: str = Field(
+        default=(
+            "scale=720:1280:force_original_aspect_ratio=decrease,"
+            "pad=720:1280:(ow-iw)/2:(oh-ih)/2"
+        ),
+        description="ffmpeg -vf 输出参数（05 文档第三节锁定示例；实际按素材源微调时改这里）",
+    )
+
+
 class MaterialsConfig(BaseSettings):
     """总配置。环境变量：MATERIALS_DB_URL / MATERIALS_STORAGE_DIR 等。"""
 
@@ -66,6 +103,7 @@ class MaterialsConfig(BaseSettings):
 
     download: DownloadConfig = Field(default_factory=DownloadConfig)
     dedup: DedupConfig = Field(default_factory=DedupConfig)
+    normalize: NormalizeConfig = Field(default_factory=NormalizeConfig)
 
 
 def load_config(**overrides: Any) -> MaterialsConfig:

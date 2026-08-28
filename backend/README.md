@@ -23,7 +23,7 @@ backend/
 │   ├── cli.py                 # 命令行
 │   └── collectors/            # 采集器（商机中心/有米云/抖店罗盘/1688/淘宝 + fixtures 离线）
 ├── fixtures/                  # 离线样本数据（零登录态跑通全链路）
-├── tests/                     # 测试套件（39 用例）
+├── tests/                     # 测试套件（41 用例）
 └── requirements.txt
 ```
 
@@ -33,7 +33,8 @@ backend/
 cd backend
 pip install -r requirements.txt
 
-# 1) 建表（默认 sqlite:///sourcing.db，生产设 SOURCING_DB_URL=postgresql+psycopg2://…）
+# 1) 建表（默认 sqlite:///data/db/m1-sourcing.db，生产设 SOURCING_DB_URL=postgresql+psycopg2://…）
+#    开发库文件在 backend/data/db/m1-sourcing.db，不入 git（*.db 已在 .gitignore 排除）
 python -m sourcing init-db
 
 # 2) 跑一次完整流水线（离线 fixtures 模式，零登录态零网络）
@@ -131,7 +132,7 @@ python -m sourcing inspect-page --source youmi --url "https://console.youshu.you
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
-| `SOURCING_DB_URL` | `sqlite:///sourcing.db` | 生产切 PostgreSQL |
+| `SOURCING_DB_URL` | `sqlite:///data/db/m1-sourcing.db` | 开发默认 SQLite（`backend/data/db/m1-sourcing.db`，不入 git）；生产切 PostgreSQL |
 | `SOURCING_CHROME_PATH` | 空 | 系统/便携 Chrome 路径（`launch-browsers` 用） |
 | `SOURCING_LOG_LEVEL` | `INFO` | 日志级别 |
 

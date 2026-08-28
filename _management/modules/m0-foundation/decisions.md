@@ -10,3 +10,4 @@
 | 2026-08-28 | 金额单位统一为「元」Float，平台 API 以「分」计处由适配层换算（字段名注明 `*_fen`） | 与现有 pricing.py/sourcing 口径一致，最小改动；跨模块报表口径统一 | 全系统改用「分」整数 | M0 总工 |
 | 2026-08-28 | `tasks`/`workflow_jobs` 以迁移包实际 DDL 为准：首轮只规划骨架，迁移包（`app.sanitized.db`→`backend/app.db`）落地后立即核对修订 | 当前 backend 树无 workflow 表（迁移包有 40 条 workflow_jobs/939 tasks），避免凭空设计造成迁移冲突 | 完全重设计表结构 | M0 总工 |
 | 2026-08-28 | pytest 一律 `--basetemp=".pytest-tmp"`，已更新 `backend/README.md` 测试命令 | P-001 本地临时目录 WinError 5；防复发措施需在文档落实 | 修改系统 TEMP 权限 | M0 总工 |
+| 2026-08-28 | 采纳总控裁决 REC-005（DA-001）：金额一律「分」int 存储（含 JSON 内金额），展示层转元；时间一律 UTC（ISO8601 带时区）存储、时间戳字段后缀 `_at`、展示层转 UTC+8 | 与微信 channels API/投放后台口径一致，消除 M0 初稿（元/Float）与 M4/M5（分/int）冲突；M0 修订 context 与 database 文档，logs.ts→logs.created_at | 维持「元」并要求 M4/M5 改 | M0 总工（裁决：总控） |

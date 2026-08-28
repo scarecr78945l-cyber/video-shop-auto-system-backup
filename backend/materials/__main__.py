@@ -114,5 +114,53 @@ def download(config, once, loop, serve, host, port, interval, max_jobs, repo_mod
         click.echo("已停止")
 
 
+@cli.command()
+@click.option("--input", "input_path", required=True, type=click.Path(), help="输入素材路径")
+@click.option(
+    "--output", "output_path", default=None, type=click.Path(),
+    help="输出路径（默认：输入同目录 `原名.normalized.mp4`）",
+)
+@click.pass_obj
+def normalize(config, input_path, output_path) -> None:
+    """素材标准化：probe 预检 → ffmpeg 转码 → 转码后复检硬规格（双校验 R-M2-12）。
+
+    ffmpeg/ffprobe 缺失时打印清晰错误（含安装指引）并以非 0 退出（R-M2-15 不静默）；
+    复检未通过同样非 0 退出并逐项说明失败原因（P-007 防复发）。
+    """
+    import json as _json
+
+    from .normalizer import FFmpegProcessRunner, Normalizer, NormalizerError
+
+    ncfg = config.normalize
+    runner = FFmpegProcessRunner(
+        ffmpeg_path=ncfg.ffmpeg_path,
+        ffprobe_path=ncfg.ffprobe_path,
+        timeout_seconds=ncfg.transcode_timeout_seconds,
+    )
+    # 先探测 ffmpeg/ffprobe（R-M2-15）：缺失立即给清晰错误，不等到转码阶段
+    try:
+        runner._resolve_ffmpeg()
+        runner._resolve_ffprobe()
+    except NormalizerError as exc:
+        click.echo(f"错误：{exc}", err=True)
+        raise SystemExit(1)
+
+    if not Path(input_path).exists():
+        click.echo(f"错误：输入文件不存在: {input_path}", err=True)
+        raise SystemExit(2)
+
+    normalizer = Normalizer(runner, config=config)
+    try:
+        result = normalizer.normalize(input_path, output_path=output_path)
+    except NormalizerError as exc:
+        click.echo(f"标准化失败：{exc}", err=True)
+        raise SystemExit(1)
+
+    click.echo(_json.dumps(result, ensure_ascii=False, indent=2, default=str))
+    if not result["passed"]:
+        click.echo("复检未通过（硬规格不达标，见上方 failures）", err=True)
+        raise SystemExit(1)
+
+
 if __name__ == "__main__":
     cli()

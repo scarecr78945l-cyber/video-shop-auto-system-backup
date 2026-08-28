@@ -3,7 +3,7 @@
 > 本模块独立数据库：开发库文件 `backend/data/db/m5-ads.db`（SQLite，不入 git）。
 > 铁律：只操作本模块库；表名前缀 `ad_*`（宪法第 4 节）；生产切 PostgreSQL 时迁移脚本放本目录。
 > 版本：v0.1 ｜ 撰写人：M5 总工 ｜ 日期：2025 体系建立日
-> 口径：**金额一律「分」（int）**；时间 UTC+8；主键自增 INTEGER。字段定义与 context/README.md 数据字典一致。
+> 口径（遵循总控 data-audit DA-001 裁决）：**金额一律「分」（int）**；**时间存储一律 UTC（ISO8601 带时区），展示层转 UTC+8**，时间戳字段名后缀 `_at`；主键自增 INTEGER。字段定义与 context/README.md 数据字典一致。
 
 ## 一、Schema 规划（SQLite DDL）
 

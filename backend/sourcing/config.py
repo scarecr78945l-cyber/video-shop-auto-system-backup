@@ -137,9 +137,15 @@ class SourcingConfig(BaseSettings):
         env_prefix="SOURCING_", env_file=".env", extra="ignore"
     )
 
+    # REC-007：默认开发库从 sqlite:///sourcing.db（backend 相对路径）切到
+    # sqlite:///data/db/m1-sourcing.db（即 backend/data/db/m1-sourcing.db，一模块一库）。
+    # 旧 sourcing.db 无数据不迁移，新库为唯一正式开发库；SOURCING_DB_URL 仍可覆盖。
     db_url: str = Field(
-        default="sqlite:///sourcing.db",
-        description="SQLAlchemy DSN；生产切 postgresql+psycopg2://...",
+        default="sqlite:///data/db/m1-sourcing.db",
+        description=(
+            "SQLAlchemy DSN；开发默认 SQLite（backend/data/db/m1-sourcing.db，不入 git），"
+            "生产切 postgresql+psycopg2://..."
+        ),
     )
     log_level: str = "INFO"
     data_dir: Path = Field(default_factory=lambda: Path("data"))
