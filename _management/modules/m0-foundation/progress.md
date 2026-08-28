@@ -19,7 +19,7 @@
 | [x] A1-2：tasks 表最终 DDL 落盘（SQLite，job_id 归属/stage/状态/错误码/租约/幂等） | 总工 | 100% | 无 |
 | [x] A1-3：复核五表 DDL（无乱码/对齐 REC-005）+ `backend/foundation/tables.py` 字段命名对齐 DDL（retry_after/evidence_json/Task 补全） | 总工 | 100% | 无 |
 | [x] A1-4：repo.py 字段对齐 DDL（retry_after/evidence_json）+ foundation 单测 30 个（五表可建/列对齐/唯一约束/seed 幂等/enqueue/claim/complete/fail/租约 45min 回收/幂等/错误码退避/失败隔离，SQLite 内存库 StaticPool）+ 全量回归全绿 | 总工 | 100% | 无 |
-| [x] 基座开发 A（A1 队列基座）验收：`python -m pytest tests -q --basetemp=".pytest-tmp"` → **384 passed, 1 skipped**（sourcing 39 + materials + optimization + ad_backfill 23 + foundation 30） | 总工 | 100% | 无 |
+| [x] 基座开发 A（A1 队列基座）验收：`python -m pytest tests -q --basetemp=".pytest-tmp-m0"` → **417 passed, 1 skipped 全绿**（宪法第 12 节独立 basetemp；含 sourcing 41+21+23 + materials + optimization + ads + foundation 30；5 个 foundation 既有失败已全部修复） | 总工 | 100% | 无 |
 | [ ] 基座开发 B：调度器进程化（独立进程 + resume_on_startup 断点恢复） | 总工/子代理 | 0% | 排期 A2，待总控批准派发 |
 | [ ] 风控落地：预算三重/止损/余额/一键全停 | 总工/子代理 | 0% | 排期 A3 |
 | [ ] 工程基座：环境变量化/脱敏巡检/.env.example/迁移脚本 | 总工/子代理 | 0% | 排期 A4/A5 |

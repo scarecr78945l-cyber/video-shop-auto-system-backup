@@ -17,7 +17,7 @@
 | [x] BLOCKER-001/002/003 总控裁决（REC-006/007/008）+ 04/03 文档口径同步 | 总工 | 100% | 无 |
 | [x] S1a 基线改造+DSN 切换（config/db/README） | 子代理 32dfb48b | 100% | ✅ 验收通过（186 passed, 1 skipped） |
 | [x] S1b 打分扩展+白名单接线+m1 表（tables/pipeline/迁移/测试） | 子代理 58579182 | 100% | ✅ 验收通过（sourcing 62 passed；全量 331 passed / 4 failed 均为 M0 foundation 既有问题） |
-| [ ] S2 投放转化回写：`ad_backfill.py` + CLI `ad-sync` + 单测 | 子代理 3e6fd497 | 已派发 | 子代理执行中，待验收 |
+| [x] S2 投放转化回写：`ad_backfill.py` + CLI `ad-sync` + 单测 | 子代理 3e6fd497 | 100% | ✅ 验收通过（sourcing 域 85 passed 串行复跑；子代理自测全量 417 passed, 1 skipped） |
 | [ ] S2 投放转化回写：`ad_backfill.py` + CLI `ad-sync` + 单测 | 待派发 | 0% | 依赖 S1b 验收 |
 | [ ] S3 真实采集：共享 Chrome 三源实测、选择器校准、page_changed 证据 | 待派发 | 0% | 依赖 S1a/S1b 验收+登录态就绪 |
 | [ ] S4 联调与验收：M4/M5 交换联调、日有效候选≥200 度量、打分可解释抽查 | 总工 | 0% | 全部 |
@@ -25,9 +25,9 @@
 
 ## 里程碑进度
 
-- 本模块当前完成度：**20%**（筹备 100% + S1a/S1b 验收通过；S2 执行中）
-- 距离目标还差：S2 投放转化回写验收 → S3 真实采集 → S4 联调验收 → S5 迭代
-- 里程碑达成（S1 收官）：① 配置化——类目白名单 app_config 运行时接线 + 打分权重/新鲜度阈值配置化；② 库——默认 DSN 切 `backend/data/db/m1-sourcing.db`，m1_ 投放转化两表可建；③ 投放转化第 5 维数据链路——m1_ad_conversion_cache 表 + 新鲜度/弱样本过滤落地（REC-007/008）
+- 本模块当前完成度：**25%**（筹备 100% + S1a/S1b/S2 验收通过；S3 待派发）
+- 距离目标还差：S3 真实采集 → S4 联调验收 → S5 迭代
+- 里程碑达成（S1+S2 收官）：① 配置化——类目白名单 app_config 运行时接线 + 打分权重/新鲜度阈值配置化；② 库——默认 DSN 切 `backend/data/db/m1-sourcing.db`，m1_ 投放转化两表可建；③ 投放转化第 5 维数据闭环——M5 回写接入器 `ad_backfill.py`（幂等导入+审计+CLI ad-sync）+ 消费端新鲜度/弱样本过滤落地（REC-007/008 全链路）
 
 ## 后续排期（可拆子代理的任务）
 

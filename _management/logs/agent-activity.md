@@ -451,3 +451,27 @@
 - 产出文件：`progress.md`（投放设置勾选 100%、执行器 A2 标注）；`context/README.md`（测试命令 +P-011 独立 basetemp）；本日志追加条目。
 - 当前阻塞：无。待执行器 A2 完成通知 → 验收（读产出 + 跑 pytest --basetemp=".pytest-tmp-m5"）→ v0.3 集成（executor↔settings 联调）→ 通知总控备份 → 推进 v0.4 监控层。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（批次 3 派发）
+
+- 完成任务：总控批准批次 3（v0.8 已备份推送）；**勘察**确认两项环境事实：① `fetch_taobao_references.py`/`fetch_1688_images.py` 半成品**不在当前工作区**（全工作区 glob 无 fetch_*.py，属旧半成品项目待迁移包对照）→ B2 任务由「复测」改为「按 05 文档与 R-M2-08 设计从零实现（配置化选择器+page_changed+视频降级只收图），命名对齐半成品便于后续合并」；② **考古加采集器未实现**（M1 REC-006 已裁决降级可选第四源）→ B3 任务改为「先做有米云榜单图缓存（sourcing 有米云链路已实测打通），BoardImageCache 多源接口化、kaogujia 预留」。
+- 并行派发三个自包含子代理任务书（背景/必读/目标/输出路径/验收标准/宪法要点/宪法第 12 节独立 basetemp `.pytest-tmp-m2`/禁 git/禁明文密钥/UTF-8/环境事实）：
+  - **B1=f331c395**（backend/materials/collectors/signer.py SignatureProvider 接口化 + wechat_video.py 页面层/直链层分离 + fixtures 离线 + wechat-collect CLI + test_materials_wechat_video.py）
+  - **B2=03904cb8**（backend/materials/collectors/taobao_refs.py + alibaba_1688.py：同款图/商品视频、降级、page_changed 证据、fixtures + taobao-refs CLI + test_materials_taobao_1688.py）
+  - **B3=f833480a**（backend/materials/collectors/board_image_cache.py：缓存键=source+board_id+item_id、幂等 hit、批量失败隔离、多源注册 youmi/kaogujia 预留 + board_cache 子配置 + test_materials_board_image_cache.py 本地 http.server）
+- 产出文件：`_management/modules/m2-materials/progress.md`（批次 3 三任务「已派发」+子代理 id+环境事实标注）；本日志追加条目。
+- 当前阻塞：无。待批次 3 完成通知 → 逐个验收（读产出 + pytest --basetemp=".pytest-tmp-m2"）→ 更新 progress.md/台账 → 通知总控备份 → 批次 4（标签合规、M3/M5 联调）。
+
+---
+
+### 2025 体系建立日（第 4 轮）｜ M4 总工程师 ｜ M4 自动上架（m4-listing） ｜ 角色：总工（P1 验收通过 · v0.2 里程碑达成 · P3 派发）
+
+- 完成任务：
+  ① **P1 验收通过**（子代理 6a582604，四派成功；前三派 0ed6ee31/cd2e6473/3a49a199 均中断零产出——根因 web_search 额度不足（Insufficient Balance）+ 会话抖动，已改由总工落盘 `context/external-contracts.md`（REC-003 核对稿，待核对项 T1~T7），四派任务书改为全内联契约 + 全新会话 + 强制第一动作写盘，成功）——独立复跑 `python -m pytest tests/test_wechat_openapi.py -q --basetemp=".pytest-tmp-m4"` → **6 passed**（0.21s）；代码抽查：`backend/adapters/wechat_openapi.py`（281 行）——`WechatOpenApiConfig`（WECHAT_ 前缀、mode 默认 mock）/`WechatApiError`（error_code 限定 WorkflowJob 码表）/`TokenBucket`（tokens/capacity/refill_rate/consecutive_failures/circuit_open_until + try_acquire 时间补充 + 连续失败≥2 熔断 300s）/`_sign`（SHA256+时间戳占位，注释待核对 T2）/`_call`（mock/live 分支、令牌桶、RATE_LIMIT 180s/TIMEOUT 60s/NO_MATCH 120s 退避、幂等重试 3 次、脱敏日志仅 api/task_id/error_code）/`_mock_dispatch`（9 接口 fixture，金额 int 分）/9 业务方法（task_id 透传）/`_get_token`（mock 假值 + live TODO 待核对 T1）；**v0.2 里程碑达成：薄封装骨架 + 单测可跑**；
+  ② **P3 状态机与证据已派发**（子代理 b57d2057，全内联任务书：backend/listing/ 包 7 表 ORM 对齐 database/README.md DDL v0 + ListingStateMachine 9 态迁移 + R22 铁律断言（listed 必须带 link_verified 证据）+ 租约 45min 断点续跑 + 证据 JSON 写 listing_op_logs + init-db CLI + 双测试文件），运行中；
+  ③ decisions.md 追加 D11（P1 mock 优先/live TODO 待核对）、D12（子代理派发策略：全内联契约任务书 + 第一动作写盘）；progress.md P1 勾选 100%、完成度 **45%**、里程碑节更新。
+- 产出文件：`backend/adapters/wechat_openapi.py`、`backend/adapters/__init__.py`、`backend/tests/test_wechat_openapi.py`（子代理产出，已验收）；`decisions.md`（+D11/D12）、`progress.md`（P1 100%、完成度 45%、v0.2 里程碑）；本日志追加条目。
+- 当前阻塞：无。待 P3 完成通知 → 验收（读产出 + `pytest --basetemp=".pytest-tmp-m4"`）→ 更新 progress.md/台账 → 推进 P4 拒审处理（依赖 P3）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM。

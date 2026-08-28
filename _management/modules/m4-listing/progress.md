@@ -18,7 +18,7 @@
 
 | 任务 | 负责 | 进度 | 剩余工作 | 迭代 |
 |---|---|---|---|---|
-| [ ] P1 `adapters/wechat_openapi.py` 薄封装（签名/时间戳、统一调用+限额退避+幂等重试、令牌桶、9 接口）+ 官方文档核对（REC-003）**可拆子代理** | 子代理 P1（`6a582604`，四派；前三派 0ed6ee31/cd2e6473/3a49a199 均中断零产出——含 web_search 额度不足，已改由总工落盘 `context/external-contracts.md`，四派任务书全内联契约） | 30%（四派运行中） | 骨架→单测→验收 | v1.0 |
+| [x] P1 `adapters/wechat_openapi.py` 薄封装（签名/时间戳、统一调用+限额退避+幂等重试、令牌桶、9 接口）+ 官方文档核对（REC-003）**可拆子代理** | 子代理 P1（`6a582604`，四派成功；前三派中断零产出，文档核对由总工落盘 `context/external-contracts.md`） | 100% ✅ | 验收通过：6 passed（`.pytest-tmp-m4`），9 接口齐全、live 模式 TODO 待核对 T1/T2 | v1.0 |
 | [x] P2 上架校验硬门禁 `listing_gate.py`（六项门禁+失败分类+配置化阈值）**可拆子代理** | 子代理 P2（`054c76d6`） | 100% ✅ | 验收通过：25 passed（`.pytest-tmp-m4`） | v1.0 |
 | [ ] P3 状态机与证据（listing_tasks 状态机迁移+证据 JSON+断点续跑+前端任务卡片）**可拆子代理** | 待派发（依赖 P1 落库） | 0% | 全部 | v1.1 |
 | [ ] P4 拒审处理 `platform_rejection.py`（原因分类+自动修复候选+二次门禁）**可拆子代理** | 待派发（依赖 P3） | 0% | 全部 | v1.1 |
@@ -42,11 +42,11 @@
 
 ## 三、里程碑进度
 
-- 本模块当前完成度：**30%**（P2 硬门禁验收通过；P1 薄封装开发中）
-- 已完成：筹备 P0 全部；P2 上架前校验硬门禁（`backend/services/listing_gate.py` + 25 测试，`.pytest-tmp-m4` 全绿）；P1 文档核对（`context/external-contracts.md` 已落盘）
-- 剩余：P1 OpenAPI 薄封装 → P3 状态机证据 → P4 拒审处理 → P5 兜底集成 → P6 M5 衔接验收
-- 排期建议：P1+P2 并行（P2 已完成）→ P3（依赖 P1 落库）→ P4（依赖 P3）→ P5（依赖 P1–P3）→ P6（依赖 P5 + M5 就绪）
-- 依赖外部：官方 channels OpenAPI 文档核对（web_search 额度不足已登记 P-011 关联处理；external-contracts.md 待核对项 T1~T7 需额度恢复后由总控侧/用户核对销项）；企业主体/类目资质开通状态 → 待用户/总控确认（REC-004 不阻塞，模拟模式先行）
+- 本模块当前完成度：**45%**（P1 薄封装 + P2 硬门禁均验收通过；**v0.2 里程碑达成：薄封装骨架 + 单测可跑**）
+- 已完成：筹备 P0 全部；P1 OpenAPI 薄封装（`backend/adapters/wechat_openapi.py` + 6 测试）；P2 上架前校验硬门禁（`backend/services/listing_gate.py` + 25 测试）；P1 文档核对（`context/external-contracts.md`）
+- 剩余：P3 状态机证据 → P4 拒审处理 → P5 兜底集成 → P6 M5 衔接验收
+- 排期建议：P3（依赖 P1 已满足）→ P4（依赖 P3）→ P5（依赖 P1–P3）→ P6（依赖 P5 + M5 就绪）
+- 依赖外部：官方 channels OpenAPI 文档核对（web 额度不足；external-contracts.md 待核对项 T1~T7 需额度恢复后由总控/用户侧核对销项；live 模式实现依赖 T1/T2）；企业主体/类目资质开通状态 → 待用户/总控确认（REC-004 不阻塞，mock 模式先行）
 
 ## 四、验收门（模块级）
 
