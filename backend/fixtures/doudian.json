@@ -1,0 +1,138 @@
+{
+  "商品榜": [
+    {
+      "platform_item_id": "dd-001",
+      "title": "大容量保温杯 316不锈钢 便携水杯",
+      "price": 49.9,
+      "sales": 68000,
+      "rank": 1,
+      "category": "家居日用",
+      "image_urls": [
+        "https://img.example.com/dd-001.jpg"
+      ],
+      "image_phash": "1a3d1fa7bc8960a9"
+    },
+    {
+      "platform_item_id": "dd-002",
+      "title": "免打孔卫生间置物架 浴室收纳架 多层落地置物架",
+      "price": 29.9,
+      "sales": 54000,
+      "rank": 2,
+      "category": "收纳整理",
+      "image_urls": [
+        "https://img.example.com/dd-002.jpg"
+      ],
+      "image_phash": "1c80317fa3b1799d"
+    },
+    {
+      "platform_item_id": "dd-003",
+      "title": "便携榨汁杯 无线充电 家用小型果汁机",
+      "price": 89.0,
+      "sales": 41000,
+      "rank": 3,
+      "category": "数码配件",
+      "image_urls": [
+        "https://img.example.com/dd-003.jpg"
+      ],
+      "image_phash": "23b8c1e9392456de"
+    },
+    {
+      "platform_item_id": "dd-004",
+      "title": "加厚一次性手套 家用厨房清洁手套 100只装",
+      "price": 7.9,
+      "sales": 36000,
+      "rank": 4,
+      "category": "厨房用品",
+      "image_urls": [
+        "https://img.example.com/dd-004.jpg"
+      ],
+      "image_phash": "9a1de644815ef6d1"
+    },
+    {
+      "platform_item_id": "dd-005",
+      "title": "桌面理线器 收纳线扣 数据线固定夹 透明款",
+      "price": 9.9,
+      "sales": 28000,
+      "rank": 5,
+      "category": "收纳整理",
+      "image_urls": [
+        "https://img.example.com/dd-005.jpg"
+      ],
+      "image_phash": "8fadc1a606cb0fb3"
+    },
+    {
+      "platform_item_id": "dd-006",
+      "title": "一次性电子烟 水果口味 便携式",
+      "price": 29.9,
+      "sales": 8700,
+      "rank": 6,
+      "category": "个护清洁",
+      "image_urls": [
+        "https://img.example.com/dd-006.jpg"
+      ],
+      "image_phash": "b74d0fb132e70629"
+    },
+    {
+      "platform_item_id": "dd-007",
+      "title": "生姜防脱发洗发水 强韧发根 控油蓬松",
+      "price": 59.9,
+      "sales": 7600,
+      "rank": 7,
+      "category": "个护清洁",
+      "image_urls": [
+        "https://img.example.com/dd-007.jpg"
+      ],
+      "image_phash": "b38a088ca65ed389"
+    },
+    {
+      "platform_item_id": "dd-008",
+      "title": "美妆蛋收纳盒 化妆刷收纳桶 防尘化妆包",
+      "price": 12.9,
+      "sales": 6900,
+      "rank": 8,
+      "category": "美妆",
+      "image_urls": [
+        "https://img.example.com/dd-008.jpg"
+      ],
+      "image_phash": "6b65a6a48b8148f6"
+    }
+  ],
+  "飙升榜": [
+    {
+      "platform_item_id": "dd-101",
+      "title": "宠物自动饮水机 过滤循环静音款",
+      "price": 59.0,
+      "sales": 19000,
+      "rank": 1,
+      "category": "宠物用品",
+      "image_urls": [
+        "https://img.example.com/dd-101.jpg"
+      ],
+      "image_phash": "972a846916419f82"
+    },
+    {
+      "platform_item_id": "dd-102",
+      "title": "折叠伸缩晾衣架 阳台晒被子架 免安装",
+      "price": 26.9,
+      "sales": 15000,
+      "rank": 2,
+      "category": "家居日用",
+      "image_urls": [
+        "https://img.example.com/dd-102.jpg"
+      ],
+      "image_phash": "0822e8f36c031199"
+    },
+    {
+      "platform_item_id": "dd-103",
+      "title": "运动健身瑜伽垫 加厚防滑 家用垫",
+      "price": 36.9,
+      "sales": 12000,
+      "rank": 3,
+      "category": "户外运动",
+      "image_urls": [
+        "https://img.example.com/dd-103.jpg"
+      ],
+      "image_phash": "3b8faa1837f8a88b"
+    }
+  ]
+}

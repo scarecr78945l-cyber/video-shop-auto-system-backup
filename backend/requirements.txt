@@ -1,0 +1,13 @@
+# 视频号小店全自动系统 — 选品模块依赖
+# Python 3.12+（已在 3.13 验证）
+sqlalchemy>=2.0.30
+pydantic>=2.7
+pydantic-settings>=2.3
+playwright>=1.44
+Pillow>=10.0          # 图片 phash 去重
+requests>=2.31        # 图片/素材下载
+click>=8.1            # CLI
+pytest>=8.0           # 测试（dev）
+
+# 生产环境可选
+# psycopg2-binary>=2.9   # PostgreSQL（SOURCING_DB_URL 指向 pg 时启用）

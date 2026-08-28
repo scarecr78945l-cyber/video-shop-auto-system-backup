@@ -1,0 +1,64 @@
+{
+  "机会品": [
+    {
+      "platform_item_id": "op-001",
+      "title": "免打孔卫生间置物架 浴室收纳架 多层落地置物架",
+      "price": 29.9,
+      "sales": 36000,
+      "rank": 1,
+      "category": "收纳整理",
+      "image_urls": [
+        "https://img.example.com/op-001.jpg"
+      ],
+      "image_phash": "1c80317fa3b1799d"
+    },
+    {
+      "platform_item_id": "op-002",
+      "title": "宠物自动饮水机 过滤循环静音款",
+      "price": 59.0,
+      "sales": 14800,
+      "rank": 2,
+      "category": "宠物用品",
+      "image_urls": [
+        "https://img.example.com/op-002.jpg"
+      ],
+      "image_phash": "972a846916419f82"
+    },
+    {
+      "platform_item_id": "op-003",
+      "title": "折叠伸缩晾衣架 阳台晒被子架 免安装",
+      "price": 26.9,
+      "sales": 11300,
+      "rank": 3,
+      "category": "家居日用",
+      "image_urls": [
+        "https://img.example.com/op-003.jpg"
+      ],
+      "image_phash": "0822e8f36c031199"
+    },
+    {
+      "platform_item_id": "op-004",
+      "title": "乳胶枕 天然乳胶 成人护颈枕头",
+      "price": 69.0,
+      "sales": 9200,
+      "rank": 4,
+      "category": "家居日用",
+      "image_urls": [
+        "https://img.example.com/op-004.jpg"
+      ],
+      "image_phash": "17fc695a07a0ca6e"
+    },
+    {
+      "platform_item_id": "op-005",
+      "title": "运动健身瑜伽垫 加厚防滑 家用垫",
+      "price": 36.9,
+      "sales": 6800,
+      "rank": 5,
+      "category": "户外运动",
+      "image_urls": [
+        "https://img.example.com/op-005.jpg"
+      ],
+      "image_phash": "3b8faa1837f8a88b"
+    }
+  ]
+}

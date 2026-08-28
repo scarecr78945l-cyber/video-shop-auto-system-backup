@@ -1,0 +1,23 @@
+{
+  "dd-001": [
+    {"supplier_name": "永康市保温杯厂", "sku_name": "316保温杯 500ml 白色", "unit_cost": 18.5, "min_order": 10, "freight": 6.0, "raw_url": "https://detail.1688.com/offer/9001.html"},
+    {"supplier_name": "武义县杯业有限公司", "sku_name": "316保温杯 500ml 白色", "unit_cost": 19.8, "min_order": 5, "freight": 7.0, "raw_url": "https://detail.1688.com/offer/9002.html"}
+  ],
+  "dd-002": [
+    {"supplier_name": "义乌市家居用品厂", "sku_name": "免打孔置物架 白色 3层", "unit_cost": 6.8, "min_order": 10, "freight": 3.0, "raw_url": "https://detail.1688.com/offer/1001.html"},
+    {"supplier_name": "台州市塑料制品有限公司", "sku_name": "免打孔置物架 白色 3层", "unit_cost": 7.2, "min_order": 5, "freight": 4.0, "raw_url": "https://detail.1688.com/offer/1002.html"},
+    {"supplier_name": "广州收纳用品批发商行", "sku_name": "免打孔置物架 灰色 3层", "unit_cost": 7.9, "min_order": 20, "freight": 2.0, "raw_url": "https://detail.1688.com/offer/1003.html"}
+  ],
+  "dd-004": [
+    {"supplier_name": "石家庄市手套厂", "sku_name": "一次性手套 100只装 加厚", "unit_cost": 1.5, "min_order": 50, "freight": 2.0, "raw_url": "https://detail.1688.com/offer/4001.html"},
+    {"supplier_name": "保定市日用百货厂", "sku_name": "一次性手套 100只装 加厚", "unit_cost": 1.8, "min_order": 20, "freight": 2.5, "raw_url": "https://detail.1688.com/offer/4002.html"}
+  ],
+  "dd-101": [
+    {"supplier_name": "深圳市宠物用品工厂", "sku_name": "宠物饮水机 循环过滤 2.5L", "unit_cost": 22.0, "min_order": 5, "freight": 8.0, "raw_url": "https://detail.1688.com/offer/7101.html"},
+    {"supplier_name": "东莞市宠物电器厂", "sku_name": "宠物饮水机 循环过滤 2.5L", "unit_cost": 24.5, "min_order": 3, "freight": 9.0, "raw_url": "https://detail.1688.com/offer/7102.html"}
+  ],
+  "ym-003": [
+    {"supplier_name": "惠州市收纳用品厂", "sku_name": "收纳箱 60L 带轮 蓝色", "unit_cost": 12.0, "min_order": 10, "freight": 8.0, "raw_url": "https://detail.1688.com/offer/7001.html"},
+    {"supplier_name": "汕头市塑料厂", "sku_name": "收纳箱 60L 带轮 蓝色", "unit_cost": 12.8, "min_order": 8, "freight": 9.0, "raw_url": "https://detail.1688.com/offer/7002.html"}
+  ]
+}

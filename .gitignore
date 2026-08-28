@@ -1,0 +1,45 @@
+# ===== 敏感信息（绝不入库/推送）=====
+.env
+.env.*
+*.pem
+*.key
+*.p12
+credentials*.json
+token*.txt
+
+# ===== 浏览器资料（含登录态/Cookie，按风控纪律不随包分发）=====
+backend/data/chrome-profiles/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.pytest-tmp/
+
+# ===== Node / 前端 =====
+node_modules/
+.next/
+dist/
+out/
+
+# ===== 数据库（开发 SQLite；生产 PostgreSQL 不落库文件）=====
+*.db
+*.sqlite
+*.sqlite3
+backend/data/db/
+
+# ===== 本地编辑器 / 系统 =====
+.obsidian/
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+
+# ===== 临时与日志 =====
+.tmp/
+tmp/
+logs/
+*.log

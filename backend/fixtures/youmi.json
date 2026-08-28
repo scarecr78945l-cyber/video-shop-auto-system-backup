@@ -1,0 +1,88 @@
+{
+  "商品榜": [
+    {
+      "platform_item_id": "ym-001",
+      "title": "免打孔卫生间置物架 浴室收纳架 多层落地置物架",
+      "price": 29.9,
+      "sales": 45000,
+      "rank": 1,
+      "category": "收纳整理",
+      "image_urls": [
+        "https://img.example.com/ym-001.jpg"
+      ],
+      "image_phash": "1c80317fa3b1799d"
+    },
+    {
+      "platform_item_id": "ym-002",
+      "title": "猫咪自动喂食器 宠物定时喂食碗 不锈钢",
+      "price": 79.0,
+      "sales": 28900,
+      "rank": 2,
+      "category": "宠物用品",
+      "image_urls": [
+        "https://img.example.com/ym-002.jpg"
+      ],
+      "image_phash": "bdd640fb06671ad1"
+    },
+    {
+      "platform_item_id": "ym-003",
+      "title": "加厚塑料收纳箱 衣物整理箱 带轮储物箱",
+      "price": 34.9,
+      "sales": 17300,
+      "rank": 3,
+      "category": "收纳整理",
+      "image_urls": [
+        "https://img.example.com/ym-003.jpg"
+      ],
+      "image_phash": "3eb13b9046685257"
+    },
+    {
+      "platform_item_id": "ym-004",
+      "title": "便携榨汁杯 无线充电 家用小型果汁机",
+      "price": 89.0,
+      "sales": 15400,
+      "rank": 4,
+      "category": "数码配件",
+      "image_urls": [
+        "https://img.example.com/ym-004.jpg"
+      ],
+      "image_phash": "23b8c1e9392456de"
+    },
+    {
+      "platform_item_id": "ym-005",
+      "title": "大容量保温杯 316不锈钢 便携水杯",
+      "price": 49.9,
+      "sales": 12600,
+      "rank": 5,
+      "category": "家居日用",
+      "image_urls": [
+        "https://img.example.com/ym-005.jpg"
+      ],
+      "image_phash": "1a3d1fa7bc8960a9"
+    },
+    {
+      "platform_item_id": "ym-006",
+      "title": "古驰同款真皮腰带 头层牛皮商务皮带",
+      "price": 99.0,
+      "sales": 8300,
+      "rank": 6,
+      "category": "服饰配件",
+      "image_urls": [
+        "https://img.example.com/ym-006.jpg"
+      ],
+      "image_phash": "bd9c66b3ad3c2d6d"
+    },
+    {
+      "platform_item_id": "ym-007",
+      "title": "收纳盒桌面杂物整理盒 分格文具收纳",
+      "price": 16.9,
+      "sales": 7200,
+      "rank": 7,
+      "category": "办公文具",
+      "image_urls": [
+        "https://img.example.com/ym-007.jpg"
+      ],
+      "image_phash": "8b9d2434e465e150"
+    }
+  ]
+}

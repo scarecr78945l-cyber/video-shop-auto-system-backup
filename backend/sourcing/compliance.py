@@ -1,0 +1,136 @@
+"""合规过滤（复用/演进半成品 compliance.py）。
+
+三态：hard_reject（品牌侵权/禁售词/功效资质缺失）直接拒；
+candidate 进池；manual_review 人工确认（类目不在白名单、疑似功效词等）。
+
+类目白名单改为配置项：`category_whitelist`（默认 9 类），
+后台可通过 app_config 表增删，运行时优先级高于 config 默认值。
+"""
+
+from __future__ import annotations
+
+import re
+
+from .config import SourcingConfig
+from .models import ComplianceResult, ComplianceState, SourceItem
+
+# 品牌侵权词（示例清单，生产按商标库扩充）
+BRAND_WORDS = [
+    "耐克", "nike", "阿迪达斯", "adidas", "三叶草", "香奈儿", "chanel",
+    "路易威登", "louis vuitton", "lv", "古驰", "gucci", "爱马仕", "hermes",
+    "迪奥", "dior", "普拉达", "prada", "苹果", "apple 官方", "华为官方",
+    "小米官方", "迪士尼", "disney", "泡泡玛特", "乐高", "lego",
+]
+
+# 禁售词（平台禁售/管控商品）
+PROHIBITED_WORDS = [
+    "烟草", "香烟", "电子烟", "酒", "白酒", "处方药", "医疗器械",
+    "枪支", "管制刀具", "违禁", "走私", "发票", "代开发票", "pos机",
+    "假一赔十需要", "翻新机", "水货", "高仿", "原单", "尾单", "剪标",
+    "赌博", "彩票", "博彩", "保健品", "减肥药", "伟哥", "三无",
+]
+
+# 功效资质缺失（无资质不得宣称）
+EFFICACY_WORDS = [
+    "治疗", "治愈", "根治", "药效", "医用", "消炎", "杀菌99", "抑菌99",
+    "抗癌", "降血糖", "降血压", "防脱发", "生发", "美白祛斑", "祛皱",
+    "瘦身", "丰胸", "壮阳", "助眠", "抗衰老", "婴儿专用", "孕妇专用",
+]
+
+# 供应链词（来源不洁/无品牌授权）
+SUPPLY_CHAIN_WORDS = ["一件代发", "批发", "供应商", "1688", "厂家直销", "代发"]
+
+# 品牌/功效等词的清洗规则（sanitize_marketplace_sku_name）
+BRAND_CLEAN_RE = re.compile(
+    r"(官方旗舰店|旗舰店|官方|正品|同款|爆款|热卖|热销|新款|2024|2025|"
+    r"包邮|秒杀|清仓|特价|直降|优惠|券后|活动价|"
+    r"耐克|nike|阿迪|adidas|香奈儿|chanel|古驰|gucci|迪奥|dior)", re.IGNORECASE
+)
+PAREN_RE = re.compile(r"[（(][^（）()]*[）)]")
+MULTI_SPACE_RE = re.compile(r"\s+")
+
+
+def sanitize_title(title: str) -> str:
+    """清洗商品标题：去品牌词/「同款」/「官方旗舰」/功效词/营销词。"""
+    t = PAREN_RE.sub(" ", title or "")
+    t = BRAND_CLEAN_RE.sub(" ", t)
+    for w in EFFICACY_WORDS:
+        t = t.replace(w, " ")
+    t = MULTI_SPACE_RE.sub(" ", t).strip(" -–—_")
+    return t
+
+
+def _match_any(words: list[str], title_lower: str) -> list[str]:
+    return [w for w in words if w.lower() in title_lower]
+
+
+class ComplianceEngine:
+    def __init__(self, config: SourcingConfig, category_whitelist: list[str] | None = None):
+        self.config = config
+        # 白名单优先级：调用方传入（app_config 读取结果）> config 默认
+        self.whitelist = (
+            category_whitelist if category_whitelist is not None
+            else config.category_whitelist
+        )
+
+    def evaluate(self, item: SourceItem) -> ComplianceResult:
+        title = item.title or ""
+        lower = title.lower()
+        reasons: list[str] = []
+        matched: list[str] = []
+
+        hits = _match_any(PROHIBITED_WORDS, lower)
+        if hits:
+            matched += hits
+            return ComplianceResult(
+                state=ComplianceState.HARD_REJECT,
+                reasons=[f"禁售词: {'/'.join(hits[:5])}"],
+                matched_rules=matched,
+            )
+
+        hits = _match_any(BRAND_WORDS, lower)
+        if hits:
+            matched += hits
+            return ComplianceResult(
+                state=ComplianceState.HARD_REJECT,
+                reasons=[f"品牌侵权词: {'/'.join(hits[:5])}"],
+                matched_rules=matched,
+            )
+
+        hits = _match_any(SUPPLY_CHAIN_WORDS, lower)
+        if hits:
+            matched += hits
+            reasons.append(f"供应链词: {'/'.join(hits[:5])}")
+
+        hits = _match_any(EFFICACY_WORDS, lower)
+        if hits:
+            matched += hits
+            reasons.append(f"功效词(缺资质): {'/'.join(hits[:5])}")
+
+        sanitized = sanitize_title(title)
+        if len(sanitized) < 2:
+            return ComplianceResult(
+                state=ComplianceState.HARD_REJECT,
+                reasons=["清洗后标题为空，无法上架"],
+                sanitized_title=sanitized,
+                matched_rules=matched,
+            )
+
+        # 类目白名单：启用时，白名单外 → manual_review（人工闸门，可后台放行）
+        category = (item.category or "").strip()
+        if self.config.category_whitelist_enabled and self.whitelist:
+            if category and not any(cat in category for cat in self.whitelist):
+                reasons.append(f"类目「{category}」不在白名单，转人工确认")
+
+        # 功效词但未到 hard_reject 阈值 → manual_review
+        if any(w in matched for w in EFFICACY_WORDS):
+            reasons.append("含功效表述，需人工确认资质后放行")
+
+        state = ComplianceState.MANUAL_REVIEW if reasons else ComplianceState.CANDIDATE
+        return ComplianceResult(
+            state=state,
+            reasons=reasons,
+            sanitized_title=sanitized,
+            category=category,
+            matched_rules=matched,
+        )
