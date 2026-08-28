@@ -634,3 +634,15 @@
 - 产出文件：`backend/listing/platform_rejection.py`、`backend/tests/test_listing_rejection.py`。
 - 当前阻塞：无。待总控验收（读产出 + 独立复跑 `--basetemp=".pytest-tmp-m4"`）→ 更新 progress.md/台账 → 推进 P5 Playwright 兜底降级 + 集成（依赖 P1–P4 已满足）。
 - 备注：未运行任何 git 命令；未改动 backend/sourcing|materials|optimization|ads|foundation|adapters|services 与 backend/listing/ 下任何既有文件（P3 产物只读引用）；`backend/tests/conftest.py` 未改动（fixtures cfg_listing/db_listing/repo_listing/machine_listing 已存在，直接复用）；零建库零网络零真实平台调用（requalify 图片由 Pillow 在 tmp_path 生成）；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM。
+
+---
+
+### 2025 体系建立日（第 6 轮）｜ M4 总工程师 ｜ M4 自动上架（m4-listing） ｜ 角色：总工（P4 验收通过 · P5 派发）
+
+- 完成任务：
+  ① **P4 验收通过**（子代理 11d4d391，一次性完成）——独立复跑 `python -m pytest tests/test_listing_rejection.py -q --basetemp=".pytest-tmp-m4"` → **36 passed**（1.73s，与子代理自测一致）；代码抽查 `backend/listing/platform_rejection.py`：七分类关键词表（title/category/qualification/image/price/content_compliance 优先级子串匹配→other）、`RejectFixCandidate/RejectionAnalysis/RejectionResult` 模型、`_build_fix_candidates`（title→改标题/image→主图·详情图细分/price→改价 均 gate_required=True；qualification→补资质 False；category/content_compliance/other→无候选）、`RejectionHandler`（构造注入，handle 迁移 retry_candidate|manual + 写 listing_audit_records，requalify 二次门禁复用 ListingGate）——D10 决策落地（自动修复候选需二次门禁、不可修复转 manual）；
+  ② **P5 Playwright 兜底降级 + 集成已派发**（子代理 d0e6e336，全内联任务书：backend/listing/ui_fallback.py——UiFallbackConfig（LISTING_UI_ 前缀：batch_size=50 串行/item_interval_s 防风控/signatures 锚点配置化）+ PageOps Protocol + MockPageOps + verify_page_signature（page_changed 检测留证据 PageChangedError）+ FallbackRunner（失败结构化返回不抛队列层，UI 失败不阻塞 OpenAPI 队列）；backend/listing/pipeline.py——ListingPipeline 端到端编排（gate 校验失败不入队 → 幂等防重复 → create_spu/create_skus/upload_image → submit_audit → query_audit_status → get_product_link + link_verifier → transition listed（R22 证据）| 驳回 → rejection.handle；requalify_and_resubmit；异常留痕断点语义）；零真实浏览器零真实平台（Mock 注入），测试 ≥18 例），运行中；
+  ③ progress.md P4 勾选 100%、完成度 **75%**、P5 行更新。
+- 产出文件：`backend/listing/platform_rejection.py`、`backend/tests/test_listing_rejection.py`（子代理产出，已验收）；`progress.md`（P4 100%、完成度 75%）；本日志追加条目。
+- 当前阻塞：无。待 P5 完成通知 → 验收（读产出 + `pytest --basetemp=".pytest-tmp-m4"`）→ 更新 progress.md/台账 → P6 M5 衔接验收（销售中商品候选池只读视图 + 错峰参数 + data-audit 登记，依赖 P5 + M5 就绪）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零真实平台调用。
