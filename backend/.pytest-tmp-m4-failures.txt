@@ -1,0 +1,87 @@
+﻿FFFF                                                                     [100%]
+================================== FAILURES ===================================
+______________________ test_verify_page_signature_passes ______________________
+
+tmp_path = WindowsPath('E:/�½��ļ��� (6)/��Ƶ��С��ȫ�Զ�ϵͳ-�����ĵ�/backend/.pytest-tmp-m4/test_verify_page_signature_pas0')
+
+    def test_verify_page_signature_passes(tmp_path):
+        config = _config(tmp_path)
+        ops = MockPageOps()
+        verify_page_signature(ops, "category_form", config)  # ê����ȫ �� �����쳣
+>       assert [e["op"] for e in ops.ops] == ["has_selector", "has_selector"]
+E       AssertionError: assert [] == ['has_selecto...has_selector']
+E         
+E         Right contains 2 more items, first extra item: 'has_selector'
+E         Use -v to get more diff
+
+tests\test_listing_fallback.py:64: AssertionError
+________________________ test_runner_no_match_mapping _________________________
+
+tmp_path = WindowsPath('E:/�½��ļ��� (6)/��Ƶ��С��ȫ�Զ�ϵͳ-�����ĵ�/backend/.pytest-tmp-m4/test_runner_no_match_mapping0')
+
+    def test_runner_no_match_mapping(tmp_path):
+        ops = MockPageOps(
+            script={"click:.save-btn": RuntimeError("NO_MATCH: element .save-btn not found")}
+        )
+        runner = FallbackRunner(_config(tmp_path), ops=ops)
+        result = runner.run(
+            "purchase_limit_form", "set_purchase_limit", params={"purchase_limit": 2}
+        )
+        assert result["ok"] is False
+>       assert result["error_code"] == "NO_MATCH"
+E       AssertionError: assert 'UNEXPECTED' == 'NO_MATCH'
+E         
+E         - NO_MATCH
+E         + UNEXPECTED
+
+tests\test_listing_fallback.py:122: AssertionError
+_________ test_runner_consecutive_failures_unexpected_manual_takeover _________
+
+tmp_path = WindowsPath('E:/�½��ļ��� (6)/��Ƶ��С��ȫ�Զ�ϵͳ-�����ĵ�/backend/.pytest-tmp-m4/test_runner_consecutive_failur0')
+
+    def test_runner_consecutive_failures_unexpected_manual_takeover(tmp_path):
+        ops = MockPageOps(script={"click:.save-btn": RuntimeError("NO_MATCH")})
+        runner = FallbackRunner(_config(tmp_path), ops=ops)
+        first = runner.run(
+            "purchase_limit_form", "set_purchase_limit", params={"purchase_limit": 2}
+        )
+        second = runner.run(
+            "purchase_limit_form", "set_purchase_limit", params={"purchase_limit": 2}
+        )
+>       assert first["ok"] is False and first["error_code"] == "NO_MATCH"
+E       AssertionError: assert (False is False and 'UNEXPECTED' == 'NO_MATCH'
+E         
+E         - NO_MATCH
+E         + UNEXPECTED)
+
+tests\test_listing_fallback.py:146: AssertionError
+___________________ test_requalify_and_resubmit_full_chain ____________________
+
+pipeline = <listing.pipeline.ListingPipeline object at 0x0000026D7F449D30>
+adapter = <adapters.wechat_openapi.WechatOpenApiAdapter object at 0x0000026D7F449A90>
+repo_listing = <listing.repo.ListingRepo object at 0x0000026D7F449400>
+tmp_path = WindowsPath('E:/�½��ļ��� (6)/��Ƶ��С��ȫ�Զ�ϵͳ-�����ĵ�/backend/.pytest-tmp-m4/test_requalify_and_resubmit_fu0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000026D7F40F230>
+
+    def test_requalify_and_resubmit_full_chain(
+        pipeline, adapter, repo_listing, tmp_path, monkeypatch
+    ):
+        monkeypatch.setattr(adapter, "query_audit_status", _reject_query)
+        candidate = make_candidate(tmp_path)
+        submit_result = pipeline.submit(candidate, generation_version="v1")
+        assert submit_result["stage"] == "retry_candidate"
+        task_id = submit_result["task_id"]
+    
+        monkeypatch.delattr(adapter, "query_audit_status")  # �ָ� mock Ĭ�ϣ�pass��
+        requalify_result = pipeline.requalify_and_resubmit(task_id, candidate)
+    
+>       assert requalify_result["ok"] is True
+E       assert False is True
+
+tests\test_listing_pipeline.py:205: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_listing_fallback.py::test_verify_page_signature_passes - As...
+FAILED tests/test_listing_fallback.py::test_runner_no_match_mapping - Asserti...
+FAILED tests/test_listing_fallback.py::test_runner_consecutive_failures_unexpected_manual_takeover
+FAILED tests/test_listing_pipeline.py::test_requalify_and_resubmit_full_chain
+4 failed in 1.18s

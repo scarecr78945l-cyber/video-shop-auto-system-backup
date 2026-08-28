@@ -16,6 +16,16 @@
 
 本机 ffmpeg/ffprobe 未安装：先实现 + Mock 测试；环境就绪（detect_ffmpeg() 返回版本）后
 自动切换 FFmpegProcessRunner（真实转码用例 skipif 保护）。
+
+编排层（子代理-C2 · v0.3，追加导出）：
+- ``BreakdownGenerator`` / ``generate_breakdown``：LLM 拆解（卖点镜头/口播要点，
+  无 Key/失败降级规则 source="rule_fallback"，产出必过 compliance 预审）。
+- ``TemplatePlanner`` / ``build_template`` / ``plan_segments``：按类目模板参数
+  （片头秒数/字幕样式/角标位/BGM 响度/混剪片段数）+ 三段式结构（片头/中段/片尾）。
+- ``VideoComposer`` / ``run_pipeline`` / ``VideoVariantRepo`` / ``probe_from_asset``：
+  编排器 —— 文案候选 + 模板参数 → 多版 ffmpeg 命令（字幕/角标 drawtext）→ 出片 →
+  validate_specs 硬规格校验（失败记录 failures 不落 uploaded）→ 落 opt_video_variants
+  （template_params_snapshot/spec_check_json/compliance_json/evaluation=exploration）。
 """
 
 from __future__ import annotations
@@ -29,8 +39,18 @@ from .ffmpeg import (
     detect_ffmpeg,
     validate_specs,
 )
+from .breakdown import BREAKDOWN_SCHEMA, BreakdownGenerator, VideoBreakdown, generate_breakdown
+from .composer import VideoComposer, VideoVariantRepo, probe_from_asset, run_pipeline
+from .templates import (
+    TEMPLATE_DEFAULTS,
+    TemplatePlan,
+    TemplatePlanner,
+    build_template,
+    plan_segments,
+)
 
 __all__ = [
+    # ffmpeg 层（C1）
     "detect_ffmpeg",
     "VideoToolError",
     "FFmpegRunner",
@@ -38,4 +58,18 @@ __all__ = [
     "MockFFmpegRunner",
     "validate_specs",
     "build_transcode_cmd",
+    # 编排层（C2）
+    "BREAKDOWN_SCHEMA",
+    "VideoBreakdown",
+    "BreakdownGenerator",
+    "generate_breakdown",
+    "TEMPLATE_DEFAULTS",
+    "TemplatePlan",
+    "TemplatePlanner",
+    "build_template",
+    "plan_segments",
+    "VideoComposer",
+    "VideoVariantRepo",
+    "probe_from_asset",
+    "run_pipeline",
 ]

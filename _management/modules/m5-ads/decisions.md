@@ -11,3 +11,4 @@
 | 2025 体系建立日 | D-M5-05：`app_config`（M0 共享表）**只读**：repo 提供 `read_app_config`，禁止 INSERT/UPDATE；本模块预算/阈值配置走 `ADS_*` 环境变量默认值 + 运行时只读覆盖 | 宪法第 4 节共享表只读铁律；写入经总控协调 | 本模块自建配置表 | 总工 |
 | 2025 体系建立日 | D-M5-06：`ad_report_snapshots` 以 `(campaign_id, recorded_at)` 唯一约束实现幂等 upsert（同周期只保留最新快照） | 回读重试/断点续跑不产生重复快照；报表口径稳定 | 应用层去重 | 总工 |
 | 2025 体系建立日 | D-M5-07：v0.3 执行层（Playwright）先做**抽象接口 + fixtures 模拟**，真实 UI 依赖登录态与实机探针（总控待用户确认清单） | 无登录态/无实机时开发与测试不阻塞；接口稳定后接真实适配器 | 等登录态就绪再开发 | 总工（遵循总控指示） |
+| 2025 体系建立日 | D-M5-08：`normalize_diagnosis` 英文枚举**幂等原样返回**（report.py 与 stop_loss.py 统一口径；excellent/good/optimize_1/optimize_n/unknown 输入输出不变） | v0.4 集成交叉断言发现两模块英文输入行为不一致（report 原「英文→unknown」、stop_loss 幂等）；统一为幂等防已归一化快照回流丢失枚举 | report 保持 unknown / 两模块都 unknown | 总工（集成修整） |

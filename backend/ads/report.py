@@ -56,16 +56,20 @@ _STATUS_EXACT: dict[str, str] = {
 
 # ---------------------------------------------------------------- 归一化纯函数
 def normalize_diagnosis(raw: str | None) -> str:
-    """中文诊断 → 英文枚举（大小写/空白容忍：strip 后匹配）。
+    """中文诊断 → 英文枚举（大小写/空白容忍：strip 后匹配；英文枚举幂等原样返回）。
 
     优秀→excellent；良好→good；`(\\d+)项待优化`：N==1→optimize_1、N≥2→optimize_n；
-    空/未知（含英文输入、0项待优化）→unknown。
+    空/未知（含 0项待优化）→unknown。
+    英文幂等口径与 stop_loss.normalize_diagnosis 一致（D-M5-08）：已归一化数据回流不丢失枚举。
     """
     if raw is None:
         return "unknown"
     text = raw.strip()
     if not text:
         return "unknown"
+    # 英文枚举幂等：已是本模块输出词表的值原样返回（防已归一化快照回流被误归 unknown）
+    if text in {"excellent", "good", "optimize_1", "optimize_n", "unknown"}:
+        return text
     exact = _DIAGNOSIS_EXACT.get(text)
     if exact is not None:
         return exact

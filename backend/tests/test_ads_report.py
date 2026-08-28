@@ -78,7 +78,15 @@ def test_normalize_diagnosis_unknown():
     assert normalize_diagnosis("   ") == "unknown"
     assert normalize_diagnosis("未知诊断") == "unknown"
     assert normalize_diagnosis("0项待优化") == "unknown"  # N==0 无对应枚举
-    assert normalize_diagnosis("excellent") == "unknown"  # 已是英文不识别
+
+
+def test_normalize_diagnosis_english_idempotent():
+    # 英文枚举幂等（D-M5-08 口径统一：与 stop_loss.normalize_diagnosis 一致，防已归一化数据回流丢失）
+    assert normalize_diagnosis("excellent") == "excellent"
+    assert normalize_diagnosis("good") == "good"
+    assert normalize_diagnosis("optimize_1") == "optimize_1"
+    assert normalize_diagnosis("optimize_n") == "optimize_n"
+    assert normalize_diagnosis("unknown") == "unknown"
 
 
 def test_normalize_diagnosis_strip_tolerant():

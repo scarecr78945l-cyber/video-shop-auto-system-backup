@@ -657,3 +657,29 @@
 - **批次 3 收官**：B1（视频号采集器）+ B2'（淘宝/1688）+ B3（榜单图缓存）全部验收通过；progress.md 三任务 100%、完成度 45%→**60%**、里程碑 8 项达成；本日志追加条目。
 - 环境待确认（提请总控/运维）：ffmpeg 未安装（mock，就绪自动切真实）；TikTokDownloader 未安装（就绪装 4.1.x）；**共享浏览器登录态**（三采集器 auto 模式待登录态+选择器/签名抓包校准）。
 - 当前阻塞：无。**批次 3 收官，请总控提交备份**；批准后推进批次 4（标签化+合规预审、M3/M5 数据联动联调）→ 集成验收 v1.0。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（批次 4 派发）
+
+- 完成任务：总控批准批次 4（v0.16 已备份推送）：①标签化+合规预审 ②M3/M5 数据联动 ③完成后集成验收 v1.0；勘察确认：sourcing/compliance.py 词库（BRAND/PROHIBITED/EFFICACY/SUPPLY_CHAIN + sanitize_title + ComplianceEngine）可复用、materials/repo.py 已有 create_asset/claim_fingerprint/update_evaluation/mark_uploaded/record_compliance_check 五个方法可直接对接。
+- 并行派发三个自包含子代理任务书（背景/必读/目标/输出路径/验收标准/宪法要点/宪法第 12 节 `.pytest-tmp-m2`/禁 git/禁明文密钥/UTF-8/环境事实/并行解耦说明）：
+  - **B4-1=16e973e3**（backend/materials/tagger.py：generate_tags + MaterialCompliance 复用 sourcing.compliance 词库（不复制词表）+ evaluate_and_record 证据留痕（repo.record_compliance_check→compliance_status 同步）+ mark_platform_rejected 拒审下架（R-M2-20，repo 缺方法则追加 mark_disabled）+ config 追加 tagger 子配置 + test_materials_tagger.py）
+  - **B4-2=684608a5**（backend/materials/integration.py：EvaluationFeedbackService.receive_evaluation（枚举校验/NO_MATCH/幂等审计）+ UploadProvider 抽象（Mock 全实现/ShopMaterialUploadProvider 骨架 TODO）+ MaterialUploadService（幂等 mark_uploaded+asset_uploads）+ config 追加 upload 子配置 + context/data-requests.md 跨模块需求登记（宪法第 5 节）+ test_materials_integration.py）
+  - **B4-3=a052cdfd**（backend/materials/pipeline.py：MaterialPipeline.run_source 编排 采集→下载→去重→标准化→标签→合规→入库（组件可注入/延迟 import getattr 兜底，缺失降级 skipped 不崩）+ daily_stats 日采集量统计 + 可选 CLI pipeline/daily-stats + test_materials_pipeline.py）
+- 产出文件：`_management/modules/m2-materials/progress.md`（批次 4 三任务「已派发」+子代理 id+集成验收待办行）；本日志追加条目。
+- 当前阻塞：无。待批次 4 完成通知 → 逐个验收（读产出 + pytest --basetemp=".pytest-tmp-m2"）→ 更新 progress.md/台账 → **集成验收 v1.0（素材库可入库/去重/预览、日采集量可观测）** → 通知总控。
+
+---
+
+### 2025 体系建立日 ｜ M5 总工程师 ｜ M5 自动小店投放（商品托管） ｜ 角色：总工（v0.4 监控层验收通过 · 收官）
+
+- 完成任务：按宪法第 9 节验收两个 v0.4 子代理产出——
+  ① **监控回读（0702b611）验收**：独立复跑 `pytest tests/test_ads_report.py -q --basetemp=".pytest-tmp-m5"` → **24 passed**；读交付说明 REPORT_v0.4_report.md；代码抽查 report.py：normalize_diagnosis/normalize_status（中文→英文枚举、N项正则）、parse_amount_fen（str 元→分×100、数值分直取、千分位/非法容忍）、parse_snapshot_row（recorded_at 缺省 UTC、带偏移转 UTC、raw_json 副本、campaign_id 缺失抛 ValueError）、SnapshotCollector.run_once（repo.upsert_snapshot 幂等 + 每行独立 savepoint 失败隔离）、collect_missing（断点补快照 skipped/补齐/since 过滤/批内去重/rows 可选参数）、next_run_hint（UTC、interval 缺省读 config.report_interval_s、不做真实定时器）——全部符合任务书；
+  ② **止损规则引擎（9d0c8921）验收**：独立复跑 `pytest tests/test_ads_stop_loss.py -q --basetemp=".pytest-tmp-m5"` → **28 passed**；代码抽查 stop_loss.py：rule_s1~s6 纯函数（S1 曝光阈值暂停+标签/S2 诊断记录 priority_retry/S3 ROI<目标×80% 连续 2 周期（花费=0→ROI=0 命中、=止损线不命中）/S4 补贴记录/S5 余额 halt_new/S6 活跃上限 stop_new）、check_budget_triple（S7 单笔/日/计划同时生效、0=不限、多超限取首个）、kill_switch_enabled（S8 app_config 覆盖、未识别字符串视为关防误触发）、StopLossEngine.evaluate（S1→S7 顺序稳定、kill_switch 短路只返回 S8、halt_all=kill_switch|S5|S6、budget 三形状兼容 v0.3 validate_submit）——全部符合任务书；
+  ③ **集成口径统一（D-M5-08）**：交叉断言发现两模块 normalize_diagnosis 英文输入行为不一致（report「英文→unknown」vs stop_loss 幂等）→ 集成修整 report.py 加英文枚举幂等 + 测试断言同步（新增 test_normalize_diagnosis_english_idempotent，report 25 passed）；记入 decisions.md D-M5-08；
+  ④ **v0.4 集成验证**：全 ads 套件 `pytest tests/test_ads_report.py tests/test_ads_stop_loss.py tests/test_ads_settings.py tests/test_ads_executor.py tests/test_ads_repo.py tests/test_ads_tables.py -q --basetemp=".pytest-tmp-m5"` → **130 passed**（2.15s）。
+- 验收结论：**v0.4 监控层全部验收通过**。里程碑达成：**监控回读+止损规则引擎可跑** ✅——快照幂等入库+断点补快照+S1~S8 规则+预算三重硬约束+余额检测+一键全停全链可测。
+- 产出文件：`backend/ads/report.py`、`backend/ads/stop_loss.py`、`backend/tests/test_ads_report.py`（25 例）、`test_ads_stop_loss.py`（28 例）、`_management/modules/m5-ads/REPORT_v0.4_report.md`、`REPORT_v0.4_stop_loss.md`、`decisions.md`（+D-M5-08）、`progress.md`（v0.4 全部勾选、完成度 **60%**）；本日志追加条目。
+- 当前阻塞：无。**已请总控提交备份（里程碑：v0.4 监控层验收通过）**；批准后推进 v0.5 回流层（数据回写：选品「投放转化」维度 + 素材评估回流 + review_reason，可拆 1 子代理）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；ads 包测试现 **130 例**（tables 19 + repo 14 + settings 25 + executor 25 + report 25 + stop_loss 28），全量回归请总控统一执行。
