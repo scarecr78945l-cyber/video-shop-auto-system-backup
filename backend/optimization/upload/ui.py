@@ -88,6 +88,9 @@ class MockPageOps:
         missing_selectors: Optional[list[str]] = None,
         timeout_selectors: Optional[list[str]] = None,
         url: str = "https://channels.weixin.qq.com/shop/material/upload",
+        error_box_selector: Optional[str] = None,
+        result_id_selector: Optional[str] = None,
+        submit_selector: Optional[str] = None,
     ):
         self.material_id = material_id
         self.fail_code = fail_code
@@ -95,8 +98,17 @@ class MockPageOps:
         self.missing_selectors = set(missing_selectors or [])
         self.timeout_selectors = set(timeout_selectors or [])
         self.url = url
+        self.error_box_selector = error_box_selector or DEFAULT_SELECTORS["error_box"]
+        self.result_id_selector = result_id_selector or DEFAULT_SELECTORS["result_id"]
+        self.submit_selector = submit_selector or DEFAULT_SELECTORS["submit"]
         self.calls: list[dict[str, Any]] = []
         self._error_visible = False
+
+    def configure(self, **kwargs: Any) -> None:
+        """按 UiUploader 自定义选择器同步（error_box/result_id/submit）。"""
+        for key in ("error_box_selector", "result_id_selector", "submit_selector"):
+            if kwargs.get(key):
+                setattr(self, key, kwargs[key])
 
     # ---------- 记录型操作 ----------
 
@@ -119,13 +131,13 @@ class MockPageOps:
         self._record("exists", selector=selector)
         if selector in self.missing_selectors:
             return False
-        if selector == DEFAULT_SELECTORS["error_box"]:
+        if selector == self.error_box_selector:
             return self._error_visible
         return True
 
     def click(self, selector: str) -> None:
         self._record("click", selector=selector)
-        if self.fail_code and selector == DEFAULT_SELECTORS["submit"]:
+        if self.fail_code and selector == self.submit_selector:
             self._error_visible = True  # 提交后平台报错 → 错误框出现
 
     def fill(self, selector: str, value: str) -> None:
@@ -133,9 +145,9 @@ class MockPageOps:
 
     def read_text(self, selector: str) -> str:
         self._record("read_text", selector=selector)
-        if selector == DEFAULT_SELECTORS["result_id"]:
+        if selector == self.result_id_selector:
             return self.material_id or ""
-        if selector == DEFAULT_SELECTORS["error_box"]:
+        if selector == self.error_box_selector:
             return self.error_text
         return ""
 
@@ -166,6 +178,14 @@ class UiUploader(UploadService):
         super().__init__(config, db, repo)
         self.page_ops: PageOps = page_ops or MockPageOps()
         self.selectors: dict[str, Any] = {**DEFAULT_SELECTORS, **(selectors or {})}
+        # MockPageOps 感知自定义选择器（真实 Playwright 实现无 configure，忽略）
+        _configure = getattr(self.page_ops, "configure", None)
+        if callable(_configure):
+            _configure(
+                error_box_selector=self.selectors["error_box"],
+                result_id_selector=self.selectors["result_id"],
+                submit_selector=self.selectors["submit"],
+            )
         self.upload_url = upload_url or self.DEFAULT_UPLOAD_URL
         self.screenshot_dir = (
             Path(screenshot_dir)

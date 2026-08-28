@@ -162,6 +162,55 @@ class CategoryMemoryRepo:
             row.image_strategy_json = strategy
 
 
+# ---------- 视频二创版本 ----------
+
+class VideoVariantRepo:
+    """视频二创版本（A/B 候选）数据访问：读取 + 上传成功后回填平台素材 ID。"""
+
+    def __init__(self, db: Database):
+        self.db = db
+
+    def get(self, variant_id: str) -> Optional[dict[str, Any]]:
+        with self.db.session() as s:
+            row = s.get(tables.OptVideoVariant, variant_id)
+            if row is None:
+                return None
+            return {
+                "variant_id": row.variant_id,
+                "product_id": row.product_id,
+                "source_asset_id": row.source_asset_id,
+                "variant_no": row.variant_no,
+                "template_id": row.template_id,
+                "copywrite_ids": row.copywrite_ids,
+                "file_path": row.file_path,
+                "spec_ok": bool(row.spec_ok),
+                "review_status": row.review_status,
+                "upload_status": row.upload_status,
+                "platform_material_id": row.platform_material_id or "",
+                "evaluation": row.evaluation,
+            }
+
+    def update_platform_material_id(
+        self, variant_id: str, platform_material_id: str,
+        upload_status: str = "uploaded",
+    ) -> bool:
+        """上传成功后回填平台素材 ID（幂等；不存在返回 False）。
+
+        集成缺口修复（v1.0-4）：上传只写 opt_upload_records 不回填 variant，
+        导致 A/B 排序 only_uploaded 无法感知已上传素材；上传编排层在上传
+        成功后调用本方法完成闭环。
+        """
+        if not platform_material_id:
+            return False
+        with self.db.session() as s:
+            row = s.get(tables.OptVideoVariant, variant_id)
+            if row is None:
+                return False
+            row.platform_material_id = platform_material_id
+            row.upload_status = upload_status
+            return True
+
+
 # ---------- 评估回写 ----------
 
 class EvaluationRepo:

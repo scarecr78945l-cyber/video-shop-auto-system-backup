@@ -834,3 +834,65 @@
 - 验收结论：**v1.0 集成验收通过，M2 模块级收官，完成度 60%→100%**。里程碑达成 11 项。注：真实视频素材在 ffmpeg 未装环境下 phash 抽帧 defer（R-M2-15 设计内），ffmpeg 就绪后自动可入库（用自带 phash 条目验证了全链路）。
 - 产出文件：`_management/modules/m2-materials/progress.md`（集成验收 100%、完成度 100%、里程碑 11 项、全 M2 基线 318 passed/1 skipped）；本日志追加条目。
 - 当前阻塞：无。**M2 v1.0 里程碑达成，请总控提交备份**。剩余外部条件（环境待确认清单）：ffmpeg 安装（标准化器/视频抽帧自动切真实）、TikTokDownloader 4.1.x 安装（封装就绪）、共享浏览器登录态（三采集器 auto 模式 + 选择器/签名抓包校准）、小店素材库上传 API/登录态（MATERIALS_UPLOAD_MODE=shop）。
+
+---
+
+### 2026-08-28 ｜ 子代理-D ｜ M3 自动素材优化（m3-optimization） ｜ 角色：子代理（v1.0 集成 · 审核闸门 review）
+
+- 完成任务：实现 M3 审核闸门 `backend/optimization/review/` 子包（06 文档第四节「审核闸门」+ 10 文档第三节内容合规/第五节人工闸门，公共骨架 config/db/tables/models/repo/compliance 与 copywriting/images/video 三路输出全部只读）：
+  - **rules.py（规则预审）**：复用 `optimization.compliance.check_text`（供应链词/广告禁用词/品牌词/功效词/禁售词）+ 素材专用规则——copywrite→content/title 内容合规、video→字幕 subtitles/角标 badges/口播 voiceover 逐字段合规、image→提示词 prompts 与文件名（file_path 取 basename）合规；输出 {passed/result/hits（扁平去重命中词）/fields（字段级命中）/texts_checked/rules}；
+  - **evaluate.py（素材评估）**：平台智能诊断回读的本地确定性模拟（fixtures 模式）——输入素材元数据（resolution/ratio/duration/size/quality_score）+ 可选 platform_diagnosis（issues/suggestions）；硬规格按类型对齐 config（video 五维 ≥720×1280/9:16±0.01/5~300s/≤500M/mov·mp4、image 最小边 800(主)/750(详)+主图 1:1 或详情图 3:4、copywrite 标题 15~35 字符+内容非空）；分级：硬规格全过且 0 软性=优秀(excellent)、1~2 项软性不足=良好(good)、硬规格失败或 ≥3 项软性=待优化(needs_optimization)，optimization_items 可解释；
+  - **manual.py（人工抽检）**：按 config.review.sample_rate 确定性抽检（sha256(target_id) 前 8 字节取模 → [0,1)），高风险类目（config.review.high_risk_categories，构造可注入 app_config 扩展点）强制人工，抽中→manual_review；
+  - **gate.py（ReviewGate 编排）**：run(target_type, target_id, material, category) 依次 规则预审→素材评估→人工抽检，逐闸写 opt_review_records（gate_type=rule/evaluate/manual，result=pass/reject/manual_review，reasons_json 留证据，reviewer=system）；短路语义（规则拒→1 条记录 final rejected stage=rule；评估拒→2 条 stage=evaluate；抽中→3 条 manual_review；全过→3 条 passed）；run_batch ≤50/批（P-006，超限抛 ValueError）；db 缺省内存库绝不触碰真实 m3-optimization.db。
+- 产出文件：`backend/optimization/review/__init__.py`（包级重导出）、`rules.py`、`evaluate.py`、`manual.py`、`gate.py`（含 ReviewRecordRepo）；`backend/tests/test_optimization_review.py`（52 例：规则预审 12 / 素材评估 15 / 人工抽检 9 / 编排落库 11 / 卫生 3）。
+- 验收自测：① 定向 `python -m pytest tests/test_optimization_review.py -q --basetemp=".pytest-tmp-m3"` → **52 passed**（0.87s，首跑 51 passed/1 failed 为测试自身笔误——模块入口用例用 fixture rate=0 与 sampler 覆盖 0.5 比较，已修正为同配置比较）；② M3 全范围回归 `tests/test_optimization_review.py + test_optimization_copywriting.py + test_optimization_images.py + test_optimization_video_ffmpeg.py + test_optimization_video_composer.py -q --basetemp=".pytest-tmp-m3"` → **183 passed, 1 skipped**（skip=ffmpeg 真实转码冒烟既有，无回归）；③ 编码复核 6 文件全部 UTF-8 无 BOM 无替换字符；④ 落库验证：clean 素材 3 条记录（rule/evaluate/manual 全 pass）、规则拒绝 1 条、评估拒绝 2 条、抽中 manual_review、reviewer 全 system、reasons_json 含 hits/verdict/optimization_items 证据。
+- 当前阻塞：无（app_config 读取 high_risk_categories 属 M0 只读，已留构造参数扩展点，配置注入即可）。
+- 备注：未运行任何 git 命令；未读写其他模块库（测试全部 sqlite:///:memory: 经 optimization.db.Database）；未改动公共骨架与 copywriting/images/video 子包（review 为纯新增）；未写任何明文密钥（卫生用例断言无 sk-/api_key= 字面量）；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零 API Key 零真实平台调用。
+
+---
+
+### 2025 体系建立日 ｜ 子代理-F（上传素材库 upload） ｜ M3 自动素材优化 ｜ 角色：子代理（v1.0 集成任务 3）
+
+- 完成任务：实现 M3「上传小店素材库拿素材 ID + 评估标签」子包（backend/optimization/upload/，REC-002 双轨 UploadService，对齐 06 文档第一节「预审→上传→素材 ID+评估标签（探索期起步）」、10 文档第二节「≤50/批串行+节流」与第三节「审核不通过自动下架标记」，全部 fixtures/模拟——零真实网络零真实浏览器，post/page_ops 可注入）：
+  ① **service.py**——`UploadResult`（platform_material_id/platform_evaluation/status/error_code/evidence，status/error_code 枚举校验）；`UploadService` 抽象基类 upload_video/upload_image；错误码复用 WorkflowJob 表（AUTH_REQUIRED/RATE_LIMIT/TIMEOUT/PLATFORM_REJECT/UNEXPECTED/NO_MATCH）；`deterministic_material_id`（material_<hash8> sha256 前 8 位，同 file_path+meta 幂等）；`derive_target_id`（meta 主键优先、file_path 短哈希兜底）；`upload_batch`（≤50/批串行编排，batch_no 递增、chunk 内 1..batch_size、单条失败隔离——service 抛异常捕获记 UNEXPECTED 继续、item_interval_s 节流 + sleep_fn 可注入、batch_id 留痕 evidence_json、批量/非法项/非法 target_type fail-fast）；
+  ② **api.py**——`ApiUploader`（mode=api）：OpenAPI 假设接口 mock（默认内置 mock post 确定性成功，可注入 post 测失败路径，UploadApiError 带错误码异常）；AUTH_REQUIRED 不自动重试转人工（manual_handoff 证据，P-002）；RATE_LIMIT 180s 退避重试 max_retries 次（retry_after 优先、sleep_fn 注入可测、backoff_seconds 留痕）；TIMEOUT/PLATFORM_REJECT/UNEXPECTED 直接失败留证据不静默；请求记录 request_log/last_request（endpoint+payload，不含 headers 防令牌泄漏）；密钥仅环境变量名 M3_PLATFORM_TOKEN（os.environ 读取，P-004）；
+  ③ **ui.py**——`UiUploader`（mode=ui，Playwright 兜底抽象）：本子包独立最小 `PageOps` Protocol（复用 M5 ads/interfaces.py 思路但不跨包 import，goto/wait_for/click/fill/read_text/exists/screenshot/current_url）+ `MockPageOps`（逐调用留痕 + script 驱动失败场景，configure 同步自定义选择器）；选择器全配置化（DEFAULT_SELECTORS）；`PageChangedError` + `verify_page_signature`（P-003：锚点缺失截图+missing+current_url 留证 → NO_MATCH + page_changed=True）；错误按文案关键词分类（登录→AUTH_REQUIRED 人工接管/频繁→RATE_LIMIT 不自动重试/审核→PLATFORM_REJECT/超时→TIMEOUT）；
+  ④ **semi.py**——`SemiUploader`（mode=semi 半自动降级）：生成预填清单 SemiManifest（file_path + 预填字段 meta 非空值 + 人工确认点 4 项配置化），返回 waiting_manual 状态落库（断点续跑）；
+  ⑤ **repo.py**——`UploadRepo`（opt_upload_records 落库：每行一事务天然失败隔离，list_recent/count，复用骨架 new_id，公共骨架只读未改）；
+  ⑥ **factory.py**——`create_uploader(mode=None)`：显式/大小写不敏感/取 config.upload.mode（环境变量 M3_UPLOAD_MODE）默认 api；非法 mode 抛 ValueError。
+- 产出文件：`backend/optimization/upload/__init__.py`、`service.py`、`api.py`、`ui.py`、`semi.py`、`factory.py`、`repo.py`（新增 7 文件）；`backend/tests/test_optimization_upload.py`（**49 用例**）。
+- 测试：`python -m pytest tests/test_optimization_upload.py -q --basetemp=".pytest-tmp-m3"` → **49 passed**（1.03s，P-011 独立 basetemp）；M3 全模块回归 `test_optimization_copywriting/images/video_ffmpeg/video_composer/upload` → **180 passed, 1 skipped**（skip = C1 真实转码冒烟，本机 ffmpeg 未安装，环境就绪自动启用）无回归。
+- 当前阻塞：无。真实小店账号提供前按 REC-002 保持 fixtures/模拟（api 默认、ui 兜底、semi 降级），接口契约实测后替换 DEFAULT_ENDPOINT/选择器配置即可。
+- 备注：未运行任何 git 命令；未修改 backend/optimization/ 公共骨架（config/db/tables/models/repo/compliance）与 copywriting/images/video 子包（全部只读）；未读写其他模块库（测试用 sqlite:///:memory: + 本模块 Database）；未写明文密钥（仅环境变量名 M3_PLATFORM_TOKEN）；全部文件经 write/edit 工具 UTF-8 无 BOM（已实测 8 文件 BOM=False/UTF8=True）；零网络零真实平台调用（源码无 requests/httpx/urllib/playwright import，测试断言覆盖）。
+
+---
+
+### 2025 体系建立日 ｜ 子代理-E（A/B 优化闭环 ab） ｜ M3 自动素材优化 ｜ 角色：子代理（v1.0 集成任务 2）
+
+- 完成任务：实现 M3「A/B 优化闭环」子包（backend/optimization/ab/，对齐 06 文档第五节「同一商品 ≥2 版素材 → 投放数据回写 evaluation → 素材评分排序（高效 > 潜力 > 探索期）→ 模板参数按类目重训练」与 context README 1.4/1.5 数据字典，公共骨架 config/db/tables/models/repo/compliance 与三路子包全部只读未改）：
+  ① **scoring.py**——`score = roi_weight*roi_score + ctr_weight*ctr_score + diag_weight*diag_score`（默认 0.5/0.3/0.2，ScoringPolicy 配置化：M3_AB_ROI_WEIGHT/CTR_WEIGHT/DIAG_WEIGHT/ROI_SCORE_CAP=5.0/CTR_SCORE_CAP=0.05，权重和≠1 或饱和点≤0 fail-fast）；roi/ctr 分项饱和归一 [0,1]；diag_score 对齐 M5 normalize_diagnosis 枚举（excellent=1.0/good=0.7/optimize_1=0.4/optimize_n=0.2/unknown=0.0，兼容中文/字典 level·diagnosis·evaluation·quality·score/数值 0~1 或 0~100）；无数据输入 → 0 分；ctr_of 曝光≤0 视为无数据；
+  ② **evaluate.py**——`label_for` 阈值配置化（EvaluationPolicy：roi_high=2.0/ctr_qualify=2%/roi_potential=1.0/min_exposure=100/stale_days=7，M3_AB_EVAL_*）：高效=ROI≥2.0 或（CTR≥2% 且 ROI≥1.0）；潜力=有数据（曝光≥100）未达高效（含有曝光无成交）；探索期=无数据/低数据；`EvaluationService.record` 重算 score+label → EvaluationRepo.upsert 幂等（(variant_id, report_date) 唯一，后写覆盖不新增行），骨架 upsert 置空的 platform_material_id 由本层补写（本模块自有表）；`mark_stale/mark_stale_all` 最新快照超 stale_days → stale=1（幂等自愈）；latest/latest_map 批量取最新快照；
+  ③ **ranking.py**——`MaterialRanker`：同商品/类目排序，evaluation 序（高效 0 > 潜力 1 > 探索期 2）再 score 降序，Python sorted 稳定（同分保持 variant_no 序），未知标签按探索期桶处理；输出 [(variant_id, platform_material_id, evaluation, score)]（供 M5 投放绑定）；platform_material_id 取 opt_video_variants，only_uploaded 过滤未上传版本；类目按 template_params_snapshot.category 过滤（Python 侧兼容 SQLite JSON）；无回写数据 → exploration/0.0；
+  ④ **variants.py**——`VariantManager`：list_variants（复用 video.VideoVariantRepo 只读）；difference_summary 版本差异摘要（template_id/copywrite_ids/节奏参数快照 opening_seconds·cut_count·bgm_loudness·badge_position·subtitle_style 比对，list/dict 转 repr 判同）；check_ab_ready ≥2 版门槛（不足提示「至少需要 2 版素材」+needed）；
+  ⑤ **retrain.py**——`TemplateRetrainer`：按类目统计各模板（opt_templates）关联版本回写数据平均 ROI/CTR/样本数（composer 的 -vN 变体后缀按 base_template_id 归并；有效样本=曝光>0 或成交>0 的行；avg_ctr=总点击/总曝光）→ 更新 opt_templates.stats_json 与 opt_category_memory.template_stats_json（无记忆行自动创建）；样本 < min_samples（默认 5，M3_AB_RETRAIN_MIN_SAMPLES）不更新（模板 stats 与类目记忆保持原值，报告返回 skipped 原因+样本数）；只更新统计不改参数（params_version 不动）；retrain_all 全类目 + best_template_for_category 供调用方落地参数。
+- 产出文件：`backend/optimization/ab/__init__.py`、`scoring.py`、`evaluate.py`、`ranking.py`、`variants.py`、`retrain.py`（新增 6 文件）；`backend/tests/test_optimization_ab.py`（**64 用例**）。
+- 测试：`python -m pytest tests/test_optimization_ab.py -q --basetemp=".pytest-tmp-m3"` → **64 passed**（1.16~1.46s，P-011 独立 basetemp）；M3 同模块回归 `test_optimization_copywriting/images/video_ffmpeg/video_composer` → **131 passed, 1 skipped**（skip = C1 真实转码冒烟）无回归；7 个新文件实测 UTF-8 无 BOM。
+- 当前阻塞：无。ab 子包可衔接 M5 回写（record/record_metrics 接收 M5 快照）与投放绑定（rank_for_product/rank_for_category 输出元组），等待总工验收。
+- 备注：未运行任何 git 命令；未修改 backend/optimization/ 公共骨架与 copywriting/images/video 子包（video.composer.VideoVariantRepo 仅只读复用）；未读写其他模块库（测试用 sqlite:///:memory: + 本模块 Database）；未写明文密钥（仅环境变量名 M3_AB_*，无任何 Key 字面量，测试断言覆盖）；全部文件经 write/edit 工具 UTF-8 无 BOM（已实测 7 文件 BOM=False）；零网络零真实平台调用。
+
+---
+
+### 2025 体系建立日（第 6 轮）｜ M3 总工程师 ｜ M3 自动素材优化 ｜ 角色：总工（v1.0 集成验收通过 · 全链路闭环里程碑）
+
+- 任务来源：总控批准 v1.0 集成排期（v0.19 已备份推送）——3 子代理并行（review/ab/upload）+ 总工端到端集成。
+- 完成任务：
+  ① **验收 review 子代理-D**：backend/optimization/review/（rules 规则预审复用 compliance.check_text + 素材专用字段规则 / evaluate 素材评估 优秀·良好·待优化 / manual 人工抽检 sample_rate 配置化+高风险类目强制 / gate 编排三闸落 opt_review_records）——测试全过；
+  ② **验收 ab 子代理-E**：backend/optimization/ab/（scoring 评分 f(ROI,CTR,诊断) 权重配置化 / evaluate 标签阈值配置化+幂等回写+stale / ranking 排序 高效>潜力>探索期 / variants ≥2 版管理 / retrain 模板按类目重训练样本闸门）——64 用例全过；
+  ③ **验收 upload 子代理-F**：backend/optimization/upload/（UploadService 抽象 + ApiUploader mock（REC-002 api 优先）+ UiUploader Playwright 兜底抽象 + SemiUploader 半自动 + factory 工厂 + opt_upload_records 落库 + upload_batch ≤50/批失败隔离）——测试全过；
+  ④ **端到端集成测试（总工）**：新建 `backend/tests/test_optimization_e2e.py`（2 用例）——原始素材+商品 → 文案管线（规则降级）→ 视频二创（Mock 出片 ≥2 版）→ 审核闸门（规则/评估/抽检 0%）→ A/B 回写+排序 → 上传 mock 拿 platform_material_id → 全链路断言；拒绝路径（供应链词必拒）也覆盖；
+  ⑤ **集成缺口修复**：e2e 首跑暴露「上传只写 opt_upload_records 不回填 variant.platform_material_id → only_uploaded 排序为 0」→ 骨架 repo.py 新增 `VideoVariantRepo`（get + update_platform_material_id 幂等回填），e2e 演示上传成功→回填→排序闭环（决策已记 decisions.md）；
+  ⑥ **全量回归**：`python -m pytest tests -q --basetemp=".pytest-tmp-m3"` → **1016 passed, 2 skipped**（全模块无失败，含 M3 全范围 298 passed, 1 skipped；此前 M2 materials_pipeline 的失败亦已消失）。
+- 产出文件：`backend/optimization/review/`（5 文件）、`ab/`（6 文件）、`upload/`（7 文件）[子代理产出，已验收]；`backend/tests/test_optimization_review.py`、`test_optimization_ab.py`（64 例）、`test_optimization_upload.py`、`test_optimization_e2e.py`（总工，2 例）；`backend/optimization/repo.py`（+VideoVariantRepo）；`progress.md`（v1.0 全勾选、完成度 **90%**）；`decisions.md`（+集成缺口修复决策）；本日志追加条目。
+- 里程碑：**v1.0 全链路闭环达成**——三路输出 → 审核闸门 → A/B 闭环 → 上传素材库 全链路代码+测试完成，全量 1016 passed 无回归；opt_* 9 表 + fixtures 离线全链路可跑。
+- 下一步（v1.1+ 迭代，待总控指示）：M5 回写联调（data-audit 数据联动）→ 模板重训练数据驱动 → 上传真实化（用户提供小店账号，REC-002 契约替换点已预留）→ 真实 ffmpeg 出片验证（环境就绪自动启用）。
+- 当前阻塞：无。**已请总控提交备份（里程碑：M3 v1.0 全链路闭环验收通过）**。

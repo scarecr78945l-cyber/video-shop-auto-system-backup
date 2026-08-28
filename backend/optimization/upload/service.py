@@ -199,7 +199,7 @@ def upload_batch(
     if not isinstance(service, UploadService):
         raise ValueError(f"service 必须是 UploadService 实例，got {type(service).__name__}")
     cfg = service.config
-    batch_size = int(batch_size or cfg.upload.batch_size)
+    batch_size = int(batch_size) if batch_size is not None else int(cfg.upload.batch_size)
     if not 1 <= batch_size <= 50:
         raise ValueError(f"batch_size 必须 1~50（P-006 ≤50/批），got {batch_size}")
     sleep_fn = sleep_fn or time.sleep

@@ -103,6 +103,8 @@ class ApiUploader(UploadService):
             "request": request,
             "response": resp,
             "attempts": attempts,
+            "retried": attempts > 1,          # RATE_LIMIT 退避重试过则 True
+            "backoff_seconds": resp.get("backoff_seconds", 0.0),
         }
         if batch_id:
             evidence["batch_id"] = batch_id
