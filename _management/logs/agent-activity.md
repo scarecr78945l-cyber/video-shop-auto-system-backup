@@ -545,3 +545,15 @@
 - 产出文件：`backend/ads/executor.py`、`backend/tests/test_ads_executor.py`（25 例）、`_management/modules/m5-ads/REPORT_v0.3_executor.md`、`progress.md`（v0.3 全部勾选、完成度 **45%**）；本日志追加条目。
 - 当前阻塞：无。**已请总控提交备份（里程碑：v0.3 执行层验收通过）**；批准后推进 v0.4 监控层（监控回读 + 止损规则引擎，可拆 2 子代理）。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；ads 包现有测试 77 例（tables 19 + repo 14 + settings 25 + executor 25），全量回归请总控统一执行（建议独立 basetemp）。
+
+---
+
+### 2025 体系建立日（第 5 轮）｜ M4 总工程师 ｜ M4 自动上架（m4-listing） ｜ 角色：总工（P3 验收通过 · P4 派发）
+
+- 完成任务：
+  ① **P3 验收通过**（子代理 b57d2057，一次性完成）——独立复跑 `python -m pytest tests/test_listing_tables.py tests/test_listing_state_machine.py -q --basetemp=".pytest-tmp-m4"` → **31 passed**（2.33s，与子代理自测 2.41s 一致）；代码抽查 `backend/listing/state_machine.py`：9 态 STATUSES + ALLOWED_TRANSITIONS 严格对齐 context/README.md 第二节（pending→creating→draft→platform_auditing→listed/rejected→retry_candidate/manual/failed）、`IllegalTransitionError`、**`ListedLinkVerificationError`（R22 断言固化：listed 必须携带 link_url 非空且 verified=True 证据，否则抛错）**、rejected 落 reject_reason_code、每次迁移写 listing_op_logs 一条证据（api=state_machine/direction=transition/evidence_json 含 from/to/evidence）、TERMINAL_STATUSES=listed/manual/failed；抽查 repo.py（DuplicateTaskError 幂等防重复入队、claim_task 租约 45min 过期回收断点续跑、append_op_log payload_digest 脱敏、upsert_quota_state ON CONFLICT）；
+  ② **P4 拒审处理已派发**（子代理 11d4d391，全内联任务书：backend/listing/platform_rejection.py——REJECT_CATEGORIES 七分类关键词表（title/category/qualification/image/price/content_compliance/other）、RejectFixCandidate/RejectionAnalysis/RejectionResult 模型、修复候选生成规则（title→改标题/image→重传主图·详情图/price→改价 均 gate_required=True；qualification→补资质 False；category/content_compliance/other→manual）、RejectionHandler.handle（迁移 retry_candidate|manual + 写 listing_audit_records）、requalify 二次门禁复用 ListingGate（只读 import backend.services.listing_gate）；测试 ≥12 例），运行中；
+  ③ progress.md P3 勾选 100%、完成度 **60%**、P4 行更新；decisions 无需新增（沿用 D10/D11/D12）。
+- 产出文件：`backend/listing/`（8 文件，子代理产出已验收）、`backend/tests/test_listing_tables.py`（14 例）、`test_listing_state_machine.py`（17 例）、`conftest.py`（末尾追加 4 fixtures）；`progress.md`（P3 100%、完成度 60%）；本日志追加条目。
+- 当前阻塞：无。待 P4 完成通知 → 验收（读产出 + `pytest --basetemp=".pytest-tmp-m4"`）→ 更新 progress.md/台账 → 推进 P5 Playwright 兜底降级 + 集成（依赖 P1–P3 已满足）。
+- 备注：未运行任何 git 命令；未读写其他模块库（m4-listing.db 真实库未创建）；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零真实平台调用。

@@ -141,7 +141,7 @@
 | 有米云浏览器 CDP | 9555 |
 | 浏览器资料目录 | `backend/data/chrome-profiles/`（不入 git） |
 | pytest | `python -m pytest tests -q --basetemp=".pytest-tmp-m1"`（**P-001 + P-011/宪法第 12 节**：独立 basetemp，避免并行代理共享清理抖动；全量回归由总控统一执行） |
-| 测试基线 | sourcing 域 62 passed（41 基线 + S1b 21 新增，体系建立日复核）；全量含 M0 foundation 4~5 个既有失败（跨模块已知，勿修） |
+| 测试基线 | sourcing 域 91 passed（S3a 复核：既有 85 + test_page_changed 6 新增，独立 basetemp `.pytest-tmp-m1` 全绿）；全量含 M0 foundation 4~5 个既有失败（跨模块已知，勿修） |
 | 依赖 | Python 3.12、Playwright、pydantic v2、SQLAlchemy、pydantic-settings |
 
 ### 环境探测快照（S3a 实测，体系建立日）

@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 
 import click
 
@@ -22,6 +23,12 @@ from .config import load_config
 @click.option("--verbose", is_flag=True, help="DEBUG 日志")
 @click.pass_context
 def cli(ctx: click.Context, db_url: str | None, verbose: bool) -> None:
+    # Windows 管道/重定向下 stdout 默认 GBK 编码（乱码/非 UTF-8 JSON）；统一 UTF-8（宪法第 11 节）
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
     overrides = {"db_url": db_url} if db_url else {}
     ctx.obj = load_config(**overrides)
     logging.basicConfig(
