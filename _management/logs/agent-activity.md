@@ -557,3 +557,80 @@
 - 产出文件：`backend/listing/`（8 文件，子代理产出已验收）、`backend/tests/test_listing_tables.py`（14 例）、`test_listing_state_machine.py`（17 例）、`conftest.py`（末尾追加 4 fixtures）；`progress.md`（P3 100%、完成度 60%）；本日志追加条目。
 - 当前阻塞：无。待 P4 完成通知 → 验收（读产出 + `pytest --basetemp=".pytest-tmp-m4"`）→ 更新 progress.md/台账 → 推进 P5 Playwright 兜底降级 + 集成（依赖 P1–P3 已满足）。
 - 备注：未运行任何 git 命令；未读写其他模块库（m4-listing.db 真实库未创建）；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零真实平台调用。
+
+---
+
+### 2025 体系建立日 ｜ S3a 子代理 ｜ M1 自动选品（m1-sourcing） ｜ 角色：子代理
+
+- 完成任务（S3 第一阶段：浏览器探测 + 选择器校准，fixtures 对照，不依赖登录态）：
+  ① **环境探测（只读）**：Python 3.13.14 / Playwright **1.61.0** 已装；Chrome 可执行文件=标准路径 `C:/Program Files/Google/Chrome/Application/chrome.exe`（`SOURCING_CHROME_PATH` 未设置，PATH 无 chrome）；CDP 端口 socket 实测 **9223 ✓ / 9555 ✓ / 9222 ✓**；
+  ② **launch-browsers** 幂等执行（9223/9555 均已存在→跳过，未启动新浏览器）；**probe-browsers** 5 来源全 `CDP ✓`：共享 9223 已打开商机中心 home 与抖店罗盘 rank-product 页、有米云 9555 已打开商品榜 URL → **浏览器已启动且持有登录态页面**（真实采集仍待登录态确认后批准，本任务未运行任何真实采集）；
+  ③ **selector-log.md v1.0**（新建）：5 来源逐一对照 config/采集器/fixtures——关键发现：**5 来源 config.selectors 全为空 → 生效选择器=代码 DEFAULT_SELECTORS（配置化结构就位未落地）**；有米云 URL 日期硬编码待动态化；抖店飙升榜 URL 模板与 fixtures 均缺；有米云/抖店动态列定位分支被默认 columns 短路；商机中心 price/sales/category 恒空与 fixtures 口径有差异；alibaba/taobao 宽泛选择器需真实页面收敛；每来源含「待实测项」清单；
+  ④ **test_page_changed.py**（新增 6 例）：detect_page_changed 5 场景全通过（任一可见→False/全不可见→True/空列表→False/locator 异常→True/is_visible TimeoutError→True）+ 短路补充用例；
+  ⑤ **环境事实更新**：`context/README.md` 追加 S3a 探测快照表 + 测试基线更新为 91 passed。
+- 产出文件：`_management/modules/m1-sourcing/context/selector-log.md`（新建）、`backend/tests/test_page_changed.py`（新增 6 例）、`_management/modules/m1-sourcing/context/README.md`（环境事实表追加）、本日志追加条目。
+- 测试结果：`python -m pytest tests/test_pricing.py ... tests/test_page_changed.py -q --basetemp=".pytest-tmp-m1"` → **91 passed**（既有 85 + 新增 6，6.61s）。
+- 当前阻塞：无。待总工验收；真实采集（S3 第二阶段）需登录态确认后另行批准。
+- 备注：未运行任何 git 命令；未修改任何既有测试与既有采集器代码（selector-log.md 中 A1~A6 校准动作仅登记建议，未改代码）；未安装任何软件；未探测/读取登录态敏感信息（probe 仅读页面 URL，未读 cookie/localStorage/凭据）；全部文件经 write/edit 工具 UTF-8 无 BOM。
+
+---
+
+### 2025 体系建立日 ｜ M5 总工程师 ｜ M5 自动小店投放（商品托管） ｜ 角色：总工（v0.4 监控层派发）
+
+- 完成任务：总控批准 v0.4 监控层排期（2 子代理：监控回读 + 止损规则引擎，总控已提交 v0.12 备份）；总工架构设计确定文件边界（避免并行冲突）——① `backend/ads/report.py`（监控回读：normalize_diagnosis/normalize_status/parse_amount_fen（str 按元→分、数值按分直取）/parse_snapshot_row/SnapshotCollector.run_once（幂等 upsert + 单行错误隔离）+ collect_missing（断点补快照，已存在跳过）+ next_run_hint（不做真实定时器，调度归后续集成）；config.py 仅该子代理可尾部追加）；② `backend/ads/stop_loss.py`（止损规则引擎：normalize_diagnosis 同口径独立实现 + rule_s1~s6 纯函数 + check_budget_triple 预算三重硬约束 + kill_switch_enabled 一键全停 + StopLossEngine.evaluate；**只读既有 config 字段 stoploss_impression/min_balance_fen/roi_floor_ratio/max_active_campaigns/budget_*/kill_switch，禁止改 config.py**）；并行派发两个自包含子代理任务书（背景/必读/目标/输出路径/验收标准/宪法要点/P-001+P-011 独立 basetemp `.pytest-tmp-m5`/禁 git/禁明文密钥/UTF-8/禁改既有文件清单）。
+- 派发子代理：**① 监控回读=0702b611**（backend/ads/report.py + test_ads_report.py 15~25 例：诊断/状态枚举化、金额解析、快照入库幂等、单行失败隔离、断点补快照 skipped/补齐/since 过滤、next_run_hint UTC）；**② 止损规则引擎=9d0c8921**（backend/ads/stop_loss.py + test_ads_stop_loss.py 18~28 例：S1~S8 全规则命中+边界、预算三重硬约束、kill_switch、Engine.evaluate 集成、诊断枚举化）。
+- 产出文件：`progress.md`（v0.4 开发中标注、两子代理已派发）；本日志追加条目。
+- 当前阻塞：无。待两子代理完成通知 → 总工分别验收（读产出 + 跑 pytest --basetemp=".pytest-tmp-m5"）→ v0.4 集成（report↔stop_loss↔repo 联调）→ 更新 progress.md/台账 → 通知总控备份（里程碑：监控回读+止损引擎可跑）→ 推进 v0.5 回流层。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥。
+
+---
+
+### 2026-08-28 | B1 子代理 | M2 自动收集素材（m2-materials） | 角色：子代理
+
+- 完成任务：视频号采集器（自研签名+直链，R-M2-03/R-M2-05）——fixtures 离线模式全链路 + auto 骨架 + signer 接口化，零浏览器零登录态验收通过。
+- 产出文件：
+  - `backend/materials/collectors/signer.py`（SignatureProvider ABC：sign(params,url)->{"headers","query"}；MockSignatureProvider 可配置固定值；RealSignatureProvider 未校准前 raise NotImplementedError 不留假算法）
+  - `backend/materials/collectors/wechat_video.py`（WechatVideoCollector：login_state 无浏览器返回 False 不抛 / list_hot_videos fixtures+auto 双模式 / resolve_direct_url signer 注入；错误分类 AUTH_REQUIRED/PLATFORM_REJECT/NO_MATCH/TIMEOUT 对齐 downloader.py 码表；输出字段 source_platform="视频号"）
+  - `backend/fixtures/materials/wechat_video_hot.json`（新建 fixtures 目录，6 条样本含作者/标题/热度/视频 id/direct_url）
+  - `backend/materials/config.py`（只追加 wechat_video 子配置：enabled/cdp_port 默认 9223/profile_dir=shared/fixtures_mode 默认 True/boards/selectors）
+  - `backend/materials/__main__.py`（只追加 wechat-collect 子命令；cli() 入口统一 stdout/stderr UTF-8，Windows 管道 GBK 乱码实测修复）
+  - `backend/materials/collectors/__init__.py`（追加 wechat 导出，未动既有）
+  - `backend/tests/test_materials_wechat_video.py`（28 用例：fixtures 解析/热度排序/signer 注入/Real 未实现→PLATFORM_REJECT/错误分类各分支/login_state 不抛/auto fake page 注入全分支）
+  - `_management/modules/m2-materials/decisions.md`（B1 决策行追加）
+- 测试结果：`python -m pytest tests/test_materials_wechat_video.py tests/test_materials_tables.py tests/test_materials_repo.py tests/test_materials_tiktok_wrapper.py -q --basetemp=".pytest-tmp-m2"` → **92 passed**（28 新增 + 30 tables/repo 回归 + 34 tiktok 兼容）。
+- CLI 验收：`python -m materials wechat-collect --mode fixtures --limit 5` → returncode 0，合法 UTF-8 JSON，5 条全 source_platform="视频号"，热度降序，零浏览器连接。
+- 当前阻塞：无。auto 模式真实浏览器解析/真实签名待「共享浏览器登录态确认 + 抓包校准」（校准只改 config.selectors 与 signer.py）。
+- 备注：未运行任何 git 命令；未安装任何软件；未连接真实浏览器（auto 模式仅骨架+配置，未验证）；未改动 backend/sourcing/*（仅只读参考）；未写明文密钥/真实签名算法；全部文件 write/edit 工具 UTF-8 无 BOM；pytest 独立 basetemp .pytest-tmp-m2。
+
+---
+
+### 2025 体系建立日 ｜ 子代理-C1（视频二创 ffmpeg 层） ｜ M3 自动素材优化 ｜ 角色：子代理
+
+- 完成任务：实现 M3 视频二创流水线 ffmpeg 层（backend/optimization/video/）——① `detect_ffmpeg()`：env M3_FFMPEG_PATH/M3_FFPROBE_PATH 优先（兼容 FFMPEG_PATH/FFPROBE_PATH）→ PATH，两者齐备返回版本字符串，缺任一/版本查询失败均返回 None，绝不抛异常；② `VideoToolError`：error_code 限定 WorkflowJob 码表子集 TIMEOUT/UNEXPECTED/NO_MATCH（非法码归一 UNEXPECTED，带 evidence）；③ `FFmpegRunner` 抽象基类 + `FFmpegProcessRunner`（subprocess.run 超时配置化；ffprobe JSON 探测→{width,height,duration,size_bytes,format}，无视频流→NO_MATCH；转码 argv[0]="ffmpeg" 占位绑定真实二进制；二进制缺失即 raise VideoToolError 含安装指引 winget/ffmpeg.org 官网/brew/apt/M3_FFMPEG_PATH，不静默）+ `MockFFmpegRunner`（probe 返回注入预设，transcode 记录 (cmd,timeout) 供断言）；④ `validate_specs`：五维硬规格校验（分辨率 ≥720×1280／9:16 容差 ±0.01／mov·mp4 token 命中／≤500M bytes 换算／5~300s），返回 {'passed','failures':[{field,reason,value}]} 逐项可解释（对齐 05/06 硬规格与 P-007）；⑤ `build_transcode_cmd`：scale=W:H:force_original_aspect_ratio=decrease,pad=W:H:(ow-iw)/2:(oh-ih)/2 + -t 时长上限 + -c:v libx264 -crf + -c:a aac + extra_filters 拼接进 -vf，参数全部取 config.video（spec 覆盖生效，禁止硬编码散落）。
+- 产出文件：`backend/optimization/video/__init__.py`（包 docstring + 7 项重导出）、`backend/optimization/video/ffmpeg.py`、`backend/tests/test_optimization_video_ffmpeg.py`（39 用例）。
+- 测试：`python -m pytest tests/test_optimization_video_ffmpeg.py -q --basetemp=".pytest-tmp-m3"` → **39 passed, 1 skipped**（P-011 独立 basetemp；skip = 真实转码冒烟，本机 ffmpeg/ffprobe 未安装已探测确认，skipif(not detect_ffmpeg()) 保护，环境就绪后自动启用）；同模块回归 `tests/test_optimization_copywriting.py tests/test_optimization_images.py` → **65 passed** 无破坏。
+- 当前阻塞：无。ffmpeg 层按「先实现 + Mock 测试，环境就绪后自动切换」交付；C2 编排层按共用接口契约调用（detect_ffmpeg/VideoToolError/FFmpegRunner/FFmpegProcessRunner/MockFFmpegRunner/validate_specs/build_transcode_cmd 签名严格一致）。
+- 备注：未运行任何 git 命令；未安装任何软件（含 ffmpeg）；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（批次 3 · B1/B3 验收 + P-013 修复）
+
+- 完成任务：
+  ① **验收子代理 B3**（id f833480a，榜单图缓存）：独立复跑 `python -m pytest tests/test_materials_board_image_cache.py -q --basetemp=".pytest-tmp-m2"` → **25 passed**；抽查 board_image_cache.py——缓存键 `board_cache/{source}/{board_id}/{item_id}.jpg`（组件消毒防穿越）、幂等 hit 不重复下载（计数器验证）、批量失败隔离（404→NO_MATCH/429→RATE_LIMIT 不影响其他条）、失败分类复用 downloader 码表、任何异常不抛出；多源白名单默认 ["youmi"] + register_source("kaogujia") 预留。**验收通过**；
+  ② **修复 P-013**（B3 发现：`__main__.py` 第 156 行 normalize 用 `Path` 但模块顶部未导入，被 ffmpeg 缺失提前退出掩盖）——已在 `__main__.py` 顶部 import 区补 `from pathlib import Path`，验证 `python -c "import materials.__main__"` → IMPORT_OK、`normalize --input x.mp4` 仍清晰报 ffmpeg 缺失（exit 1）不回归；
+  ③ **验收子代理 B1**（id f331c395，视频号采集器，第 3 次恢复后完成）：独立复跑 `python -m pytest tests/test_materials_wechat_video.py -q --basetemp=".pytest-tmp-m2"` → **28 passed**；CLI `python -m materials wechat-collect --mode fixtures --limit 5` → **EXIT_CODE=0**、合法 UTF-8 JSON、source_platform 全="视频号"；抽查 signer.py——SignatureProvider ABC + Mock（注入签名生效）+ Real（未校准 raise NotImplementedError 不留假算法，R-M2-03）；wechat_video.py——login_state 无浏览器不抛、错误分类对齐码表、fixtures/auto 双模式。**验收通过**（auto 模式待登录态+抓包校准）。
+- 产出文件：`backend/materials/__main__.py`（+Path import，P-013 修复）；`_management/modules/m2-materials/progress.md`（B1/B3 勾选 100%、B2 行更新为 B2'）；本日志追加条目。
+- 当前阻塞：无。批次 3 剩余：B2'（4b3c6002）运行中；待其完成通知后验收 → 批次 3 收官通知总控备份 → 批次 4（标签化+合规预审、M3/M5 数据联动联调）。
+
+---
+
+### 2026-08-28 22:52 ｜ P4 子代理 ｜ m4-listing ｜ 角色：子代理
+
+- 完成任务：**P4 平台拒审处理（platform_rejection）落地完成**：
+  - 新建 `backend/listing/platform_rejection.py`：`REJECT_CATEGORIES` 七分类 + `REJECT_KEYWORDS` 关键词表（title/category/qualification/image/price/content_compliance 按优先级顺序子串匹配，均未命中 → other；如「标题类目错误」→title、「品牌授权过期」→qualification、「品牌夸大宣传」→content_compliance）；`RejectFixCandidate`（action/param/gate_required）、`RejectionAnalysis`（category/reject_reason/fix_candidates/auto_fixable/resubmit_required）、`RejectionResult`（task_id/category/action/analysis）pydantic 模型；`_build_fix_candidates` 修复候选生成（title→改标题、image→按 reason 细分主图/详情图/都给、price→改价 均 gate_required=True，qualification→补资质 gate_required=False，category/content_compliance/other→无候选）；`RejectionHandler`（构造注入 repo/state_machine，gate 可选注入默认自建）——`analyze`（分类+候选+auto_fixable/resubmit_required 语义：qualification 有候选走重提但 auto_fixable=False）、`handle`（有候选→transition retry_candidate、无候选→transition manual，迁移证据带 reject_reason_code，并直接走本模块库 session INSERT listing_audit_records：task_id/audit_id 派生自 platform_spu_id（回退 task_id）/reject_reason/reject_category/fix_candidate(JSON)/resubmit_required(1/0)/evidence(JSON)）、`requalify`（二次门禁：仅 retry_candidate 任务可重提，复用 `services.listing_gate.ListingGate` 全量校验 passed 才 True，未通过返回 False 且不迁移任务状态，评估留痕 listing_op_logs 一条）。
+  - 新建 `backend/tests/test_listing_rejection.py`（36 例）：分类映射参数化 7 分类 + 优先级 4 断言；修复候选生成参数化 10 分支（含 image 主图/详情图细分与都给）+ gate_required 4 分支；analyze 语义 3 分支；handle 全流程（title/qualification→retry_candidate、content_compliance→manual）+ 审核记录落库断言（reject_category/fix_candidate/resubmit_required）+ audit_id 派生 + transition op_log 证据含 reject_reason_code；requalify 二次门禁（合规候选→True、标题超长候选→False 且任务状态不变、rejected/manual 任务→False）。
+- 验收：`cd backend && python -m pytest tests/test_listing_rejection.py -q --basetemp=".pytest-tmp-m4"` → **36 passed（1.73s）**；连带 P3 文件 `test_listing_tables.py + test_listing_state_machine.py + test_listing_rejection.py` → **67 passed（3.71s）** 无回归。
+- 产出文件：`backend/listing/platform_rejection.py`、`backend/tests/test_listing_rejection.py`。
+- 当前阻塞：无。待总控验收（读产出 + 独立复跑 `--basetemp=".pytest-tmp-m4"`）→ 更新 progress.md/台账 → 推进 P5 Playwright 兜底降级 + 集成（依赖 P1–P4 已满足）。
+- 备注：未运行任何 git 命令；未改动 backend/sourcing|materials|optimization|ads|foundation|adapters|services 与 backend/listing/ 下任何既有文件（P3 产物只读引用）；`backend/tests/conftest.py` 未改动（fixtures cfg_listing/db_listing/repo_listing/machine_listing 已存在，直接复用）；零建库零网络零真实平台调用（requalify 图片由 Pillow 在 tmp_path 生成）；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM。

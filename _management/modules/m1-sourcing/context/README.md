@@ -159,4 +159,5 @@
 ## 五、本目录文件索引
 - `README.md`（本文）
 - `data-requests.md`（跨模块数据需求登记，宪法第 5 节）
-- （后续：`selector-log.md` 选择器校准记录、`category-registry.md` 类目映射表——S3 阶段建立）
+- `selector-log.md`（**S3a 已建立**：5 来源选择器校准记录 + 待实测项清单 + 校准动作建议 A1~A6）
+- （后续：`category-registry.md` 类目映射表——S3 阶段建立）

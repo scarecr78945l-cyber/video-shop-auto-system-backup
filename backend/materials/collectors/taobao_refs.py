@@ -305,7 +305,7 @@ class _RefsCollectorBase:
             "simulated": True,
             "input": redact_url(product_url_or_id),
             "missing_selectors": list(missing),
-            "message": "页面结构变化（P-003）：必需选择器未命中，采集中止并记录 HTML 快照证据",
+            "message": "页面结构变化（page_changed，P-003）：必需选择器未命中，采集中止并记录 HTML 快照证据",
         }
         evidence.update(snapshot)
         return self._failure(
@@ -364,6 +364,7 @@ class _RefsCollectorBase:
             "images": [],
             "videos": [],
             "note": None,
+            "message": message,
             "evidence": ev,
             "error_code": error_code,
         }

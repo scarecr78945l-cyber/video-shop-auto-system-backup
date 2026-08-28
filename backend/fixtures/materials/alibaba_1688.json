@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "platform": "1688",
+    "version": 1,
+    "description": "1688 商品视频与同款图采集 fixtures（离线样本，零登录态零网络，R-M2-08/R-M2-17）",
+    "usage": "由 backend/materials/collectors/alibaba_1688.py 读取；items 每项=一个商品样本，id 与 url 均可用于 collect(product_url_or_id) 匹配",
+    "notes": "items 可选字段：videos=[] 或缺失 → R-M2-08 降级；videos_error 模拟视频抓取失败降级；simulate_page_changed/simulate_error 仅供测试模拟"
+  },
+  "items": [
+    {
+      "id": "812345678901",
+      "url": "https://detail.1688.com/offer/812345678901.html",
+      "title": "工厂直销 氨基酸洗面奶 OEM 代工 泡沫洁面乳（1688 同款图样本 A）",
+      "images": [
+        "https://img.example.com/alibaba/refs/812345678901-1.jpg",
+        "https://img.example.com/alibaba/refs/812345678901-2.jpg",
+        "https://img.example.com/alibaba/refs/812345678901-3.jpg"
+      ],
+      "videos": [
+        {"url": "https://vod.example.com/alibaba/refs/812345678901-1.mp4", "title": "洁面乳生产线实拍", "duration": 35, "resolution": "720x1280"},
+        {"url": "https://vod.example.com/alibaba/refs/812345678901-2.mp4", "title": "泡沫打样实测", "duration": 20, "resolution": "720x1280"}
+      ],
+      "evidence": {"fixture_key": "alibaba_1688", "fetched_at": "2026-08-01T00:00:00+00:00", "mode": "fixtures"}
+    },
+    {
+      "id": "812345678902",
+      "url": "https://detail.1688.com/offer/812345678902.html",
+      "title": "源头厂家 不锈钢保温杯 批发定制 大容量水杯（1688 同款图样本 B）",
+      "images": [
+        "https://img.example.com/alibaba/refs/812345678902-1.jpg",
+        "https://img.example.com/alibaba/refs/812345678902-2.jpg"
+      ],
+      "videos": [
+        {"url": "https://vod.example.com/alibaba/refs/812345678902-1.mp4", "title": "保温杯车间实拍", "duration": 50, "resolution": "1080x1920"}
+      ],
+      "evidence": {"fixture_key": "alibaba_1688", "fetched_at": "2026-08-01T00:00:00+00:00", "mode": "fixtures"}
+    },
+    {
+      "id": "812345678903",
+      "url": "https://detail.1688.com/offer/812345678903.html",
+      "title": "纯棉四件套 床品批发 磨毛裸睡级 现货直发（1688 同款图样本 C）",
+      "images": [
+        "https://img.example.com/alibaba/refs/812345678903-1.jpg",
+        "https://img.example.com/alibaba/refs/812345678903-2.jpg",
+        "https://img.example.com/alibaba/refs/812345678903-3.jpg"
+      ],
+      "videos": [],
+      "evidence": {"fixture_key": "alibaba_1688", "fetched_at": "2026-08-01T00:00:00+00:00", "mode": "fixtures", "degrade_note": "样本无视频字段：验证 R-M2-08 降级（images 照常 + videos=[] + note）"}
+    },
+    {
+      "id": "812345678904",
+      "url": "https://detail.1688.com/offer/812345678904.html",
+      "title": "儿童积木玩具 大颗粒拼装 工厂批发 3-6 岁（1688 同款图样本 D）",
+      "images": [
+        "https://img.example.com/alibaba/refs/812345678904-1.jpg",
+        "https://img.example.com/alibaba/refs/812345678904-2.jpg",
+        "https://img.example.com/alibaba/refs/812345678904-3.jpg",
+        "https://img.example.com/alibaba/refs/812345678904-4.jpg"
+      ],
+      "videos": [
+        {"url": "https://vod.example.com/alibaba/refs/812345678904-1.mp4", "title": "积木拼搭演示", "duration": 70, "resolution": "720x1280"}
+      ],
+      "evidence": {"fixture_key": "alibaba_1688", "fetched_at": "2026-08-01T00:00:00+00:00", "mode": "fixtures"}
+    }
+  ]
+}

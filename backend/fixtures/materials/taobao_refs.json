@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "platform": "淘宝",
+    "version": 1,
+    "description": "淘宝商品视频与同款图采集 fixtures（离线样本，零登录态零网络，R-M2-08/R-M2-17）",
+    "usage": "由 backend/materials/collectors/taobao_refs.py 读取；items 每项=一个商品样本，id 与 url 均可用于 collect(product_url_or_id) 匹配",
+    "notes": "items 可选字段：videos=[] 或缺失 → R-M2-08 降级（images 照常 + videos=[] + note）；videos_error 模拟视频抓取失败降级；simulate_page_changed/simulate_error 仅供测试模拟"
+  },
+  "items": [
+    {
+      "id": "710000001",
+      "url": "https://item.taobao.com/item.htm?id=710000001",
+      "title": "玻尿酸保湿洁面乳 氨基酸温和洗面奶 深层清洁 女（同款图样本 A）",
+      "images": [
+        "https://img.example.com/taobao/refs/710000001-1.jpg",
+        "https://img.example.com/taobao/refs/710000001-2.jpg",
+        "https://img.example.com/taobao/refs/710000001-3.jpg"
+      ],
+      "videos": [
+        {"url": "https://vod.example.com/taobao/refs/710000001-1.mp4", "title": "洁面乳使用教程", "duration": 30, "resolution": "720x1280"},
+        {"url": "https://vod.example.com/taobao/refs/710000001-2.mp4", "title": "泡沫细腻度实测", "duration": 45, "resolution": "1080x1920"}
+      ],
+      "evidence": {"fixture_key": "taobao_refs", "fetched_at": "2026-08-01T00:00:00+00:00", "mode": "fixtures"}
+    },
+    {
+      "id": "710000002",
+      "url": "https://item.taobao.com/item.htm?id=710000002",
+      "title": "轻奢小方包 真皮单肩斜挎包 通勤百搭女包（同款图样本 B）",
+      "images": [
+        "https://img.example.com/taobao/refs/710000002-1.jpg",
+        "https://img.example.com/taobao/refs/710000002-2.jpg"
+      ],
+      "videos": [
+        {"url": "https://vod.example.com/taobao/refs/710000002-1.mp4", "title": "小方包上身效果", "duration": 25, "resolution": "720x1280"}
+      ],
+      "evidence": {"fixture_key": "taobao_refs", "fetched_at": "2026-08-01T00:00:00+00:00", "mode": "fixtures"}
+    },
+    {
+      "id": "710000003",
+      "url": "https://item.taobao.com/item.htm?id=710000003",
+      "title": "不锈钢保温杯 大容量便携水杯 男女学生杯子（同款图样本 C）",
+      "images": [
+        "https://img.example.com/taobao/refs/710000003-1.jpg",
+        "https://img.example.com/taobao/refs/710000003-2.jpg",
+        "https://img.example.com/taobao/refs/710000003-3.jpg",
+        "https://img.example.com/taobao/refs/710000003-4.jpg"
+      ],
+      "videos": [],
+      "evidence": {"fixture_key": "taobao_refs", "fetched_at": "2026-08-01T00:00:00+00:00", "mode": "fixtures", "degrade_note": "样本无视频字段：验证 R-M2-08 降级（images 照常 + videos=[] + note）"}
+    },
+    {
+      "id": "710000004",
+      "url": "https://item.taobao.com/item.htm?id=710000004",
+      "title": "纯棉四件套 裸睡级床品 全棉磨毛被套 宿舍家用（同款图样本 D）",
+      "images": [
+        "https://img.example.com/taobao/refs/710000004-1.jpg",
+        "https://img.example.com/taobao/refs/710000004-2.jpg"
+      ],
+      "videos": [
+        {"url": "https://vod.example.com/taobao/refs/710000004-1.mp4", "title": "四件套铺床展示", "duration": 60, "resolution": "720x1280"}
+      ],
+      "evidence": {"fixture_key": "taobao_refs", "fetched_at": "2026-08-01T00:00:00+00:00", "mode": "fixtures"}
+    },
+    {
+      "id": "710000005",
+      "url": "https://item.taobao.com/item.htm?id=710000005",
+      "title": "儿童益智积木玩具 大颗粒拼装 3-6 岁宝宝（同款图样本 E）",
+      "images": [
+        "https://img.example.com/taobao/refs/710000005-1.jpg",
+        "https://img.example.com/taobao/refs/710000005-2.jpg",
+        "https://img.example.com/taobao/refs/710000005-3.jpg"
+      ],
+      "videos": [
+        {"url": "https://vod.example.com/taobao/refs/710000005-1.mp4", "title": "积木拼搭过程", "duration": 90, "resolution": "1080x1920"},
+        {"url": "https://vod.example.com/taobao/refs/710000005-2.mp4", "title": "成品玩法演示", "duration": 40, "resolution": "720x1280"}
+      ],
+      "evidence": {"fixture_key": "taobao_refs", "fetched_at": "2026-08-01T00:00:00+00:00", "mode": "fixtures"}
+    }
+  ]
+}

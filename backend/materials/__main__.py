@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import sys
+from pathlib import Path
 
 import click
 
@@ -336,6 +337,41 @@ def wechat_collect(config, mode, limit, board, with_direct_url) -> None:
                 it["direct_url"] = None
                 it["direct_url_error"] = exc.error_code
     click.echo(_json.dumps(items, ensure_ascii=False, indent=2))
+
+
+@cli.command("taobao-refs")
+@click.option(
+    "--url", "url_or_id", required=True,
+    help="商品 URL 或商品 id（fixtures 模式按 id/url 匹配样本）",
+)
+@click.option(
+    "--mode",
+    type=click.Choice(["fixtures", "auto"]),
+    default="fixtures",
+    show_default=True,
+    help="fixtures=离线样本（默认，读 backend/fixtures/materials/taobao_refs.json）；auto=共享 Chrome（骨架，未实现）",
+)
+@click.option("--limit", type=int, default=5, show_default=True, help="images/videos 各返回条数上限")
+@click.pass_obj
+def taobao_refs(config, url_or_id, mode, limit) -> None:
+    """淘宝商品视频与同款图采集（context 2.3，R-M2-08）：同款图 + 商品视频清单。
+
+    fixtures 模式输出结构化 JSON（source_platform="淘宝"；视频缺失/失败→R-M2-08 降级
+    videos=[]+note；样本未命中→NO_MATCH 结构化失败）。结构化结果一律以 JSON 输出且退出码 0
+    （ok/error_code 在 JSON 内，脚本消费方按字段判断），仅内部错误/骨架未实现时非 0 退出；
+    auto 模式为骨架（共享 Chrome 登录态待确认），调用抛 NotImplementedError。
+    """
+    import json as _json
+
+    from .collectors.taobao_refs import TaobaoReferencesCollector
+
+    collector = TaobaoReferencesCollector(config, fixtures_mode=(mode == "fixtures"))
+    try:
+        result = collector.collect(url_or_id, limit=limit)
+    except NotImplementedError as exc:
+        click.echo(f"错误：{exc}", err=True)
+        raise SystemExit(1)
+    click.echo(_json.dumps(result, ensure_ascii=False, indent=2, default=str))
 
 
 if __name__ == "__main__":
