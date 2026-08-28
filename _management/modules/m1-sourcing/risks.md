@@ -50,7 +50,7 @@
 
 | 编号 | 风险 | 影响 | 概率 | 应对方案 |
 |---|---|---|---|---|
-| R-40 | **pytest 临时目录权限**（P-001） | 测试全部 PermissionError | 确定（本机） | 所有测试命令 `python -m pytest tests -q --basetemp=".pytest-tmp"`；已写入 backend/README 与任务书 |
+| R-40 | **pytest 临时目录权限/并行抖动**（P-001 + P-011） | 测试 PermissionError / 间歇性 errors（多代理共享 basetemp 互相清理） | 确定（本机） | 本模块测试命令统一 `python -m pytest tests -q --basetemp=".pytest-tmp-m1"`（独立 basetemp，宪法第 12 节）；结果以串行复跑为准；全量回归由总控统一执行 |
 | R-41 | **Python 版本/依赖漂移** | import 失败 | 低 | `requirements.txt` 锁定；Python 3.12；CI 由总控统一（GitHub Actions 不受 P-001 影响） |
 | R-42 | **便携 Chrome 路径硬编码**（P-004） | 换机器即炸 | 中 | `SOURCING_CHROME_PATH` 环境变量化；`launch-browsers` 统一入口 |
 | R-43 | **网络可达性**（有米云/商机中心域名被墙/限速） | 采集超时 | 低 | `TIMEOUT` 60s 退避；错误分类留证据；断点续跑 |

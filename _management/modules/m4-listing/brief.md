@@ -73,4 +73,4 @@
 1. 端到端模拟流程（选品 → 询价 → 生图 → 上架）跑通，**不提交真实商品**；仅当 `get_product_link` 返回且链接 HTTP 可达才标记「已上架」。
 2. 全部写入幂等、可重试、可断点续跑；错误分类复用 WorkflowJob 码表。
 3. 任何文件/日志无明文密钥；AppID/Secret 仅环境变量。
-4. 测试运行统一 `python -m pytest tests -q --basetemp=".pytest-tmp"`（P-001）。
+4. 测试运行统一 `python -m pytest tests/test_<模块>_*.py -q --basetemp=".pytest-tmp-m4"`（P-001 临时目录坑 + P-011 多代理并行必须用本模块独立 basetemp，禁止共用 `.pytest-tmp`；全量回归由总控统一执行）。

@@ -10,6 +10,8 @@ from __future__ import annotations
 import base64
 import io
 import json
+import os
+import shutil
 from pathlib import Path
 
 import pytest
@@ -61,12 +63,27 @@ def pet_product(products) -> dict:
 
 
 @pytest.fixture
-def cfg(tmp_path):
-    # 内存库（任务允许 sqlite:///:memory:）：避免并发 pytest 进程共享 .pytest-tmp
-    # 互相清理导致的文件锁（WinError 32，见 pitfall-log M2 子代理备注）
+def img_dir():
+    """进程唯一图片临时目录（backend/.pytest-tmp-optimg/<pid>）。
+
+    规避并发 pytest 进程共享 --basetemp=".pytest-tmp" 互相清理导致的
+    WinError 32 / FileNotFoundError（见 pitfall-log 与 M2 子代理备注）：
+    本目录带 PID、位于 basetemp 之外，其他进程的 pytest 会话不会删除它。
+    """
+    base = Path(__file__).resolve().parent.parent / ".pytest-tmp-optimg"
+    d = base / str(os.getpid())
+    d.mkdir(parents=True, exist_ok=True)
+    yield d
+    shutil.rmtree(d, ignore_errors=True)
+
+
+@pytest.fixture
+def cfg(img_dir):
+    # 内存库（任务允许 sqlite:///:memory:）+ 进程唯一图片目录：
+    # 完全避开 .pytest-tmp 文件锁与并发清理
     return load_config(
         db_url="sqlite:///:memory:",
-        data_dir=tmp_path / "data",
+        data_dir=img_dir / "data",
         fixtures_dir=FIXTURES,
     )
 
@@ -106,15 +123,15 @@ class TestPhash:
         assert hamming_distance("f" * 16, "0" * 16) == 64
         assert 0 <= hamming_distance("1234abcd1234abcd", "1234abcd1234abce") <= 64
 
-    def test_dhash_identical_images_equal(self, tmp_path):
-        p1, p2 = tmp_path / "a.png", tmp_path / "b.png"
+    def test_dhash_identical_images_equal(self, img_dir):
+        p1, p2 = img_dir / "a.png", img_dir / "b.png"
         img = Image.new("RGB", (200, 200), (120, 60, 30))
         img.save(p1)
         img.save(p2)
         assert phash_dhash(p1) == phash_dhash(p2) == phash_ahash(p1)
 
-    def test_dhash_different_images_differ(self, tmp_path):
-        p1, p2 = tmp_path / "a.png", tmp_path / "b.png"
+    def test_dhash_different_images_differ(self, img_dir):
+        p1, p2 = img_dir / "a.png", img_dir / "b.png"
         # 结构化图片（避免纯色均匀图 dHash 全零盲区）：黑块位置/形状不同
         img1 = Image.new("RGB", (200, 200), (255, 255, 255))
         img2 = Image.new("RGB", (200, 200), (255, 255, 255))
@@ -201,8 +218,8 @@ class TestPlanner:
 # ---------------------------------------------------------------- provider
 
 class TestProvider:
-    def test_main_placeholders_distinct_and_1x1(self, cfg, house_product, tmp_path):
-        provider = WanImageProvider(cfg, out_dir=tmp_path / "imgs")
+    def test_main_placeholders_distinct_and_1x1(self, cfg, house_product, img_dir):
+        provider = WanImageProvider(cfg, out_dir=img_dir / "imgs")
         plan = KimiImagePlanner(cfg).plan(house_product, "main")
         drafts = [provider.generate(house_product, plan, variant_no=v)
                   for v in range(1, 6)]
@@ -218,8 +235,8 @@ class TestProvider:
                 assert hamming_distance(drafts[i].phash, drafts[j].phash) > 8, \
                     f"主图 {i+1}/{j+1} 判为相似"
 
-    def test_detail_placeholders(self, cfg, pet_product, tmp_path):
-        provider = WanImageProvider(cfg, out_dir=tmp_path / "imgs")
+    def test_detail_placeholders(self, cfg, pet_product, img_dir):
+        provider = WanImageProvider(cfg, out_dir=img_dir / "imgs")
         plan = KimiImagePlanner(cfg).plan(pet_product, "detail")
         drafts = [provider.generate(pet_product, plan, variant_no=v)
                   for v in range(1, len(plan.prompts) + 1)]
@@ -300,65 +317,65 @@ class TestProvider:
 # ---------------------------------------------------------------- quality_gate
 
 class TestQualityGate:
-    def _make_draft(self, cfg, tmp_path, plan, product, variant_no) -> ImageDraft:
-        return WanImageProvider(cfg, out_dir=tmp_path / "imgs").generate(
+    def _make_draft(self, cfg, img_dir, plan, product, variant_no) -> ImageDraft:
+        return WanImageProvider(cfg, out_dir=img_dir / "imgs").generate(
             product, plan, variant_no=variant_no
         )
 
-    def test_inspect_ok(self, cfg, house_product, tmp_path):
+    def test_inspect_ok(self, cfg, house_product, img_dir):
         gate = ImageQualityGate(cfg)
         plan = KimiImagePlanner(cfg).plan(house_product, "main")
-        d = self._make_draft(cfg, tmp_path, plan, house_product, 1)
+        d = self._make_draft(cfg, img_dir, plan, house_product, 1)
         verdict = gate.inspect("img_1", d.file_path, "main")
         assert verdict.ok
         assert verdict.score == 100.0
         assert verdict.issues == []
 
-    def test_inspect_resolution_fail(self, cfg, tmp_path):
+    def test_inspect_resolution_fail(self, cfg, img_dir):
         gate = ImageQualityGate(cfg)
-        small = tmp_path / "small.png"
+        small = img_dir / "small.png"
         Image.new("RGB", (100, 100), (128, 128, 128)).save(small)
         verdict = gate.inspect("img_small", small, "main")
         assert not verdict.ok
         assert any("分辨率不足" in i for i in verdict.issues)
 
-    def test_inspect_detail_750x1000_ok(self, cfg, pet_product, tmp_path):
+    def test_inspect_detail_750x1000_ok(self, cfg, pet_product, img_dir):
         """文档认可的详情图规格 750x1000（3:4）必须过门禁。"""
         gate = ImageQualityGate(cfg)
         plan = KimiImagePlanner(cfg).plan(pet_product, "detail")
-        d = WanImageProvider(cfg, out_dir=tmp_path / "imgs").generate(
+        d = WanImageProvider(cfg, out_dir=img_dir / "imgs").generate(
             pet_product, plan, variant_no=1
         )
         assert (d.width, d.height) == (750, 1000)
         verdict = gate.inspect("img_detail", d.file_path, "detail")
         assert verdict.ok, verdict.issues
 
-    def test_inspect_main_not_square(self, cfg, tmp_path):
+    def test_inspect_main_not_square(self, cfg, img_dir):
         gate = ImageQualityGate(cfg)
-        wide = tmp_path / "wide.png"
+        wide = img_dir / "wide.png"
         Image.new("RGB", (1200, 800), (128, 128, 128)).save(wide)
         verdict = gate.inspect("img_wide", wide, "main")
         assert not verdict.ok
         assert any("非 1:1" in i for i in verdict.issues)
 
-    def test_inspect_blank_image(self, cfg, tmp_path):
+    def test_inspect_blank_image(self, cfg, img_dir):
         gate = ImageQualityGate(cfg)
-        blank = tmp_path / "blank.png"
+        blank = img_dir / "blank.png"
         Image.new("RGB", (800, 800), (128, 128, 128)).save(blank)
         verdict = gate.inspect("img_blank", blank, "main")
         assert not verdict.ok
         assert any("空白" in i for i in verdict.issues)
 
-    def test_inspect_missing_file(self, cfg, tmp_path):
+    def test_inspect_missing_file(self, cfg, img_dir):
         gate = ImageQualityGate(cfg)
-        verdict = gate.inspect("img_missing", tmp_path / "nope.png", "main")
+        verdict = gate.inspect("img_missing", img_dir / "nope.png", "main")
         assert not verdict.ok
         assert verdict.score == 0.0
 
-    def test_batch_similar_detected(self, cfg, house_product, tmp_path):
+    def test_batch_similar_detected(self, cfg, house_product, img_dir):
         gate = ImageQualityGate(cfg)
         plan = KimiImagePlanner(cfg).plan(house_product, "main")
-        d = self._make_draft(cfg, tmp_path, plan, house_product, 1)
+        d = self._make_draft(cfg, img_dir, plan, house_product, 1)
         # 两张完全相同 → 判同图
         items = [
             {"image_id": "a", "file_path": d.file_path},
@@ -368,10 +385,10 @@ class TestQualityGate:
         assert not res["ok"]
         assert res["similar_pairs"] and res["similar_pairs"][0]["hamming"] == 0
 
-    def test_batch_five_main_all_pass(self, cfg, house_product, tmp_path):
+    def test_batch_five_main_all_pass(self, cfg, house_product, img_dir):
         gate = ImageQualityGate(cfg)
         plan = KimiImagePlanner(cfg).plan(house_product, "main")
-        provider = WanImageProvider(cfg, out_dir=tmp_path / "imgs")
+        provider = WanImageProvider(cfg, out_dir=img_dir / "imgs")
         drafts = [provider.generate(house_product, plan, v) for v in range(1, 6)]
         items = [{"image_id": f"m{v}", "file_path": d.file_path}
                  for v, d in enumerate(drafts, 1)]
@@ -382,7 +399,7 @@ class TestQualityGate:
 
 # ---------------------------------------------------------------- 打回重生成
 
-def _fixed_draft(tmp_path, plan, product, fixed_file) -> ImageDraft:
+def _fixed_draft(img_dir, plan, product, fixed_file) -> ImageDraft:
     return ImageDraft(
         batch_id="", product_id=product["product_id"], image_type=plan.image_type,
         variant_no=1, file_path=str(fixed_file), phash=phash_dhash(str(fixed_file)),
@@ -391,19 +408,19 @@ def _fixed_draft(tmp_path, plan, product, fixed_file) -> ImageDraft:
 
 
 class TestRegenerate:
-    def test_similar_then_distinct_recovers(self, cfg, house_product, tmp_path):
+    def test_similar_then_distinct_recovers(self, cfg, house_product, img_dir):
         gate = ImageQualityGate(cfg)
         plan = KimiImagePlanner(cfg).plan(house_product, "main")
-        provider = WanImageProvider(cfg, out_dir=tmp_path / "imgs")
+        provider = WanImageProvider(cfg, out_dir=img_dir / "imgs")
         first = provider.generate(house_product, plan, variant_no=1)
-        fixed = tmp_path / "fixed.png"
+        fixed = img_dir / "fixed.png"
         fixed.write_bytes(Path(first.file_path).read_bytes())
         calls = {"n": 0}
 
         def generate_one(v):
             calls["n"] += 1
             if calls["n"] <= 5:  # 第一轮全部同图 → 触发打回
-                return _fixed_draft(tmp_path, plan, house_product, fixed)
+                return _fixed_draft(img_dir, plan, house_product, fixed)
             return provider.generate(house_product, plan, variant_no=v)
 
         res = regenerate_until_ok(gate, generate_one, plan, house_product, "b_rec")
@@ -411,16 +428,16 @@ class TestRegenerate:
         assert res["failed"] is False
         assert res["attempts"] == 1  # 打回 1 次后重生成通过
 
-    def test_failed_after_max_regenerate(self, cfg, house_product, tmp_path):
+    def test_failed_after_max_regenerate(self, cfg, house_product, img_dir):
         gate = ImageQualityGate(cfg)
         plan = KimiImagePlanner(cfg).plan(house_product, "main")
-        provider = WanImageProvider(cfg, out_dir=tmp_path / "imgs")
+        provider = WanImageProvider(cfg, out_dir=img_dir / "imgs")
         first = provider.generate(house_product, plan, variant_no=1)
-        fixed = tmp_path / "fixed.png"
+        fixed = img_dir / "fixed.png"
         fixed.write_bytes(Path(first.file_path).read_bytes())
 
         def generate_one(v):  # 永远同图 → 重生成超限标记失败
-            return _fixed_draft(tmp_path, plan, house_product, fixed)
+            return _fixed_draft(img_dir, plan, house_product, fixed)
 
         res = regenerate_until_ok(gate, generate_one, plan, house_product, "b_fail")
         assert res["ok"] is False

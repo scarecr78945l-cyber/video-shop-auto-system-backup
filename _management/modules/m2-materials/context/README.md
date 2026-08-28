@@ -181,6 +181,6 @@
 | 下载中台 API 端口 | 默认 **8788**（`--port` 可覆盖）；**8787 已被工作区 captcha-vision-gateway 占用**，禁止使用（P-008） |
 | ffmpeg | 版本待确认（11 文档前置条件）；启动探测，缺失即报错不静默 |
 | Python | 3.12；Node 20+（前端素材库页） |
-| 测试 | pytest 必须带 `--basetemp=".pytest-tmp"`（P-001） |
+| 测试 | pytest 必须带独立 basetemp：**`--basetemp=".pytest-tmp-m2"`**（宪法第 12 节，P-001/P-011；禁止共用 `.pytest-tmp`；全量回归由总控统一执行） |
 | 文件编码 | **所有文本文件一律 UTF-8 无 BOM**：用 write/edit 工具写；禁止 PowerShell `Add-Content`/`Set-Content`/`>` 写中文（PS 5.1 默认 ANSI/GBK 污染）；必须用 PowerShell 写时用 `[System.IO.File]::WriteAllText($path, $content, (New-Object System.Text.UTF8Encoding($false)))`（宪法第 11 节） |
 | fixtures | 离线样本目录（对齐 sourcing/fixtures 模式），零登录态零网络可跑通全链路 |

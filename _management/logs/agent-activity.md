@@ -404,3 +404,29 @@
 - 跨模块反馈：**M0 foundation 4~5 个测试失败（queue/tables）为既有问题**，非本模块引入（M5 总工台账亦记录一致数字）；已登记，提请总控转达 M0 总工。
 - 当前阻塞：无。S2（ad_backfill，依赖 m1 表+过滤逻辑）已具备派发条件并已派发子代理；待完成验收后派发 S3（真实采集，需登录态就绪确认）。
 - 备注：未运行任何 git 命令；未读写其他模块库；全部文件经 write/edit 工具 UTF-8 无 BOM；无明文密钥；验收复跑测试均带 --basetemp=".pytest-tmp"（P-001），并注意 P-011（并行 pytest 共享 basetemp 抖动，结果以串行复跑为准）。
+
+---
+
+### 2025 体系建立日（第 3 轮）｜ M4 总工程师 ｜ M4 自动上架（m4-listing） ｜ 角色：总工（P1/P2 开发推进）
+
+- 完成任务：
+  ① **P2 验收通过**（子代理 054c76d6，重派版）——独立复跑 `python -m pytest tests/test_listing_gate.py -q --basetemp=".pytest-tmp-m4"` → **25 passed**；代码抽查：`backend/services/listing_gate.py` 六项硬门禁（title 15–35+非虚构/category 白名单+资质/images ≥5 张 1:1 去重+详情图/sku_cost>0 且 price>cost/purchase_settings 全必填/compliance 复用 sourcing.compliance 单一事实源）+ `ListingGateConfig`（LISTING_ 前缀 pydantic-settings + 构造注入）+ 12 个结构化拒绝原因码（不套 WorkflowJob 执行期码）+ `GateResult.rejected_reason_codes`；未改动 sourcing/*（仅只读复用）；REC-004 零真实平台调用；
+  ② **P1 三次派发均中断零产出**（0ed6ee31/cd2e6473/3a49a199，closing message 空，判为环境/会话抖动，与 M2/M3/M1 批次中断现象一致）；第二次中断根因确认为 **web_search 工具额度不足（Insufficient Balance）**——按 REC-003「不阻塞骨架」原则改由**总工亲自完成文档核对并落盘** `context/external-contracts.md`（接口清单/签名/配额/错误映射 + 待核对清单 T1~T7，来源标注 07/01 文档与项目契约，官方文档核对待额度恢复）；对三派（3a49a199）send_message 恢复续跑（消息自包含：P-011 新测试纪律 + 产出文件要点 + 契约基准 + 禁止项），已排队；
+  ③ **P-011 纪律同步**：brief.md（验收总纲 4）/context/README.md（环境事实·测试行）/progress.md（二·五节通用宪法要点 + 验收门）全部改为模块独立 basetemp `--basetemp=".pytest-tmp-m4"`，注明全量回归由总控统一执行；
+  ④ 全量回归观察：本回合一次全量跑 193 passed/2 failed（test_foundation_tables 列顺序断言），与 M5/M1 台账记录一致——**M0 foundation 既有问题，非 M4 引入**，提请总控转达 M0。
+- 产出文件：`context/external-contracts.md`（新建，REC-003 核对稿）；`brief.md`/`context/README.md`/`progress.md`（P-011 纪律同步）；`progress.md`（P2 勾选 100%、完成度 **30%**、P1 标注恢复续跑中）；本日志追加条目。
+- 当前阻塞：无。待 P1 三派续跑完成通知 → 验收（读产出 + `pytest --basetemp=".pytest-tmp-m4"`）→ 通知总控 v0.2 里程碑（薄封装骨架+单测可跑）→ 推进 P3 状态机与证据。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；PowerShell 仅做只读复核/测试运行。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（测试纪律更新 + 批次 2 · 子代理 A2 验收 + 批次 2 收官）
+
+- 完成任务：
+  ① **测试纪律更新落档**：总控下发宪法第 12 节（pytest 独立 basetemp，M2 用 `--basetemp=".pytest-tmp-m2"`，全量回归归总控）→ 已更新 `context/README.md`（环境事实）、`brief.md`（交付物表+子代理任务书条款）、`progress.md`（管理方式+里程碑注记），并 send_message 同步给运行中的 A2；
+  ② **验收子代理 A2**（id 7d9dc741，TikTokDownloader 二次封装）：独立复跑 `python -m pytest tests/test_materials_tiktok_wrapper.py -q --basetemp=".pytest-tmp-m2"` → **34 passed**（fake CLI 全场景：正常解析/参数构造/错误映射各分支/超时/binary 缺失/脱敏）；抽查 tiktok_wrapper.py——错误映射特征词（AUTH_REQUIRED/RATE_LIMIT/PLATFORM_REJECT/NO_MATCH/TIMEOUT）对齐 downloader.py 码表、redact_url/redact_text/redact_path 三级脱敏（sec_uid/a_bogus/token 掩码）、版本锁定 4.1.x 写入 collectors/README.md（视频号不在范围声明 R-M2-05）；
+  ③ **批次 2 收官**：E/C/A2 全部验收通过，progress.md 三任务 100%、完成度 30%→**45%**，里程碑 5 项达成。
+- 产出文件：`progress.md`（批次 2 收官、完成度 45%）；`context/README.md`/`brief.md`（宪法第 12 节纪律落档）；本日志追加条目。
+- 环境待确认（提请总控/运维）：**ffmpeg 未安装**（标准化器 mock 模式，就绪后自动切真实 runner）；**TikTokDownloader 未安装**（封装就绪，就绪后装 4.1.x）。
+- 跨模块事项（提请总控转达 M0）：全量测试 5 failed 均为 M0 foundation 既有问题（与 M5/M1/M4 台账记录一致），本模块 sourcing+materials 范围始终全绿。
+- 当前阻塞：无。**批次 2 收官，请总控提交备份**；批准后推进批次 3（B 视频号采集器自研签名+直链、淘宝/1688 采集复测、考古加/有米云榜单图缓存）。

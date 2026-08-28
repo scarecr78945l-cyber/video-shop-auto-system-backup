@@ -28,10 +28,12 @@ def fdb() -> Database:
 
 EXPECTED_TABLES = {"workflow_jobs", "tasks", "logs", "app_config", "error_codes"}
 
-# 五表时间戳字段全部 _at 后缀（REC-005）
+# 五表时间戳字段 _at 后缀检查（REC-005）。
+# 例外：retry_after（总控第 1 步指示字段名，语义=下次可重试时间）不满足 _at 后缀，
+#       命名遵循总控指示保留，单独用 test_retry_after_retry_time_field 验证（见 decisions.md）。
 REC005_TIMESTAMP_COLUMNS = {
-    "workflow_jobs": {"retry_after", "lease_expires_at", "created_at", "updated_at"},
-    "tasks": {"retry_after", "lease_expires_at", "created_at", "updated_at"},
+    "workflow_jobs": {"lease_expires_at", "created_at", "updated_at"},
+    "tasks": {"lease_expires_at", "created_at", "updated_at"},
     "logs": {"created_at"},
     "app_config": {"updated_at"},
     "error_codes": set(),
@@ -73,6 +75,19 @@ def test_timestamp_columns_at_suffix(fdb: Database) -> None:
         cols = {c["name"] for c in inspector.get_columns(table)}
         ts_cols = {c for c in cols if c.endswith("_at")}
         assert ts_cols == expected_ts, f"{table} 时间戳列 {ts_cols} != {expected_ts}"
+
+
+def test_retry_after_retry_time_field(fdb: Database) -> None:
+    """retry_after 为重试时间字段（总控第 1 步指示命名，非 _at 后缀例外）。
+
+    workflow_jobs 与 tasks 均含 retry_after（DATETIME 时间列），命名遵循总控指示
+    （见 decisions.md「retry_after 命名例外」），不参与 _at 后缀断言。
+    """
+    inspector = inspect(fdb.engine)
+    for table in ("workflow_jobs", "tasks"):
+        col_types = {c["name"]: str(c["type"]) for c in inspector.get_columns(table)}
+        assert "retry_after" in col_types, f"{table} 缺 retry_after"
+        assert "DATETIME" in col_types["retry_after"].upper(), f"{table}.retry_after 应为时间列"
 
 
 def test_unique_constraints_present(fdb: Database) -> None:

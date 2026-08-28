@@ -66,7 +66,7 @@
 | ffmpeg 标准化器 | 硬规格校验+转码+元数据提取；失败原因分类 |
 | 双去重器 | 视频 MD5+关键帧 phash、图片 phash；指纹唯一约束防并发 |
 | 标签化与合规预审 | 类目/达人/热度标签；供应链词/品牌词过滤；拒审自动下架标记 |
-| 单元测试 | 随功能配套；运行命令带 `--basetemp=".pytest-tmp"`（P-001） |
+| 单元测试 | 随功能配套；运行命令带独立 basetemp `--basetemp=".pytest-tmp-m2"`（宪法第 12 节，P-001/P-011） |
 
 ## 四、里程碑拆解
 
@@ -91,4 +91,4 @@
 - 子代理 F：下载中台（多实例 HTTP API）
 
 > 子代理任务书必须自包含：背景/目标/输入文件路径/输出文件路径/验收标准/宪法要点（宪法第 9 节），且不得执行 git 命令。
-> 子代理任务书必须包含宪法第 11 节编码纪律：产出文本文件一律 UTF-8 无 BOM（write/edit 工具；禁 PowerShell Add-Content/Set-Content/`>` 写中文），并包含 P-001 pytest 纪律（`--basetemp=".pytest-tmp"`）。
+> 子代理任务书必须包含宪法第 11 节编码纪律：产出文本文件一律 UTF-8 无 BOM（write/edit 工具；禁 PowerShell Add-Content/Set-Content/`>` 写中文），并包含宪法第 12 节测试纪律：pytest 一律带独立 basetemp `--basetemp=".pytest-tmp-m2"`（禁止共用 `.pytest-tmp`；P-001/P-011），全量回归由总控统一执行、子代理只跑本模块范围测试。

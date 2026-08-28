@@ -135,13 +135,13 @@
 | 项 | 值（不含密钥） |
 |---|---|
 | 模块库 | `backend/data/db/m1-sourcing.db`（SQLite 开发；生产 PostgreSQL） |
-| 基线默认库（待迁移） | `sqlite:///sourcing.db`（backend 相对路径，S1 调整） |
+| 默认库 | `sqlite:///data/db/m1-sourcing.db`（backend 相对路径，S1a 已切换 REC-007） |
 | fixtures 目录 | `backend/fixtures/`（6 个 JSON：三源+询价+淘宝+ad_snapshots） |
 | 共享浏览器 CDP | 9223（商机中心/抖店罗盘/1688/淘宝） |
 | 有米云浏览器 CDP | 9555 |
 | 浏览器资料目录 | `backend/data/chrome-profiles/`（不入 git） |
-| pytest | `python -m pytest tests -q --basetemp=".pytest-tmp"`（P-001） |
-| 测试基线 | 39 passed（2026 体系建立日复核） |
+| pytest | `python -m pytest tests -q --basetemp=".pytest-tmp-m1"`（**P-001 + P-011/宪法第 12 节**：独立 basetemp，避免并行代理共享清理抖动；全量回归由总控统一执行） |
+| 测试基线 | sourcing 域 62 passed（41 基线 + S1b 21 新增，体系建立日复核）；全量含 M0 foundation 4~5 个既有失败（跨模块已知，勿修） |
 | 依赖 | Python 3.12、Playwright、pydantic v2、SQLAlchemy、pydantic-settings |
 
 ## 五、本目录文件索引

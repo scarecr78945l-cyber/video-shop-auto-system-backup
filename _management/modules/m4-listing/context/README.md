@@ -242,7 +242,7 @@
 | 开发库 | `backend/data/db/m4-listing.db`（SQLite，不入 git） |
 | 环境变量（名） | `WECHAT_APPID`、`WECHAT_SECRET`、`WECHAT_TOKEN_CACHE`（token 缓存路径）、`WECHAT_API_BASE`（默认官方域名）、`COS_SECRET_ID`、`COS_SECRET_KEY`、`COS_BUCKET`、`COS_REGION`、`CHROME_CDP_PORT`（9222/9223）、`PROXY_URL`（可选）、`M4_BATCH_SIZE`（默认 50）、`M4_BATCH_INTERVAL_S`（批间隔） |
 | Python | 3.12 |
-| 测试 | `python -m pytest tests -q --basetemp=".pytest-tmp"`（P-001） |
+| 测试 | `python -m pytest tests/test_<模块>_*.py -q --basetemp=".pytest-tmp-m4"`（P-001 临时目录坑 + P-011 多代理并行必须独立 basetemp；全量回归由总控统一执行） |
 | 依赖 | requests/httpx、playwright、python-dotenv（锁定版本） |
 | 错峰 | 上架批次与 M5 托管提交互斥时段（参数化，见 app_config） |
 

@@ -48,6 +48,23 @@ class AdsConfig(BaseSettings):
     kill_switch: bool = Field(default=False, description="一键全停总开关，S8 最高优先级")
     cdp_port: int = Field(default=9222, description="共享 Chrome CDP 端口（Playwright connect_over_cdp）")
 
+    # ---- 投放设置（v0.3 追加：目标 ROI 取值策略，08 文档四②） ----
+    target_roi_override: float | None = Field(
+        default=None,
+        description=(
+            "目标 ROI 配置覆盖值（浮点倍数，如 2.00，非金额不走分）。非 None 时优先于系统推荐值；"
+            "环境变量 ADS_TARGET_ROI_OVERRIDE（context README 中 M5_ADS_TARGET_ROI_OVERRIDE "
+            "为模块级命名，本文件 env_prefix=ADS_ 统一映射）"
+        ),
+    )
+    roi_recommended_source: str = Field(
+        default="system",
+        description=(
+            "系统推荐 ROI 来源标识：system=后台系统推荐（默认）；预留 class_avg 等扩展来源。"
+            "环境变量 ADS_ROI_RECOMMENDED_SOURCE"
+        ),
+    )
+
 
 def load_config(**overrides: Any) -> AdsConfig:
     """加载配置，支持关键字覆盖（测试/CLI 常用）。"""
