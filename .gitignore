@@ -41,5 +41,5 @@ Desktop.ini
 # ===== 临时与日志 =====
 .tmp/
 tmp/
-logs/
 *.log
+backend/logs/
