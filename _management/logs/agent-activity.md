@@ -201,3 +201,15 @@
 - 产出文件：`backend/materials/__main__.py`（默认端口 8787→8788）；`_management/modules/m2-materials/progress.md`（F 100%、批次 1 收官、完成度 **30%**）；`decisions.md`（+2 行总工裁定）；`_management/logs/pitfall-log.md`（+P-008）；`context/README.md`（+端口环境事实）；本日志追加条目。
 - 验收结论：**批次 1 全部验收通过**。里程碑达成：`asset_* 表可建` ✅（data/db/m2-materials.db 7 表）+ `下载中台可跑` ✅（本地场景 + 真实库集成冒烟 + HTTP API /health 200）。
 - 当前阻塞：无。已请总控提交备份（里程碑）；等待总控确认后推进批次 2（E 双去重 / C ffmpeg / A TikTokDownloader）。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（批次 2 派发）
+
+- 完成任务：总控确认批次 1 验收 + v0.3 备份已提交（101 测试），批准推进批次 2；**环境探测**（PowerShell 只读）：ffmpeg/ffprobe **未安装**、TikTokDownloader **未安装**（pip 仅 tiktoken）；按总控指示调整任务模式并写入任务书——C「先实现+测试用 mock，环境就绪后切换（禁止安装 ffmpeg）」、A「锁定版本设计封装+fixtures 测试（fake CLI 零外网，禁止联网安装）」、E 正常实现（关键帧抽取用 FrameExtractor 抽象，Mock 测试，零真实 ffmpeg）。
+- 并行派发三个自包含子代理任务书（背景/必读/目标/输出路径/验收标准/宪法要点/P-001/禁 git/禁明文密钥/UTF-8/环境事实）：
+  - **E=4179c644**（backend/materials/dedup.py：compute_md5 + image_phash 复用 sourcing 口径 + FrameExtractor 抽象(FFmpeg/Mock) + hamming + DedupService 与 AssetRepo.claim_fingerprint 集成 + test_materials_dedup.py）
+  - **C=487ca61b**（backend/materials/normalizer.py：detect_ffmpeg + FFmpegRunner 抽象(Process/Mock) + validate_specs 边界校验 + Normalizer 预检/转码/复检双校验 + config 追加 normalize 子配置 + __main__ 追加 normalize 子命令 + test_materials_normalizer.py，真实 ffmpeg 用例 skipif 保护）
+  - **A=475a06d1**（backend/materials/collectors/tiktok_wrapper.py：TikTokDownloaderCLI search/author 下载 + 错误映射对齐下载中台码表 + config 追加 tiktok 子配置 + collectors/README.md 版本锁定与安装说明 + __main__ 追加 tiktok-download + test_materials_tiktok_wrapper.py fake CLI 全场景）
+- 产出文件：`_management/modules/m2-materials/progress.md`（批次 2 三任务标记「已派发」+子代理 id + 环境待确认标注，任务书撰写 100%）；本日志追加条目。
+- 当前阻塞：无。待批次 2 子代理完成通知 → 总工验收（读产出+跑 pytest --basetemp=".pytest-tmp"）→ 更新 progress.md/台账 → 通知总控提交备份 → 批次 2 收官后推进批次 3（B 视频号采集器、淘宝1688 复测）。
