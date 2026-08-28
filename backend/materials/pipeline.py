@@ -635,7 +635,7 @@ class MaterialPipeline:
                 errors.append(
                     {
                         "item_key": key, "stage": "tags", "error_code": UNEXPECTED,
-                        "message": "tagger.generate_tags 签名不兼容（B4-1 未就绪？defer）",
+                        "message": "tagger 组件接口不兼容（generate_tags 签名探测失败，defer）",
                     }
                 )
                 return "skipped"
@@ -661,13 +661,13 @@ class MaterialPipeline:
             )
             return "skipped"
         try:
-            cresult = self._call_compliance(compliance, item, tags)
+            cresult = self._compliance_gate(compliance, item, tags)
         except TypeError:
             stats["skipped"] += 1
             errors.append(
                 {
                     "item_key": key, "stage": "compliance", "error_code": UNEXPECTED,
-                    "message": "compliance.evaluate_and_record 签名不兼容（B4-1 未就绪？defer）",
+                    "message": "compliance 组件接口不兼容（预审探测失败，B4-1 未就绪？defer）",
                 }
             )
             return "skipped"
@@ -687,7 +687,7 @@ class MaterialPipeline:
             errors.append(
                 {
                     "item_key": key, "stage": "compliance", "error_code": PLATFORM_REJECT,
-                    "message": _truncate(f"合规预审拒绝（R-M2-19）: 命中词 {self._hit_words_text(cresult)}"),
+                    "message": _truncate(f"合规预审拒绝（R-M2-19）: {self._reject_reason(cresult)}"),
                 }
             )
             return "rejected"
@@ -756,6 +756,10 @@ class MaterialPipeline:
         stats["passed"] += 1
         inserted_ids.append(asset_id)
         log.info("素材入库：item_key=%s asset_id=%s md5=%s", key, asset_id, md5)
+
+        # ⑧b 合规证据留痕（B4-1 evaluate_and_record → asset_compliance_checks 审计；
+        #    失败不影响已入库终态，仅记录错误）
+        self._record_compliance_evidence(compliance, asset_id, item, tags, errors, key)
 
         # ⑨ 上传（可选，入库后；失败不影响已入库终态，R-M2-23 状态机由 M3 侧驱动）
         upload = self.components.get("upload")
@@ -875,10 +879,26 @@ class MaterialPipeline:
         p = Path(file_path)
         return str(p.with_name(p.stem + ".normalized." + fmt))
 
-    @staticmethod
-    def _call_tagger(tagger: Any, item: dict[str, Any]) -> Any:
-        """标签组件防御式调用（kwargs → 位置参数逐级探测，签名不兼容抛 TypeError）。"""
+    def _call_tagger(self, tagger: Any, item: dict[str, Any]) -> Any:
+        """标签组件防御式调用：B4-1 模块函数协议 → 通用实例协议，逐级探测。
+
+        B4-1 真实协议：generate_tags(source_platform, source_author, title,
+        category_hint, max_tags, config)；通用协议：generate_tags(item)。
+        签名全不兼容抛 TypeError（调用方按组件未就绪降级）。
+        """
         attempts = (
+            lambda: tagger(
+                source_platform=item.get("source_platform"),
+                source_author=item.get("source_author"),
+                title=item.get("title"),
+                category_hint=item.get("category_hint"),
+                config=self.config,
+            ),
+            lambda: tagger(
+                source_platform=item.get("source_platform"),
+                source_author=item.get("source_author"),
+                title=item.get("title"),
+            ),
             lambda: tagger.generate_tags(item=item),
             lambda: tagger.generate_tags(item),
         )
@@ -899,10 +919,18 @@ class MaterialPipeline:
             return []
         return [str(t) for t in raw if str(t).strip()]
 
-    @staticmethod
-    def _call_compliance(compliance: Any, item: dict[str, Any], tags: Optional[list[str]]) -> dict[str, Any]:
-        """合规组件防御式调用（kwargs → 位置参数逐级探测，签名不兼容抛 TypeError）。"""
+    def _compliance_gate(self, compliance: Any, item: dict[str, Any], tags: Optional[list[str]]) -> dict[str, Any]:
+        """合规预审门（入库前）：B4-1 check_material 优先 → 通用 evaluate_and_record 兜底。
+
+        返回 {"result": "pass"|"reject"|"review", ...}；签名全不兼容抛 TypeError。
+        """
+        title = str(item.get("title") or "")
+        extra = self._compliance_extra_text(item, tags)
         attempts = (
+            lambda: compliance.check_material(
+                title=title, extra_text=extra, asset_type=item.get("asset_type")
+            ),
+            lambda: compliance.check_material(title=title, extra_text=extra),
             lambda: compliance.evaluate_and_record(item=item, tags=tags),
             lambda: compliance.evaluate_and_record(item, tags),
             lambda: compliance.evaluate_and_record(item),
@@ -914,6 +942,80 @@ class MaterialPipeline:
             except TypeError as exc:
                 last = exc
         raise last  # type: ignore[misc]
+
+    def _record_compliance_evidence(
+        self,
+        compliance: Any,
+        asset_id: int,
+        item: dict[str, Any],
+        tags: Optional[list[str]],
+        errors: list[dict[str, Any]],
+        key: str,
+    ) -> None:
+        """入库后合规证据留痕（B4-1 evaluate_and_record → repo.record_compliance_check）。
+
+        任何失败只记错误条目，不影响已入库终态（幂等可补录）。
+        """
+        title = str(item.get("title") or "")
+        extra = self._compliance_extra_text(item, tags)
+        note = item.get("derivation_note")
+        platform = item.get("source_platform")
+        attempts = (
+            lambda: compliance.evaluate_and_record(
+                repo=self.repo, asset_id=asset_id, title=title, extra_text=extra,
+                derivation_note=note, source_platform=platform,
+            ),
+            lambda: compliance.evaluate_and_record(
+                self.repo, asset_id, title=title, extra_text=extra
+            ),
+            lambda: compliance.evaluate_and_record(asset_id=asset_id, item=item),
+            lambda: compliance.evaluate_and_record(asset_id=asset_id),
+        )
+        last: Optional[BaseException] = None
+        for fn in attempts:
+            try:
+                fn()
+                return
+            except TypeError as exc:
+                last = exc
+                continue
+            except Exception as exc:
+                errors.append(
+                    {
+                        "item_key": key, "stage": "compliance_evidence", "error_code": UNEXPECTED,
+                        "message": _truncate(f"合规证据留痕异常（不影响入库）: {exc}"),
+                    }
+                )
+                return
+        errors.append(
+            {
+                "item_key": key, "stage": "compliance_evidence", "error_code": UNEXPECTED,
+                "message": f"合规证据留痕接口不兼容（{last}）",
+            }
+        )
+
+    @staticmethod
+    def _compliance_extra_text(item: dict[str, Any], tags: Optional[list[str]]) -> str:
+        """合规预审附加文本：标签 + 达人昵称（供应链词/品牌词/功效词全字段覆盖，R-M2-19）。"""
+        parts = [str(t) for t in (tags or []) if str(t).strip()]
+        author = str(item.get("source_author") or "").strip()
+        if author:
+            parts.append(author)
+        return " ".join(parts)
+
+    @staticmethod
+    def _reject_reason(cresult: dict[str, Any]) -> str:
+        """合规拒绝理由：reasons（B4-1）优先 → 命中词扁平化（dict/list/str 兼容）兜底。"""
+        reasons = cresult.get("reasons")
+        if isinstance(reasons, list) and reasons:
+            return "; ".join(str(r) for r in reasons[:3])
+        words = cresult.get("hit_words") or cresult.get("hit_words_json") or []
+        if isinstance(words, dict):
+            words = [w for ws in words.values() if isinstance(ws, list) for w in ws]
+        if isinstance(words, str):
+            words = [words]
+        words = [str(w) for w in words if str(w).strip()][:3]
+        return f"命中词: {', '.join(words)}" if words else "（未提供命中词）"
 
     @staticmethod
     def _failures_text(failures: Any) -> str:

@@ -778,3 +778,19 @@
 - **里程碑达成：M4 自动上架全链路可模拟跑通**（门禁→SPU/SKU/图→审核→真实链接验证 R22→已上架|拒审处理→M5 候选池），mock 模式零网络零真实平台，全程不提交真实商品（REC-004）。
 - 当前阻塞：无。**已请总控提交备份（M4 模块级收官里程碑）**；请总控统一执行 M4 全量回归（test_listing_* 8 文件 + test_wechat_openapi + test_listing_gate 共 131 例）；M4 侧剩余仅外部条件：官方 OpenAPI 契约核对（T1~T7，web 额度恢复后销项，live 模式依赖 T1/T2）+ 企业主体/类目资质开通（用户确认后切 live）。
 - 备注：未运行任何 git 命令；未读写其他模块库（m4-listing.db 真实库未创建）；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；零网络零真实平台调用。
+
+---
+
+### 2025 体系建立日 ｜ M5 总工程师 ｜ M5 自动小店投放（商品托管） ｜ 角色：总工（v0.5 回流层验收通过 · v1.0 集成验收收官）
+
+- 完成任务：按宪法第 9 节验收数据回写子代理 cc1f830a（v0.5 回流层）产出——
+  ① 读交付说明 REPORT_v0.5_feedback.md（文件清单/接口/测试/C-2 交叉验证/M5-OUT-01~03 结构/偏差/data-audit 登记建议文本齐全）；
+  ② **独立复跑**：定向 `pytest tests/test_ads_feedback.py -q --basetemp=".pytest-tmp-m5"` → **28 passed**（0.55s）；
+  ③ **C-2 契约交叉验证（总工独立执行）**：`aggregate_by_category`（多商品同类目聚合 roi=3.33/sales=500000 分/sample=9）→ `build_exchange_file`（+08:00 时间转 UTC）→ `write_exchange_file` → M1 消费端 `sourcing.ad_backfill.load_exchange` 校验通过（schema_version=1、category 保留、roi>0）——**C-2 会签成立：M1 可直接消费，M5 未写任何对方库**；
+  ④ 代码抽查 feedback.py：aggregate_by_category（spend=0 类目跳过入 skipped、未知 product_id 跳过、弱样本仍输出）、build_exchange_file（period YYYY-MM-DD 校验、roi≤0/非 int 抛 ValueError、naive 补 UTC）、write_exchange_file（UTF-8 ensure_ascii=False 无 BOM、父目录自动创建、幂等覆盖）、build_material_evaluation_file（evaluation 枚举镜像 M2 EVALUATION_VALUES、evidence 四字段 source_agent=M5）、build_review_reason_file（product_id/review_reason 非空、failed_at 默认 UTC）、load_category_map（dict/list 双形状、坏文件返回 {}）——全部符合任务书；
+  ⑤ **v1.0 集成验收**：全 ads 套件 7 文件 `pytest tests/test_ads_feedback.py tests/test_ads_repo.py tests/test_ads_tables.py tests/test_ads_settings.py tests/test_ads_executor.py tests/test_ads_stop_loss.py tests/test_ads_report.py -q --basetemp=".pytest-tmp-m5"` → **158 passed**（2.35s，零回归）；跨模块契约会签：C-2（M1 ad_backfill 消费端 ✅）、M2 evaluation 回流（receive_evaluation 对齐 ✅，DA-004 对端）、DA-005 M4 候选池（M4 侧已提供，M5 消费接入归运行期编排）；全自动闭环 fixtures 全链路可测（候选→托管两步→监控回读→止损→数据回写）。
+  ⑥ **data-audit 登记**：`_management/logs/data-audit.md` 追加 **DA-006｜M5 数据回写提供登记**（M5-OUT-01 C-2 投放转化 / M5-OUT-02 素材评估回流 / M5-OUT-03 review_reason，含 C-2 会签校验结果）。
+- 验收结论：**v0.5 回流层验收通过 + v1.0 集成验收完成**。里程碑达成：**数据回写可产可会签** ✅（C-2 契约交叉验证通过）→ **v1.0 集成验收** ✅（ads 158 测试 + 跨模块契约对齐）。
+- 产出文件：`backend/ads/feedback.py`、`backend/tests/test_ads_feedback.py`（28 例）、`_management/modules/m5-ads/REPORT_v0.5_feedback.md`、`_management/logs/data-audit.md`（+DA-006）、`progress.md`（v0.5+v1.0 勾选、完成度 **75%**）；本日志追加条目。
+- 当前阻塞：无。**已请总控提交备份（里程碑：M5 v1.0 集成验收完成）**；剩余仅真实实投验证 v1.1（依赖账号/余额/登录态/素材/实机探针就绪——11 文档第一节前置条件，总控待用户确认清单；真实 Playwright 适配器/真实回读/实机选择器校准均为此前置的后续）。
+- 备注：未运行任何 git 命令；未读写其他模块库（仅勘察 M1/M2 源码契约 + 只读 load_exchange 校验）；未写明文密钥；ads 包测试现 **158 例**（tables 19 + repo 14 + settings 25 + executor 25 + report 25 + stop_loss 28 + feedback 28），全量回归请总控统一执行。
