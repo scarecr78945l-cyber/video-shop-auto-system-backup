@@ -810,3 +810,27 @@
 - 产出文件：`backend/ads/feedback.py`、`backend/tests/test_ads_feedback.py`（28 例）、`_management/modules/m5-ads/REPORT_v0.5_feedback.md`、`_management/logs/data-audit.md`（+DA-006）、`progress.md`（v0.5+v1.0 勾选、完成度 **75%**）；本日志追加条目。
 - 当前阻塞：无。**已请总控提交备份（里程碑：M5 v1.0 集成验收完成）**；剩余仅真实实投验证 v1.1（依赖账号/余额/登录态/素材/实机探针就绪——11 文档第一节前置条件，总控待用户确认清单；真实 Playwright 适配器/真实回读/实机选择器校准均为此前置的后续）。
 - 备注：未运行任何 git 命令；未读写其他模块库（仅勘察 M1/M2 源码契约 + 只读 load_exchange 校验）；未写明文密钥；ads 包测试现 **158 例**（tables 19 + repo 14 + settings 25 + executor 25 + report 25 + stop_loss 28 + feedback 28），全量回归请总控统一执行。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（修复任务 + 批次 4 · B4-3 验收）
+
+- 完成任务：
+  ① **修复任务（总控全量回归报告 `test_daily_stats_aggregation` DuplicateAssetError）**：复现排查——单独跑 **1 passed**、文件级 `test_materials_pipeline.py` **19 passed**、全 M2 套件 **318 passed/1 skipped 全绿** → **判定为 P-015 并行写文件中间状态误报，非代码缺陷**（失败时点子代理 B4-3 仍在写测试文件）；已登记 pitfall-log P-015（防复发：全量回归前确认子代理完成、失败先复跑确认）；**无需改代码**；
+  ② **验收子代理 B4-3**（id a052cdfd，pipeline 编排）：独立复跑 `test_materials_pipeline.py` → **19 passed**；抽查 pipeline.py——run_source 八步编排（去重预检→下载→去重复检→标准化→标签→合规门→create_asset 终态入库（DuplicateAssetError→deduped 兜底）→证据留痕→可选 upload，stats 恒等式 total=deduped+passed+rejected+failed+skipped）、daily_stats（按平台/类型/状态聚合当日，空库/未建表全零不崩）、组件缺失降级（显式 None 禁用不崩）；**与 B4-1 tagger 接口对齐**（延迟 import 拾取真实协议：generate_tags/check_material 预审门/evaluate_and_record 证据审计）已记 decisions.md；
+  ③ **decisions.md 事故修复**：追加 B4-3 与修复任务决策行时误覆盖 B4-1 决策行，已立即插回恢复（全表完整，B4-1 行原样在位）。
+- 产出文件：`_management/logs/pitfall-log.md`（+P-015）；`_management/modules/m2-materials/decisions.md`（+B4-3 接口对齐 + 修复任务判定，B4-1 行恢复）；`progress.md`（B4-3 100%、修复任务 100%、集成验收进行中）；本日志追加条目。
+- 当前阻塞：无。批次 4 全部验收完成（B4-1/B4-2/B4-3 + 修复任务）；正在执行 **集成验收 v1.0**（CLI 端到端：init-db → pipeline fixtures 入库 → daily-stats → pool 预览）。
+
+---
+
+### 2025 体系建立日 ｜ M2 总工程师 ｜ M2 自动收集素材 ｜ 角色：总工（集成验收 v1.0 · M2 模块级收官）
+
+- 完成任务：**集成验收 v1.0**（素材库可入库/去重/预览、日采集量可观测）——CLI/脚本端到端冒烟（`.pytest-tmp-m2/v1-int.db` 临时库，FixtureDownloader + MockNormalizer + 真实 tagger/compliance/repo）：
+  ① **入库**：RUN1 stats {total:2, downloaded:2, normalized:2, **passed:2**}，asset_items 2 条记录（compliance_status=passed，tags_json 自动生成「视频号素材/达人A/测试素材A」——B4-1 标签化生效）；
+  ② **去重**：RUN2 同批重跑 → **deduped=2**（双去重 MD5/phash 认领生效）；
+  ③ **日采集量可观测**：daily_stats total=2、by_source_platform={视频号:1,抖音:1}、by_asset_type={video:1,image:1}、by_upload_status={local:2}；
+  ④ **预览**：pool 列出 2 条（字段完整）。
+- 验收结论：**v1.0 集成验收通过，M2 模块级收官，完成度 60%→100%**。里程碑达成 11 项。注：真实视频素材在 ffmpeg 未装环境下 phash 抽帧 defer（R-M2-15 设计内），ffmpeg 就绪后自动可入库（用自带 phash 条目验证了全链路）。
+- 产出文件：`_management/modules/m2-materials/progress.md`（集成验收 100%、完成度 100%、里程碑 11 项、全 M2 基线 318 passed/1 skipped）；本日志追加条目。
+- 当前阻塞：无。**M2 v1.0 里程碑达成，请总控提交备份**。剩余外部条件（环境待确认清单）：ffmpeg 安装（标准化器/视频抽帧自动切真实）、TikTokDownloader 4.1.x 安装（封装就绪）、共享浏览器登录态（三采集器 auto 模式 + 选择器/签名抓包校准）、小店素材库上传 API/登录态（MATERIALS_UPLOAD_MODE=shop）。

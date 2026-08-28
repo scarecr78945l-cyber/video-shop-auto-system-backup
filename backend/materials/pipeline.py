@@ -61,16 +61,7 @@ from sqlalchemy import select
 
 from .config import MaterialsConfig, load_config
 from .dedup import FFmpegNotFoundError
-from .downloader import (
-    AUTH_REQUIRED,  # noqa: F401  码表常量（供上层统一引用）
-    NO_MATCH,  # noqa: F401
-    PLATFORM_REJECT,
-    RATE_LIMIT,  # noqa: F401
-    TIMEOUT,  # noqa: F401
-    UNEXPECTED,
-    VERIFICATION_REQUIRED,  # noqa: F401
-    redact_url,
-)
+from .downloader import PLATFORM_REJECT, UNEXPECTED, redact_url
 from .normalizer import NormalizerError, detect_ffmpeg
 from .repo import DuplicateAssetError
 
