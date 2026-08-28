@@ -1029,14 +1029,6 @@ class MaterialPipeline:
         return "; ".join(parts) if parts else "（无明细）"
 
     @staticmethod
-    def _hit_words_text(cresult: dict[str, Any]) -> str:
-        words = cresult.get("hit_words") or cresult.get("hit_words_json") or []
-        if isinstance(words, str):
-            words = [words]
-        words = [str(w) for w in words if str(w).strip()][:3]
-        return ", ".join(words) if words else "（未提供命中词）"
-
-    @staticmethod
     def _to_int(value: Any) -> Optional[int]:
         if value is None:
             return None

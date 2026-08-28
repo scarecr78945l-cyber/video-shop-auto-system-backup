@@ -258,6 +258,17 @@ class WanImageProvider:
             draw.rectangle([bx + k * 4, by + k * 4, bx + badge + k * 4, by + badge + k * 4],
                            fill=_hsv_to_rgb((hue + 200 + k * 30) % 360, 0.65, 0.5))
 
+        # 叠加 variant 相关的确定性斜纹纹理（角度/密度随 variant_no 变化）：
+        # 背景大色块在 dHash（9x8 相邻亮度比较）下判别力弱（纯色图距离裕量不足，
+        # 参考 M2 双去重验收结论「纯色/低纹理图距离仅 6」），斜纹显著拉开
+        # 不同 variant 间的感知哈希距离，保证「主图 5 张不全相同」断言在任何
+        # Pillow 渲染环境下稳定（确定性图案，不引入随机）。
+        step = 10 + variant_no * 3            # 条纹密度随 variant 变化
+        slant = 8 + variant_no * 6            # 斜纹水平偏移随 variant 变化
+        stripe = _hsv_to_rgb((hue + 300) % 360, 0.12, 0.94)
+        for x in range(-height, width + height, step):
+            draw.line([(x, 0), (x - slant, height)], fill=stripe, width=2)
+
         try:
             font = ImageFont.load_default()
         except Exception:

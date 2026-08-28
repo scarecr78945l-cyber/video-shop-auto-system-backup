@@ -217,13 +217,19 @@ def test_run_source_compliance_reject_not_inserted(db_materials):
 
 # ------------------------------------------------------------ 组件缺失降级
 def test_run_source_components_missing_degrades(db_materials):
-    """不注入 tagger/normalizer/compliance → 流水线不崩：下载成功但未就绪阶段 skipped 计数。"""
-    pipe = make_pipeline(db_materials, download_service=MockDownloader())   # 仅下载 + 真实去重
+    """不注入 tagger/normalizer/compliance（显式 None 禁用延迟导入）→ 流水线不崩：skipped 计数。"""
+    pipe = make_pipeline(
+        db_materials,
+        download_service=MockDownloader(),
+        normalizer=None,           # 显式禁用：不做延迟导入
+        tagger=None,
+        compliance=None,
+    )
     result = pipe.run_source("视频号", [video_item(), image_item()])
     st = result["stats"]
     assert st["total"] == 2
     assert st["downloaded"] == 2
-    assert st["skipped"] == 2            # 标准化缺失 + 合规缺失 → 逐条 defer
+    assert st["skipped"] == 2            # 标准化缺失 → 逐条 defer（断点续跑）
     assert st["passed"] == 0 and st["failed"] == 0 and st["rejected"] == 0
     assert result["env"]["normalizer"] == "missing"
     assert result["env"]["tagger"] == "missing"
@@ -233,9 +239,10 @@ def test_run_source_components_missing_degrades(db_materials):
 
 
 def test_run_source_tagger_missing_compliance_ok(db_materials):
-    """仅 tagger 缺失 → 标签阶段跳过但继续；合规 pass 仍可终态入库（tags_json 可空）。"""
+    """仅 tagger 缺失（显式 None）→ 标签阶段跳过但继续；合规 pass 仍可终态入库（tags_json 可空）。"""
     pipe = make_pipeline(db_materials, download_service=MockDownloader(),
-                         normalizer=MockNormalizer(), compliance=MockCompliance(result="pass"))
+                         normalizer=MockNormalizer(), tagger=None,
+                         compliance=MockCompliance(result="pass"))
     result = pipe.run_source("视频号", [video_item()])
     st = result["stats"]
     assert st["passed"] == 1
@@ -253,7 +260,8 @@ def test_run_source_download_failure_classified_and_redacted(db_materials):
         source_url="https://example.com/v/2.mp4?token=SECRET123&sig=abc",
         md5="b" * 32,
     )
-    dl = MockDownloader(results={bad_item["item_key"]: {"ok": False, "error_code": "TIMEOUT", "message": "下载超时"}})
+    # item_key 缺省 = video_id（_prepare_item 归一），预设结果按键匹配
+    dl = MockDownloader(results={"wxv_0002": {"ok": False, "error_code": "TIMEOUT", "message": "下载超时"}})
     pipe = make_pipeline(db_materials, download_service=dl, normalizer=MockNormalizer(),
                          tagger=MockTagger(), compliance=MockCompliance())
     result = pipe.run_source("视频号", [video_item(), bad_item])
