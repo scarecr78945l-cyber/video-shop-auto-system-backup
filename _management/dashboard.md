@@ -28,6 +28,10 @@
 | REC-002 | M3：素材上传小店素材库模式 | 双轨：抽象 UploadService，`M3_UPLOAD_MODE=api\|ui\|semi` 配置化，默认 api 优先，真实可用性待账号实测 |
 | REC-003 | M4：channels OpenAPI 文档核对 | P1 启动时派子代理用 web_search 核对官方文档（签名参数/接口字段/配额），契约文件标注核对结果，不阻塞骨架开发 |
 | REC-004 | M4：企业主体/类目资质开通 | 用户侧前置条件，列入待确认清单，不阻塞 P1/P2 离线/模拟开发 |
+| REC-005 | 全局金额/时间口径统一 | 金额一律「分」int 存储（展示层转元）；时间一律 UTC 存储（展示层转 UTC+8）；M0 修订数据字典，M1~M5 遵循（data-audit DA-001） |
+| REC-006 | M1 BLOCKER-001：第三选品源 | **批准选项②**：以已实测打通的抖店电商罗盘为正式第三源；考古加降级为可选第四源（后续排期）；授权 M1 更新 04/03 文档对应表述并登记 decisions |
+| REC-007 | M1 BLOCKER-002：模块库默认路径 | **批准**：`config.py` 默认 DSN 改为 `sqlite:///data/db/m1-sourcing.db`，同步更新 backend/README 快速开始；必须跑通既有 39 测试 + 新测试 |
+| REC-008 | M1 BLOCKER-003：M5 回写类目口径 | **批准契约草案**：以 `products.category` 为锚点完全一致匹配；字段 roi/sales_amount(分)/sample_count/period/generated_at；转达 M5 确认，上线后双方签字 |
 
 ## 跨模块数据联动（进行中）
 
