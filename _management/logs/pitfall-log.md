@@ -127,4 +127,13 @@
 
 ---
 
+## P-016 ｜ 共享浏览器 9223 僵尸页面导致 playwright connect_over_cdp 挂起（HTTP /json 正常但 ws 无响应）
+
+- **出现时间**：2026-08-29 ｜ **模块**：M1 选品（S3c 真实采集联调） ｜ **代理**：子代理 S3c
+- **现象与根因**：`python -m sourcing collect/probe` 报 `connect_over_cdp: Timeout 180000ms exceeded`（ws connected 但后续无消息响应）。排查：CDP HTTP `/json`、`/json/version`、`/json/list` 均正常（Chrome 151 响应），browser-level ws 直连发 `Browser.getVersion` 也正常 → **ws 层无问题**；playwright DEBUG 协议日志显示其初始化序列对**每一个已打开 target 逐个 Page.enable/Network.enable**，**存在无响应僵尸页面（store.weixin.qq.com/shop/home 商机中心 home、compass.jinritemai.com/shop 罗盘核心数据页）时整个初始化挂起**。根因：9223 共享浏览器长期挂机积累僵尸标签页（渲染进程无响应），playwright 初始化全部 target 时被卡死；`probe-browsers`/`collect` 无法连接。
+- **解决方案**：通过 CDP HTTP `GET /json/close/<targetId>` 关闭**非采集目标**的僵尸页面（保留 `opprotunity` 与 `rank-product` 两个采集目标页），playwright 连接立即恢复（contexts=1, pages=2）。关闭页面**不影响登录态**（cookie 在 profile，非页面内）。注意 `/json/close` 对 `browser_ui`（omnibox-popup）target 返回 404，此类 target 关闭不了但**不阻塞 playwright**（本次验证其非卡死源）。
+- **防复发措施**：① 共享 9223 浏览器定期清理非目标标签页（采集前先 `/json/list` 检查，发现堆积僵尸页先 close 非目标页）；② 采集器连接失败时可在日志提示「9223 存在多个标签页，建议先关闭非采集页面再重试」；③ 商机中心 home 页与罗盘核心数据页**非采集必需**（采集器用 url_template 新开页或 current_page 按域定位），后续任务可考虑在探测阶段自动清理；④ 已在 context/README.md S3c 小节登记环境事实。
+
+---
+
 > 日志继续追加中（由所有代理共同维护）。

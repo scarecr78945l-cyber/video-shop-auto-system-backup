@@ -32,13 +32,15 @@
 | [x] A4-4（修复任务）：foundation_security 2 失败修复——`test_redact_text_bearer_token` 按总控裁决改实现（`_mask_secret_value` 回调：值为 Bearer 时保留原文 → 输出 `Authorization: Bearer ***`，**Bearer 前缀保留、仅 token 脱敏**）；`test_no_plaintext_secret_in_outputs` 排查结论：纯函数无共享可变状态，偶发为旧断言/P-011 并发抖动，断言已改为键值/URL/Bearer 形式 → **11 passed + 全量 1089 passed, 2 skipped 零回归** | 总工 | 100% | 无 |
 | [x] A5-1：`database/migrations/0001_create_base_tables.pg.sql`（PG 五表 DDL + 9 错误码种子，幂等 IF NOT EXISTS + ON CONFLICT DO NOTHING；方言映射 JSONB/TIMESTAMPTZ/BIGSERIAL/BOOLEAN）| 总工 | 100% | 无 |
 | [x] A5-2：`0001_rollback.pg.sql`（逆序 DROP）+ `README.md`（四阶段迁移计划/方言差异清单/执行方式/回滚方案（切回 SQLite 快照）/校验 SQL）→ database/README.md 迁移记录 v0.6 | 总工 | 100% | 无 |
-| [x] A6-1：A6 会签登记——`data-audit.md` +DA-008（全局数据字典基准：金额分/时间 UTC _at/ID/指纹/枚举 + 错误码表权威 + 共享表读写边界 + M1~M5 分模块核对项清单） | 总工 | 30% | 待总控转达 M1~M5 总工会签，收集确认后回传 |
-| [ ] 集成：与 M1~M5 联调 | 总工 | 0% | 排期 A7（亲办，A6 会签完成后） |
+| [x] A6-1：A6 会签登记——`data-audit.md` +DA-008（全局数据字典基准：金额分/时间 UTC _at/ID/指纹/枚举 + 错误码表权威 + 共享表读写边界 + M1~M5 分模块核对项清单） | 总工 | 100% | 无 |
+| [x] A6-2：**A6 六方会签销项**（DA-008，M0/M1/M2/M3/M4/M5 全部确认 + 总控裁决 REC-009~011）——M5 已完成风控基座引用（stop_loss.py import foundation.risk，158 passed）；M3/M4 当场修正（金额分直存/evaluation 枚举统一/PAGE_CHANGED 对齐）；M2 指纹口径确认（安全指纹 SHA-256、去重指纹 MD5+phash）；M1 app_config 键对齐待执行（category.whitelist） | 总工 | 100% | 无 |
+| [x] A7-1：跨模块集成冒烟 `backend/tests/test_foundation_integration.py`（3 例，mock/fixtures、临时库隔离）——M1 商品池→M0 队列（入队/claim/complete）→M4 上架（listed+R22 链接证据）→M5 候选池→M0 风控（预算三重/余额/全停）+脱敏→M5 回写 C-2→M1 ad_backfill 导入（m1 cache 落库）全闭环跑通 | 总工 | 100% | 无 |
+| [x] A7-2：联调发现登记 DA-009（M4 pipeline 未落 SPU/SKU 本库 → 候选池 title/category/价格恒 None，提请总控转达 M4 修复；冒烟商品级字段断言已通过） | 总工 | 100% | 无 |
 
 ## 里程碑进度
 
-- 本模块当前完成度：**70%**（筹备 15% + A1 15% + A2 10% + A3 10% + A4 10% + A5 10%；**里程碑 v0.6 达成：SQLite→PostgreSQL 迁移脚本齐备**——PG DDL/回滚/迁移计划可执行）
-- 距离目标还差：治理（A6，亲办）→ 集成（A7，亲办）
+- 本模块当前完成度：**90%**（筹备 15% + A1 15% + A2 10% + A3 10% + A4 10% + A5 10% + A6 10% + A7 10%；**里程碑 v0.7 达成：六方会签销项 + 跨模块集成冒烟跑通**——M1→M0→M4→M5→回写闭环全绿）
+- 距离目标还差：M4 候选池价格缺口修复（DA-009，外部依赖）→ 体系级全量回归（总控）→ M0 模块收官（100%）
 
 ## 后续开发排期（可拆给子代理的任务标注 ✅）
 

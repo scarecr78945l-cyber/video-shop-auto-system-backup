@@ -221,3 +221,15 @@
    - **修正后验证**：M3 全范围 `pytest tests -q --basetemp=".pytest-tmp-m3" -k "optimization"` → **305 passed, 1 skipped 全绿**；全量 → **1089 passed, 2 skipped**（含 M0 foundation_security 此前 2 个失败亦已消失，零回归）。
 
 **结论：M3 会签确认（3 项全部确认，含 2 处会签发现差异已当场修正：金额分直存、evaluation 枚举统一共口径）。** 回传 M0；同意推进 A7 集成联调。佐证：`backend/optimization/ab/evaluate.py`（枚举常量）、`ab/ranking.py`（EVALUATION_ORDER）、`ab/ingest.py`（金额分直存）、`review/manual.py`（app_config 只读扩展点）。
+
+---
+
+## DA-009 ｜ A7 集成联调发现：M4 pipeline 未落 SPU/SKU 本库（候选池价格/标题恒 None）
+
+- **发现方**：M0 总工（A7 跨模块冒烟联调 `test_foundation_integration.py`）｜ **涉及**：M4（m4-listing）。
+- **现象**：M4 上架闭环跑通（ListingPipeline mock adapter → listed + R22 链接证据），但 M5 消费端 `CandidatePool.get_sale_candidates()` 返回的 `title`/`category_id`/`price_min_cents`/`price_max_cents` 恒为 **None**（商品级字段 `product_id`/`product_link` 正常）。
+- **根因**：M4 `listing/pipeline.py` 上架流程只调用 `adapter.create_spu/create_skus`（mock 平台侧），**未将 SPU/SKU 行写入本模块库 `listing_spus`/`listing_skus`**（repo 无对应落库方法调用）→ 候选池（DA-005 提供内容）关联查表为空。
+- **影响**：DA-005「M4 → M5 候选池」的 title/category/价格区间字段恒空，M5 托管优选/预算决策缺字段（商品级仍可用）。
+- **建议修复（M4 侧）**：pipeline 在 `create_spu`/`create_skus` 成功后将结果落 `listing_spus`（task_id/spu_id/title/category_id）+ `listing_skus`（spu_id/price_cents/product_sku_code）本库；M4 测试补充候选池价格聚合断言。
+- **状态**：**已提请总控转达 M4 总工**；M0 冒烟测试已标注缺口断言（`price_min_cents is None or == 2990`），M4 修复后可收紧。
+- **总控核对结论**：（待填）

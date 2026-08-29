@@ -87,6 +87,7 @@
 ### C-1 类目口径（锚点）
 - 本模块 `products.category` 为类目锚点；白名单 9 类（`config.DEFAULT_CATEGORY_WHITELIST`）。
 - 规则：平台类目与白名单做**包含匹配**；M5 回写按「与 `products.category` 完全一致」的类目名聚合。
+- **app_config 键名（REC-010/DA-008 定稿）**：运行时白名单经 app_config 键 **`category.whitelist`**（list[str]）覆盖 config 默认，读取入口 `pipeline._load_category_whitelist`（点分隔命名空间，与 M0 基准一致）；`config.category_whitelist` 为代码配置字段（环境变量 SOURCING_CATEGORY_WHITELIST 可覆盖），两者语义不同勿混淆。`scoring.weights`（打分权重 app_config 键）后续迭代接入，当前权重走 `config.scoring`。
 - 待总控确认：类目名统一表放 `_management/data-exchange/category-registry.json`（D-3 决策）。
 
 ### C-2 M5 → M1：投放转化回写（输入契约草案）
@@ -156,8 +157,20 @@
 | 浏览器可用性 | **浏览器已启动且持有登录态页面（商机中心/抖店罗盘/有米云）**；1688/淘宝共享同一 9223 浏览器（采集时新开标签页）。真实采集仍待登录态确认后由总控批准（S3 第二阶段） |
 | 选择器校准 | 详见 `selector-log.md`（v1.0，S3a）：5 来源 config.selectors 均为空 → 生效选择器=代码 DEFAULT_SELECTORS；待实测项清单已登记 |
 
+### S3c 真实采集联调实测（2026-08-29，总控批准，临时库验证）
+| 项 | 结论（不含密钥） |
+|---|---|
+| 三源真实采集 | **全部成功入库（临时库 `backend/.pytest-tmp-m1/s3c.db`）**：商机中心 机会品 **1 条**（当前类目筛选下仅 1 条）、有米云 商品榜 **50 条**、抖店罗盘 商品榜 **50 条**；均状态 active、throttle 0、连续失败 0，**无 AUTH_REQUIRED / 验证码 / 风控事件** |
+| 登录态有效性 | **三源登录态均有效**（商机中心/抖店罗盘共享 9223、有米云独立 9555；无 login_gate/verify_gate 触发）——S3a 预留的「真实采集待登录态确认」已确认通过 |
+| 字段口径 | price=**元**（youmi 0.01~69.9、doudian 15~1580）、sales=**件**（youmi 10万~162万、doudian 1000~10万）、rank 正确；**category 三源恒空**（真实页面无类目列，与 fixtures 差异，R-25 确认）；商机中心 price/sales 恒 0（A5 确认） |
+| 选择器/解析 | 有米云**动态列定位命中**（A4）；抖店罗盘**「价格带 ¥XX」解析 50/50 命中**、动态列定位命中；商机中心 row/columns/图片提取命中（imgs=2）；有米云 **imgs=0**（图片提取需收敛，见 selector-log A6 注） |
+| 环境异常（已解决） | 共享 9223 曾因**僵尸页面**（商机中心 home / 罗盘核心数据页）导致 playwright connect_over_cdp 挂起（HTTP /json 正常但 ws 无响应）；经 CDP `/json/close` 关闭多余页面后恢复——**已登记 pitfall-log P-016** |
+| 脱敏 | 临时库 raw_json 裁剪干净，日志无明文 cookie/token/session/password/secret/authorization（脱敏验证 PASS） |
+| 安全边界 | 未点击验证码/滑块、未重试风控源、未下单、未读取 cookie/localStorage/凭据；临时库 s3c.db 保留在 `.pytest-tmp-m1/`（不入 git，供验收） |
+| 选择器实测明细 | 详见 `selector-log.md` 各来源「实测结果（S3c）」小节；A2（动态日期）✅、A4（动态列定位）✅、A5（恒空确认）✅、A3（飙升榜 URL）仍待回填、A6（alibaba/taobao）待后续 |
+
 ## 五、本目录文件索引
 - `README.md`（本文）
 - `data-requests.md`（跨模块数据需求登记，宪法第 5 节）
-- `selector-log.md`（**S3a 已建立**：5 来源选择器校准记录 + 待实测项清单 + 校准动作建议 A1~A6）
+- `selector-log.md`（**S3a 建立**：5 来源选择器校准记录 + 待实测项清单 + 校准动作建议 A1~A6；**S3c 已追加三源真实采集实测小节与 A2/A4/A5 验证结论**）
 - （后续：`category-registry.md` 类目映射表——S3 阶段建立）

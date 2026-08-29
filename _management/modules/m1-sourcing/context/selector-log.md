@@ -138,17 +138,18 @@
 
 ---
 
-## 6. 校准动作建议（S3b 已实施 A1~A4；A5/A6 待登录态实测）
+## 6. 校准动作建议（S3b 已实施 A1~A4；S3c 已实测验证 A2/A4/A5 结论，A6 待后续）
 
 > S3b（2026-08-29）已完成不依赖登录态的 4 项代码级动作：A1/A2/A3/A4，详见下方状态列。
 > 对应代码：`backend/sourcing/config.py`、`collectors/{youmi,doudian}.py`、`backend/fixtures/doudian.json`、
 > 新增测试 `backend/tests/test_collector_config.py`（17 用例，sourcing 域 108 全绿）。
+> **S3c（2026-08-29，真实采集联调）**：三源真实采集验证 A2（动态日期生效）/A4（动态列定位命中）/A5（恒空确认），新增 youmi 图片提取收敛建议（见 A6 行下方注）。
 
 | # | 动作 | 来源 | 状态 | 说明 |
 |---|---|---|---|---|
 | A1 | config.selectors 迁移 | 全部 | ✅ 已完成（S3b） | 5 来源 DEFAULT_SELECTORS 逐键迁入 `config.py` 各来源 `selectors`（键值一致，R-23 落地）；youmi/doudian 刻意**不含 columns**（见 A4）；`CollectorConfig.selectors` 类型改为 `dict[str, Any]`（承载 columns int 值）；代码内 DEFAULT_SELECTORS 保留兜底，合并 `{**DEFAULT_SELECTORS, **config.selectors}` 不变 → 行为零变化（测试验证合并结果与纯默认一致） |
-| A2 | 有米云 URL 日期动态化 | youmi | ✅ 已完成（S3b） | config.boards[0].url_template 改为 `startDate={start_date}&endDate={end_date}` 占位符；采集器导航时 `render_board_url` 替换（end=当天、start=当天-lookback_days，`CollectorConfig.lookback_days` 默认 7 可配）；无占位符模板原样使用 |
-| A3 | 飙升榜 URL 补全 | doudian | ✅ fixtures 样本已完成 / 🔲 真实 URL 待登录态回填 | `fixtures/doudian.json` 已补「飙升榜」3 条样本（dd-101~103，字段与商品榜同构，fixtures 采集器可直接回放）；config.boards[1].url_template **保持空**——登录态就绪后从页面地址栏取真实地址回填 |
-| A4 | 动态列定位死代码 | youmi/doudian | ✅ 已完成（S3b） | `_locate_columns` 改为只认 `config.selectors.columns`（config 为空/缺键 → 走动态表头定位，DEFAULT_SELECTORS.columns 不再短路）；config 配置了 columns 时用配置值（保持现状）；mock 表头单测覆盖动态定位与配置覆盖 |
-| A5 | 商机中心 price/sales/category 恒空 | opportunities | 🔲 待登录态实测 | 与 fixtures 口径差异（R-25）；若真实页面有价格/销量列（如商机来源列含价格区间）需扩展 columns |
-| A6 | alibaba/taobao 宽泛选择器收敛 | alibaba/taobao | 🔲 待登录态实测 | 登录态就绪后按 inspect-page 结果收窄（优先级最高） |
+| A2 | 有米云 URL 日期动态化 | youmi | ✅ 已完成（S3b）+ ✅ 实测生效（S3c） | config.boards[0].url_template 改为 `startDate={start_date}&endDate={end_date}` 占位符；采集器导航时 `render_board_url` 替换（end=当天、start=当天-lookback_days，`CollectorConfig.lookback_days` 默认 7 可配）；无占位符模板原样使用。**S3c 实测**：真实页面 URL 显示 `startDate=2026-08-23&endDate=2026-08-29`（lookback_days=7 生效） |
+| A3 | 飙升榜 URL 补全 | doudian | ✅ fixtures 样本已完成（S3b）/ 🔲 真实 URL 待登录态回填 | `fixtures/doudian.json` 已补「飙升榜」3 条样本（dd-101~103，字段与商品榜同构，fixtures 采集器可直接回放）；config.boards[1].url_template **保持空**——登录态就绪后从页面地址栏取真实地址回填（S3c 仅采商品榜，未回填，仍待总工安排） |
+| A4 | 动态列定位死代码 | youmi/doudian | ✅ 已完成（S3b）+ ✅ 实测命中（S3c） | `_locate_columns` 改为只认 `config.selectors.columns`（config 为空/缺键 → 走动态表头定位，DEFAULT_SELECTORS.columns 不再短路）；config 配置了 columns 时用配置值（保持现状）；mock 表头单测覆盖动态定位与配置覆盖。**S3c 实测**：youmi 与 doudian 均以动态定位成功取数（title/price/sales 列正确） |
+| A5 | 商机中心 price/sales/category 恒空 | opportunities | ✅ 实测确认（S3c，维持现状） | **S3c 实测**：真实样本 price=0/sales=0/category='' 恒空（表格列仍为 商品/商机来源/状态/操作，无价格/销量/类目列）→ 维持「该源只贡献 rank/board_count」设计；若后续想利用商机来源列信息可扩展 columns（本次未改） |
+| A6 | alibaba/taobao 宽泛选择器收敛 | alibaba/taobao | 🔲 待登录态实测 | 登录态就绪后按 inspect-page 结果收窄（优先级最高）。**S3c 新增观察（youmi 图片，非三源代码改动）**：有米云 `_extract_images` 在真实页面 **imgs=0**（行内 img 未取到 http URL，疑似 lazy/blob），建议后续 inspect-page 检查商品图 DOM 后收窄图片选择器；商机中心 imgs=2、抖店罗盘 imgs=2 均命中 |

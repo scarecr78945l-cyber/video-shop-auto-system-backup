@@ -44,7 +44,7 @@ class SourcingPipeline:
     def _load_category_whitelist(self) -> Optional[list[str]]:
         """从 app_config 读取类目白名单（运行时优先级高于 config 默认）。
 
-        - self.db 可用且 app_config.category_whitelist 为 list[str] → 使用之；
+        - self.db 可用且 app_config.category.whitelist 为 list[str] → 使用之；
         - 键不存在/类型非法/任何异常 → 返回 None（ComplianceEngine 回落 config.category_whitelist）；
         - 绝不抛异常打断流水线；persist=False 时同样兼容（只读查询）。
         """
@@ -54,17 +54,17 @@ class SourcingPipeline:
             from . import repo
 
             with self.db.session() as session:
-                value = repo.get_config_value(session, "category_whitelist", None)
+                value = repo.get_config_value(session, "category.whitelist", None)
             if isinstance(value, list) and all(isinstance(v, str) for v in value):
-                log.info("app_config.category_whitelist 生效：%d 个类目", len(value))
+                log.info("app_config.category.whitelist 生效：%d 个类目", len(value))
                 return value
             if value is not None:
                 log.warning(
-                    "app_config.category_whitelist 类型非法（%s），回落 config 默认",
+                    "app_config.category.whitelist 类型非法（%s），回落 config 默认",
                     type(value).__name__,
                 )
         except Exception:
-            log.warning("读取 app_config.category_whitelist 失败，回落 config 默认", exc_info=True)
+            log.warning("读取 app_config.category.whitelist 失败，回落 config 默认", exc_info=True)
         return None
 
     @staticmethod

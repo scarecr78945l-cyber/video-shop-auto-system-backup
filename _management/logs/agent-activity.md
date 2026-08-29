@@ -1094,3 +1094,32 @@
 - 产出文件：`backend/optimization/ab/evaluate.py`、`ranking.py`、`scoring.py`（docstring）、`ingest.py`（金额分直存）、`models.py`、`tables.py`、`upload/api.py`、`service.py`、`ui.py`、`video/composer.py`、`video/__init__.py`（枚举统一）；`backend/tests/test_optimization_{m5_integration,e2e,retrain_driven,video_composer,ab}.py`（断言同步）；`_management/logs/data-audit.md`（+DA-008 M3 会签确认）；`context/README.md`（1.4 评估标签枚举同步）；本日志追加条目。
 - 当前阻塞：无。**M3 会签确认**——DA-008 全部模块（M0/M1/M2/M3/M4/M5）已完成会签；同意推进 A7 集成联调。
 - 备注：未运行任何 git 命令；未读写其他模块库（测试全内存库）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m3`（P-001/P-011）。
+
+---
+
+### 2026-08-29 ｜ S3c 子代理 ｜ M1 自动选品（S3c 真实采集联调） ｜ 角色：子代理
+
+- 任务来源：M1 总工派发 S3c 任务包（三源真实采集联调，总控批准安全边界：≤50 条/源、节流/熔断观察、脱敏验证、fixtures 对照、验证码即停）。
+- 完成任务：
+  ① **前置探测**：CDP HTTP `/json` 探测 9223（共享）/9555（有米云）——商机中心 opprotunity 页与抖店罗盘 rank-product 页已打开（登录态持有），有米云商品榜页 URL 显示 A2 动态日期 `startDate=2026-08-23&endDate=2026-08-29`；
+  ② **环境异常诊断与恢复（P-016）**：9223 僵尸页面（商机中心 home / 罗盘核心数据页）导致 playwright connect_over_cdp 挂起 → CDP `/json/close` 关闭非目标页后恢复；
+  ③ **三源真实采集入库（临时库 `backend/.pytest-tmp-m1/s3c.db`）**：商机中心 机会品 **1 条**（当前筛选）、有米云 商品榜 **50 条**、抖店罗盘 商品榜 **50 条**，全部成功（status active、throttle 0、连续失败 0），无验证码/风控/AUTH_REQUIRED 事件；
+  ④ **脱敏验证 PASS**：s3c.db 全部文本列与运行输出 grep 敏感键（cookie/token/session/password/secret/authorization）无泄漏，raw_json 裁剪干净（仅 board/source/shop）；
+  ⑤ **fixtures 对照**：price=元、sales=件、rank 口径与 fixtures 一致；**category 三源恒空**、商机中心 price/sales 恒 0（R-25 漂移点真实确认）；有米云动态列定位命中（A4）、抖店罗盘价格带解析 50/50（A2 动态日期生效）；有米云 imgs=0（图片提取需收敛，建议记 A6）。
+- 产出文件：`_management/modules/m1-sourcing/context/selector-log.md`（三源「实测结果（S3c）」小节 + 第 6 节 A2/A4/A5 状态更新 + A6 新增 youmi 图片收敛观察）；`context/README.md`（+「S3c 真实采集联调实测」环境事实小节）；`_management/logs/pitfall-log.md`（+P-016 9223 僵尸页面）；临时脚本与 s3c.db 存 `backend/.pytest-tmp-m1/`（s3c_probe.py/s3c_run.py/s3c_redact_check.py/s3c_sample_check.py/s3c_stats.py/s3c_cdp_test.py/ws_diag.ps1/s3c.db，不入 git 供验收）；本日志追加条目。
+- 当前阻塞：无。A3（飙升榜真实 URL 回填）与 A6（alibaba/taobao 收敛）待总工后续安排；有米云 imgs=0 图片提取收敛建议待总工裁决。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；未点击验证码/滑块、未重试风控源、未下单、未读取 cookie/localStorage/凭据；全部文件经 write/edit 工具 UTF-8 无 BOM；真实采集仅触碰三源选品榜（未触发 1688 询价/入池，超出 S3c 边界）。
+
+---
+
+### 2026-08-29 ｜ M0 总工程师 ｜ m0-foundation ｜ 角色：总工（A6 六方会签销项 + A7 集成联调 · v0.7 里程碑达成）
+
+- 完成任务：
+  ① **A6 销项**（DA-008 六方会签确认 + 总控裁决 REC-009~011）：M1（app_config 键 category.whitelist 对齐待执行）/M2（指纹口径确认：安全指纹 SHA-256、去重指纹 MD5+phash 两类并存；PAGE_CHANGED→PLATFORM_REJECT 映射获批）/M3（当场修正金额分直存 + evaluation 枚举统一）/M4（page_changed→PAGE_CHANGED 当场修正；独立维护 listing_tasks 不双写 M0 workflow_jobs 获批）/M5（**风控基座引用完成**：stop_loss.py import foundation.risk 替换自有实现，158 passed）/M0（基准定稿）——**M5 基座引用兑现 A3 预登记**；
+  ② **A7 跨模块集成冒烟**：`backend/tests/test_foundation_integration.py`（3 例，mock/fixtures、临时库隔离、一模块一库语义）——M1 商品池（sourcing.products 造数）→ M0 队列（workflow_jobs 入队/调度器 claim/complete）→ M4 上架（ListingPipeline gate+mock adapter → listed + R22 链接证据）→ M5 候选池（CandidatePool 读出销售中）→ M0 风控（RiskEngine 预算三重/余额/全停）+ 脱敏（redact_text token 无明文）→ M5 回写（feedback C-2 聚合/交换 JSON）→ M1 导入（ad_backfill apply_exchange → m1 cache 落库，sales_amount=900000 分）→ **全闭环跑通**；M0 调度器失败隔离、预算硬约束断言一并覆盖；
+  ③ **集成缺口登记 DA-009**：M4 pipeline 未落 SPU/SKU 本库（listing_spus/listing_skus）→ 候选池 title/category/price 恒 None（商品级字段正常）——**已提请总控转达 M4 修复**，M0 冒烟断言按缺口标注（M4 修复后可收紧）；
+  ④ **文档落盘**：progress.md（A6-2 销项、A7-1/A7-2 勾选、完成度 **90%**、v0.7 里程碑）；decisions.md（+2 条：A6 会签结论含指纹分类口径、A7 联调结论含 M4 缺口）；data-audit.md（+DA-009）；本日志追加条目。
+- 产出文件：`backend/tests/test_foundation_integration.py`（3 例）；`_management/logs/data-audit.md`（+DA-009）；`progress.md`（90%、v0.7）；`decisions.md`（+2 条）；本日志追加条目。
+- 里程碑：**v0.7 达成：六方会签销项 + 跨模块集成冒烟跑通**（M1→M0→M4→M5→回写闭环全绿，M0 基座可编排全链）。
+- 当前阻塞：无（外部依赖 1 项：DA-009 M4 候选池价格缺口，提请总控转达 M4 修复）。**请总控提交备份（v0.7 里程碑）并做体系级全量回归**（建议 `.pytest-tmp-verify`）；M4 修复后 M0 可收紧冒烟断言并模块收官（100%）。
+- 备注：未运行任何 git 命令；未读写其他模块库（M1/M4/M5 代码仅 import 调用于冒烟测试，未写其库文件）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m0`（P-001/P-011）；foundation 现有 82 测试（30 表/队列 + 12 调度 + 26 风控 + 11 脱敏 + 3 集成）。
