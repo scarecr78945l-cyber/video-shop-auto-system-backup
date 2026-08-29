@@ -943,3 +943,17 @@
 - 里程碑：**v0.3 达成：调度器进程化可跑**（独立进程 CLI + 断点自愈 + 节流熔断 + 失败隔离，foundation 42 passed 全绿）。
 - 当前阻塞：无。**请总控提交备份（里程碑：v0.3 调度器进程化验收通过）**；批准后推进 A3 风控规则引擎（预算三重/止损/余额/一键全停，口径已对齐 M5 S7/S8）。
 - 备注：未运行任何 git 命令；未读写其他模块库（M5 stop_loss.py 仅只读勘察）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m0`（P-001/P-011）；误建的 backend/data/m0-foundation.db 已清理（默认路径 A4 统一修正为 data/db/）。
+
+---
+
+### 2025 体系建立日（第 7 轮）｜ M3 总工程师 ｜ M3 自动素材优化 ｜ 角色：总工（v1.1-① M5 回写联调验收落盘）
+
+- 任务来源：总控确认 v1.1+ 迭代方向（v0.23 已备份推送），第①项 M5 回写联调先行（M5 代码已完成可消费）；会话中断后续跑，先落盘联调验收。
+- 完成任务：
+  ① **联调消费入口**：`backend/optimization/ab/ingest.py`（新建，总工联调集成）——`ingest_m5_record / ingest_m5_batch`：platform_material_id 反查本地版本（骨架 `repo.py` VideoVariantRepo 新增 `get_by_platform_material_id`）、金额分→元换算（DA-001）、roi=gmv/spend、M5 中文诊断（优秀/良好/1项待优化/N项待优化）→ {"level": ...} 字典形状、unmatched 失败隔离、幂等回写 opt_evaluation_feedback；
+  ② **联调契约测试**：`backend/tests/test_optimization_m5_integration.py`（新建，5 用例）——单条摄取（金额/ROI/标签）、unmatched 隔离、幂等（同 (variant_id, report_date) 不新增行）、排序消费（高效>探索期、only_uploaded）、中文诊断枚举全兼容；修复 1 个集成问题（EvaluationSnapshot.diagnosis 需 dict 形状，ingest 层归一化）与 1 个卫生问题（ab 包文件禁含 "materials" 子串，docstring 措辞修正）；
+  ③ **验收**：`python -m pytest tests/test_optimization_m5_integration.py -q --basetemp=".pytest-tmp-m3"` → **5 passed**；全量 → **1021 passed, 2 skipped 全绿**（M3 全范围全绿）；
+  ④ **落盘**：progress.md（v1.1 迭代标题、v1.1-① 勾选 100%、完成度 **92%**）；data-audit.md（+DA-007 登记 M3 消费 M5 回写：契约字段/载体/消费入口/校验结果）；data-requests.md（§3 口径细化：spend_cents/gmv_cents 分、diagnosis 中文枚举、ingest 消费入口）。
+- 产出文件：`backend/optimization/ab/ingest.py`、`backend/optimization/repo.py`（+get_by_platform_material_id）、`backend/tests/test_optimization_m5_integration.py`（5 例）；`progress.md`、`data-audit.md`（+DA-007）、`context/data-requests.md`；本日志追加条目。
+- 当前阻塞：无。下一小步：**v1.1-② 模板重训练数据驱动链路测试**（M5 回写摄取 → retrain_all → stats 落库 → best_template 决策；retrain 实现已就绪、样本闸门 min_samples 已实现）。
+- 备注：未运行任何 git 命令；未读写其他模块库（测试全内存库）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m3`（P-001/P-011）。
