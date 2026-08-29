@@ -1,0 +1,70 @@
+{
+  "schema": "p2-category-memory/v1",
+  "count": 4,
+  "items": [
+    {
+      "id": "1",
+      "category_key": "厨房用品",
+      "mode": "manual",
+      "manual_pass_streak": "1",
+      "platform_image_rejection_streak": "0",
+      "required_fields_json": "{}",
+      "sourcing_rules_json": "{}",
+      "image_rules_json": "{}",
+      "logistics_template": "",
+      "return_address_rule_json": "{}",
+      "last_success_at": "2026-08-17 10:05:19.675885",
+      "last_failure_at": null,
+      "created_at": "2026-08-16 23:52:40.248782",
+      "updated_at": "2026-08-17 10:05:19.676882"
+    },
+    {
+      "id": "2",
+      "category_key": "收纳用品",
+      "mode": "manual",
+      "manual_pass_streak": "0",
+      "platform_image_rejection_streak": "0",
+      "required_fields_json": "{}",
+      "sourcing_rules_json": "{}",
+      "image_rules_json": "{}",
+      "logistics_template": "",
+      "return_address_rule_json": "{}",
+      "last_success_at": null,
+      "last_failure_at": null,
+      "created_at": "2026-08-17 00:07:10.224546",
+      "updated_at": "2026-08-17 00:07:10.224546"
+    },
+    {
+      "id": "3",
+      "category_key": "日用品",
+      "mode": "auto",
+      "manual_pass_streak": "5",
+      "platform_image_rejection_streak": "0",
+      "required_fields_json": "{}",
+      "sourcing_rules_json": "{}",
+      "image_rules_json": "{}",
+      "logistics_template": "",
+      "return_address_rule_json": "{}",
+      "last_success_at": "2026-08-17 10:05:19.777342",
+      "last_failure_at": null,
+      "created_at": "2026-08-17 06:43:31.611301",
+      "updated_at": "2026-08-17 10:05:19.777342"
+    },
+    {
+      "id": "4",
+      "category_key": "日用品/胶粘剂",
+      "mode": "auto",
+      "manual_pass_streak": "2",
+      "platform_image_rejection_streak": "0",
+      "required_fields_json": "{}",
+      "sourcing_rules_json": "{}",
+      "image_rules_json": "{}",
+      "logistics_template": "",
+      "return_address_rule_json": "{}",
+      "last_success_at": "2026-08-17 15:30:43.790934",
+      "last_failure_at": null,
+      "created_at": "2026-08-17 13:42:43.714864",
+      "updated_at": "2026-08-17 15:30:43.792941"
+    }
+  ]
+}

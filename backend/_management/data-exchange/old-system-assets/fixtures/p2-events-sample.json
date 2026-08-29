@@ -1,0 +1,456 @@
+{
+  "schema": "p2-events-sample/v1",
+  "count": 50,
+  "items": [
+    {
+      "id": "1",
+      "platform": "wechat",
+      "board": "商机中心最新商品",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "2",
+      "platform": "youmi",
+      "board": "商品投放榜",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "3",
+      "platform": "kaogujia",
+      "board": "电商视频榜",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "4",
+      "platform": "youmi",
+      "board": "CID商品投放",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "5",
+      "platform": "kaogujia",
+      "board": "商品热门榜",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "6",
+      "platform": "youmi",
+      "board": "商品总榜",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "7",
+      "platform": "kaogujia",
+      "board": "视频热推荐",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "8",
+      "platform": "youmi",
+      "board": "实时榜",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "9",
+      "platform": "youmi",
+      "board": "新品榜",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "10",
+      "platform": "youmi",
+      "board": "爆品榜",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "11",
+      "platform": "youmi",
+      "board": "潜力趋势榜",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "12",
+      "platform": "youmi",
+      "board": "短视频带货榜",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "13",
+      "platform": "youmi",
+      "board": "智能选品库",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "14",
+      "platform": "youmi",
+      "board": "达人带货合作榜",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "15",
+      "platform": "youmi",
+      "board": "店铺热销榜",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "16",
+      "platform": "youmi",
+      "board": "一级品类排行",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "17",
+      "platform": "youmi",
+      "board": "细分品类分析",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "18",
+      "platform": "youmi",
+      "board": "品类竞争大盘",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:28:22.559045"
+    },
+    {
+      "id": "19",
+      "platform": "wechat",
+      "board": "商机中心最新商品",
+      "status": "retryable",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "20",
+      "platform": "youmi",
+      "board": "商品投放榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 20, \"scanned\": 20,",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "21",
+      "platform": "kaogujia",
+      "board": "电商视频榜",
+      "status": "page_changed",
+      "throttle_level": "0",
+      "evidence_json": "{\"screenshot_path\": \"E:\\\\yyds\\\\工具\\\\codex\\\\视频号自动上架系统_codex_sync_20260713_135956\\\\project\\\\backend\\\\runtime\\\\sourcing_evid",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "22",
+      "platform": "youmi",
+      "board": "CID商品投放",
+      "status": "page_changed",
+      "throttle_level": "0",
+      "evidence_json": "{\"screenshot_path\": \"E:\\\\yyds\\\\工具\\\\codex\\\\视频号自动上架系统_codex_sync_20260713_135956\\\\project\\\\backend\\\\runtime\\\\sourcing_evid",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "23",
+      "platform": "kaogujia",
+      "board": "商品热门榜",
+      "status": "page_changed",
+      "throttle_level": "0",
+      "evidence_json": "{\"screenshot_path\": \"E:\\\\yyds\\\\工具\\\\codex\\\\视频号自动上架系统_codex_sync_20260713_135956\\\\project\\\\backend\\\\runtime\\\\sourcing_evid",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "24",
+      "platform": "youmi",
+      "board": "商品总榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 19, \"scanned\": 20,",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "25",
+      "platform": "kaogujia",
+      "board": "视频热推荐",
+      "status": "page_changed",
+      "throttle_level": "0",
+      "evidence_json": "{\"screenshot_path\": \"E:\\\\yyds\\\\工具\\\\codex\\\\视频号自动上架系统_codex_sync_20260713_135956\\\\project\\\\backend\\\\runtime\\\\sourcing_evid",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "26",
+      "platform": "youmi",
+      "board": "实时榜",
+      "status": "page_changed",
+      "throttle_level": "0",
+      "evidence_json": "{\"screenshot_path\": \"E:\\\\yyds\\\\工具\\\\codex\\\\视频号自动上架系统_codex_sync_20260713_135956\\\\project\\\\backend\\\\runtime\\\\sourcing_evid",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "27",
+      "platform": "youmi",
+      "board": "新品榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 18, \"scanned\": 20,",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "28",
+      "platform": "youmi",
+      "board": "爆品榜",
+      "status": "page_changed",
+      "throttle_level": "0",
+      "evidence_json": "{\"screenshot_path\": \"E:\\\\yyds\\\\工具\\\\codex\\\\视频号自动上架系统_codex_sync_20260713_135956\\\\project\\\\backend\\\\runtime\\\\sourcing_evid",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "29",
+      "platform": "youmi",
+      "board": "潜力趋势榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 20, \"scanned\": 20,",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "30",
+      "platform": "youmi",
+      "board": "短视频带货榜",
+      "status": "page_changed",
+      "throttle_level": "0",
+      "evidence_json": "{\"screenshot_path\": \"E:\\\\yyds\\\\工具\\\\codex\\\\视频号自动上架系统_codex_sync_20260713_135956\\\\project\\\\backend\\\\runtime\\\\sourcing_evid",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "31",
+      "platform": "youmi",
+      "board": "智能选品库",
+      "status": "page_changed",
+      "throttle_level": "0",
+      "evidence_json": "{\"screenshot_path\": \"E:\\\\yyds\\\\工具\\\\codex\\\\视频号自动上架系统_codex_sync_20260713_135956\\\\project\\\\backend\\\\runtime\\\\sourcing_evid",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "32",
+      "platform": "youmi",
+      "board": "达人带货合作榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 0, \"scanned\": 0, \"",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "33",
+      "platform": "youmi",
+      "board": "店铺热销榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 0, \"scanned\": 0, \"",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "34",
+      "platform": "youmi",
+      "board": "一级品类排行",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 0, \"scanned\": 0, \"",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "35",
+      "platform": "youmi",
+      "board": "细分品类分析",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 0, \"scanned\": 0, \"",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "36",
+      "platform": "youmi",
+      "board": "品类竞争大盘",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 0, \"scanned\": 0, \"",
+      "occurred_at": "2026-07-30 21:45:44.683520"
+    },
+    {
+      "id": "37",
+      "platform": "wechat",
+      "board": "商机中心最新商品",
+      "status": "waiting_login",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-30 23:58:15.607685"
+    },
+    {
+      "id": "38",
+      "platform": "youmi",
+      "board": "商品总榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 19, \"scanned\": 20,",
+      "occurred_at": "2026-07-30 23:58:15.607685"
+    },
+    {
+      "id": "39",
+      "platform": "kaogujia",
+      "board": "商品热门榜",
+      "status": "page_changed",
+      "throttle_level": "0",
+      "evidence_json": "{\"screenshot_path\": \"E:\\\\yyds\\\\工具\\\\codex\\\\视频号自动上架系统_codex_sync_20260713_135956\\\\project\\\\backend\\\\runtime\\\\sourcing_evid",
+      "occurred_at": "2026-07-30 23:58:15.607685"
+    },
+    {
+      "id": "40",
+      "platform": "youmi",
+      "board": "实时榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 20, \"scanned\": 20,",
+      "occurred_at": "2026-07-30 23:58:15.607685"
+    },
+    {
+      "id": "41",
+      "platform": "kaogujia",
+      "board": "视频热推荐",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 35, \"scanned\": 40,",
+      "occurred_at": "2026-07-30 23:58:15.607685"
+    },
+    {
+      "id": "42",
+      "platform": "youmi",
+      "board": "爆品榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 20, \"scanned\": 20,",
+      "occurred_at": "2026-07-30 23:58:15.607685"
+    },
+    {
+      "id": "43",
+      "platform": "youmi",
+      "board": "短视频带货榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 19, \"scanned\": 20,",
+      "occurred_at": "2026-07-30 23:58:15.607685"
+    },
+    {
+      "id": "44",
+      "platform": "wechat",
+      "board": "商机中心最新商品",
+      "status": "waiting_login",
+      "throttle_level": "0",
+      "evidence_json": "{\"trigger\": \"automatic\"}",
+      "occurred_at": "2026-07-31 01:58:29.447255"
+    },
+    {
+      "id": "45",
+      "platform": "youmi",
+      "board": "商品总榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 20, \"scanned\": 20,",
+      "occurred_at": "2026-07-31 01:58:29.447255"
+    },
+    {
+      "id": "46",
+      "platform": "kaogujia",
+      "board": "商品热门榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 35, \"scanned\": 40,",
+      "occurred_at": "2026-07-31 01:58:29.447255"
+    },
+    {
+      "id": "47",
+      "platform": "youmi",
+      "board": "实时榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 20, \"scanned\": 20,",
+      "occurred_at": "2026-07-31 01:58:29.447255"
+    },
+    {
+      "id": "48",
+      "platform": "kaogujia",
+      "board": "视频热推荐",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 10, \"scanned\": 10,",
+      "occurred_at": "2026-07-31 01:58:29.447255"
+    },
+    {
+      "id": "49",
+      "platform": "youmi",
+      "board": "爆品榜",
+      "status": "waiting_login",
+      "throttle_level": "0",
+      "evidence_json": "{\"screenshot_path\": \"E:\\\\yyds\\\\工具\\\\codex\\\\视频号自动上架系统_codex_sync_20260713_135956\\\\project\\\\backend\\\\runtime\\\\sourcing_evid",
+      "occurred_at": "2026-07-31 01:58:29.447255"
+    },
+    {
+      "id": "50",
+      "platform": "kaogujia",
+      "board": "电商视频榜",
+      "status": "success",
+      "throttle_level": "0",
+      "evidence_json": "{\"brand_filtered\": 0, \"duplicate_filtered\": 0, \"eligible\": 0, \"review_failures\": [], \"risk_filtered\": 40, \"scanned\": 40,",
+      "occurred_at": "2026-07-31 03:45:56.918642"
+    }
+  ]
+}

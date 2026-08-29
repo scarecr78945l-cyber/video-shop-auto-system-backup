@@ -1,0 +1,466 @@
+{
+  "schema": "p2-rule-drafts/v1",
+  "count": 46,
+  "items": [
+    {
+      "id": "1",
+      "stage": "selection",
+      "rule_key": "bundle=拍1发3",
+      "rule_text": "阶段selection：字段bundle=拍1发3；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [1]}",
+      "updated_at": "2026-08-17 15:51:09.734957"
+    },
+    {
+      "id": "2",
+      "stage": "selection",
+      "rule_key": "price=19.9",
+      "rule_text": "阶段selection：字段price=19.9；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [1]}",
+      "updated_at": "2026-08-17 15:51:09.734957"
+    },
+    {
+      "id": "3",
+      "stage": "material_review",
+      "rule_key": "source=youmi",
+      "rule_text": "阶段material_review：字段source=youmi；人工决策统计：keep=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [2]}",
+      "updated_at": "2026-08-17 15:57:43.172624"
+    },
+    {
+      "id": "4",
+      "stage": "material_review",
+      "rule_key": "visual_match=True",
+      "rule_text": "阶段material_review：字段visual_match=True；人工决策统计：keep=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [2]}",
+      "updated_at": "2026-08-17 15:57:43.172624"
+    },
+    {
+      "id": "5",
+      "stage": "selection",
+      "rule_key": "candidate=鞋服",
+      "rule_text": "阶段selection：字段candidate=鞋服；人工决策统计：reject=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [3]}",
+      "updated_at": "2026-08-17 23:28:07.505202"
+    },
+    {
+      "id": "6",
+      "stage": "selection",
+      "rule_key": "category=鞋服",
+      "rule_text": "阶段selection：字段category=鞋服；人工决策统计：reject=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [3]}",
+      "updated_at": "2026-08-17 23:28:07.505202"
+    },
+    {
+      "id": "7",
+      "stage": "selection",
+      "rule_key": "current_scope_excluded=True",
+      "rule_text": "阶段selection：字段current_scope_excluded=True；人工决策统计：reject=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [3]}",
+      "updated_at": "2026-08-17 23:28:07.505202"
+    },
+    {
+      "id": "8",
+      "stage": "selection",
+      "rule_key": "candidate=龟背小元宝茶桌摆",
+      "rule_text": "阶段selection：字段candidate=龟背小元宝茶桌摆；人工决策统计：reject=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [4]}",
+      "updated_at": "2026-08-17 23:28:07.509209"
+    },
+    {
+      "id": "9",
+      "stage": "selection",
+      "rule_key": "category=茶桌摆件",
+      "rule_text": "阶段selection：字段category=茶桌摆件；人工决策统计：reject=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [4]}",
+      "updated_at": "2026-08-17 23:28:07.509209"
+    },
+    {
+      "id": "10",
+      "stage": "selection",
+      "rule_key": "video_hook=weak",
+      "rule_text": "阶段selection：字段video_hook=weak；人工决策统计：reject=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [4]}",
+      "updated_at": "2026-08-17 23:28:07.509209"
+    },
+    {
+      "id": "11",
+      "stage": "selection",
+      "rule_key": "demo_clarity=low",
+      "rule_text": "阶段selection：字段demo_clarity=low；人工决策统计：reject=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [4]}",
+      "updated_at": "2026-08-17 23:28:07.509209"
+    },
+    {
+      "id": "12",
+      "stage": "selection",
+      "rule_key": "candidate=钓鱼灯",
+      "rule_text": "阶段selection：字段candidate=钓鱼灯；人工决策统计：reject=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [5]}",
+      "updated_at": "2026-08-17 23:28:07.514237"
+    },
+    {
+      "id": "13",
+      "stage": "selection",
+      "rule_key": "category=钓鱼灯",
+      "rule_text": "阶段selection：字段category=钓鱼灯；人工决策统计：reject=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [5]}",
+      "updated_at": "2026-08-17 23:28:07.514237"
+    },
+    {
+      "id": "14",
+      "stage": "selection",
+      "rule_key": "shipping_damage_risk=high",
+      "rule_text": "阶段selection：字段shipping_damage_risk=high；人工决策统计：reject=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [5]}",
+      "updated_at": "2026-08-17 23:28:07.514237"
+    },
+    {
+      "id": "15",
+      "stage": "selection",
+      "rule_key": "return_risk=high",
+      "rule_text": "阶段selection：字段return_risk=high；人工决策统计：reject=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [5]}",
+      "updated_at": "2026-08-17 23:28:07.514237"
+    },
+    {
+      "id": "16",
+      "stage": "selection",
+      "rule_key": "video_demonstrability=required",
+      "rule_text": "阶段selection：字段video_demonstrability=required；人工决策统计：principle=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [6]}",
+      "updated_at": "2026-08-17 23:28:07.519416"
+    },
+    {
+      "id": "17",
+      "stage": "selection",
+      "rule_key": "shipping_risk=screen",
+      "rule_text": "阶段selection：字段shipping_risk=screen；人工决策统计：principle=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [6]}",
+      "updated_at": "2026-08-17 23:28:07.519416"
+    },
+    {
+      "id": "18",
+      "stage": "selection",
+      "rule_key": "return_risk=screen",
+      "rule_text": "阶段selection：字段return_risk=screen；人工决策统计：principle=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [6]}",
+      "updated_at": "2026-08-17 23:28:07.519416"
+    },
+    {
+      "id": "19",
+      "stage": "selection",
+      "rule_key": "candidate=野餐锅铲架",
+      "rule_text": "阶段selection：字段candidate=野餐锅铲架；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [7]}",
+      "updated_at": "2026-08-17 23:36:13.429264"
+    },
+    {
+      "id": "20",
+      "stage": "selection",
+      "rule_key": "video_hook=strong",
+      "rule_text": "阶段selection：字段video_hook=strong；人工决策统计：selected=5",
+      "sample_count": "5",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [7, 8, 9, 10, 11]}",
+      "updated_at": "2026-08-17 23:36:30.511870"
+    },
+    {
+      "id": "21",
+      "stage": "selection",
+      "rule_key": "demo_clarity=high",
+      "rule_text": "阶段selection：字段demo_clarity=high；人工决策统计：selected=5",
+      "sample_count": "5",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [7, 8, 9, 10, 11]}",
+      "updated_at": "2026-08-17 23:36:30.511870"
+    },
+    {
+      "id": "22",
+      "stage": "selection",
+      "rule_key": "novelty=medium",
+      "rule_text": "阶段selection：字段novelty=medium；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [7]}",
+      "updated_at": "2026-08-17 23:36:13.429264"
+    },
+    {
+      "id": "23",
+      "stage": "selection",
+      "rule_key": "candidate=蛋形冰箱除味剂",
+      "rule_text": "阶段selection：字段candidate=蛋形冰箱除味剂；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [8]}",
+      "updated_at": "2026-08-17 23:36:13.445831"
+    },
+    {
+      "id": "24",
+      "stage": "selection",
+      "rule_key": "novelty=high",
+      "rule_text": "阶段selection：字段novelty=high；人工决策统计：selected=3",
+      "sample_count": "3",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [8, 10, 11]}",
+      "updated_at": "2026-08-17 23:36:30.511870"
+    },
+    {
+      "id": "25",
+      "stage": "selection",
+      "rule_key": "candidate=冰箱除味剂",
+      "rule_text": "阶段selection：字段candidate=冰箱除味剂；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [9]}",
+      "updated_at": "2026-08-17 23:36:13.460356"
+    },
+    {
+      "id": "26",
+      "stage": "selection",
+      "rule_key": "pain_point=clear",
+      "rule_text": "阶段selection：字段pain_point=clear；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [9]}",
+      "updated_at": "2026-08-17 23:36:13.460356"
+    },
+    {
+      "id": "27",
+      "stage": "selection",
+      "rule_key": "candidate=钢丝球抹布",
+      "rule_text": "阶段selection：字段candidate=钢丝球抹布；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [10]}",
+      "updated_at": "2026-08-17 23:36:13.474623"
+    },
+    {
+      "id": "28",
+      "stage": "selection",
+      "rule_key": "candidate=钢丝抹布",
+      "rule_text": "阶段selection：字段candidate=钢丝抹布；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [11]}",
+      "updated_at": "2026-08-17 23:36:30.512869"
+    },
+    {
+      "id": "29",
+      "stage": "selection",
+      "rule_key": "search_aliases=钢丝抹布|钢丝球抹布",
+      "rule_text": "阶段selection：字段search_aliases=钢丝抹布|钢丝球抹布；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [11]}",
+      "updated_at": "2026-08-17 23:36:30.512869"
+    },
+    {
+      "id": "30",
+      "stage": "shape_correction",
+      "rule_key": "candidate=冰箱除味剂-长椭圆形",
+      "rule_text": "阶段shape_correction：字段candidate=冰箱除味剂-长椭圆形；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [12]}",
+      "updated_at": "2026-08-18 02:41:05.211337"
+    },
+    {
+      "id": "31",
+      "stage": "shape_correction",
+      "rule_key": "shape=长椭圆形",
+      "rule_text": "阶段shape_correction：字段shape=长椭圆形；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [12]}",
+      "updated_at": "2026-08-18 02:41:05.211337"
+    },
+    {
+      "id": "32",
+      "stage": "shape_correction",
+      "rule_key": "source=user_image",
+      "rule_text": "阶段shape_correction：字段source=user_image；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [12]}",
+      "updated_at": "2026-08-18 02:41:05.211337"
+    },
+    {
+      "id": "33",
+      "stage": "shape_correction",
+      "rule_key": "exclude_shapes=蛋形|圆形",
+      "rule_text": "阶段shape_correction：字段exclude_shapes=蛋形|圆形；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [12]}",
+      "updated_at": "2026-08-18 02:41:05.211337"
+    },
+    {
+      "id": "34",
+      "stage": "shape_correction",
+      "rule_key": "require_usage_demo=True",
+      "rule_text": "阶段shape_correction：字段require_usage_demo=True；人工决策统计：selected=4",
+      "sample_count": "4",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [12, 13, 14, 15]}",
+      "updated_at": "2026-08-18 02:41:05.257753"
+    },
+    {
+      "id": "35",
+      "stage": "shape_correction",
+      "rule_key": "candidate=野餐锅铲架-旋转式",
+      "rule_text": "阶段shape_correction：字段candidate=野餐锅铲架-旋转式；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [13]}",
+      "updated_at": "2026-08-18 02:41:05.226414"
+    },
+    {
+      "id": "36",
+      "stage": "shape_correction",
+      "rule_key": "shape=旋转式",
+      "rule_text": "阶段shape_correction：字段shape=旋转式；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [13]}",
+      "updated_at": "2026-08-18 02:41:05.226414"
+    },
+    {
+      "id": "37",
+      "stage": "shape_correction",
+      "rule_key": "product_type=厨房锅铲架",
+      "rule_text": "阶段shape_correction：字段product_type=厨房锅铲架；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [13]}",
+      "updated_at": "2026-08-18 02:41:05.226414"
+    },
+    {
+      "id": "38",
+      "stage": "shape_correction",
+      "rule_key": "exclude_shapes=其他厨房置物架",
+      "rule_text": "阶段shape_correction：字段exclude_shapes=其他厨房置物架；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [13]}",
+      "updated_at": "2026-08-18 02:41:05.226414"
+    },
+    {
+      "id": "39",
+      "stage": "shape_correction",
+      "rule_key": "candidate=钢丝抹布-长方形加厚双面",
+      "rule_text": "阶段shape_correction：字段candidate=钢丝抹布-长方形加厚双面；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [14]}",
+      "updated_at": "2026-08-18 02:41:05.242458"
+    },
+    {
+      "id": "40",
+      "stage": "shape_correction",
+      "rule_key": "shape=长方形",
+      "rule_text": "阶段shape_correction：字段shape=长方形；人工决策统计：selected=2",
+      "sample_count": "2",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [14, 15]}",
+      "updated_at": "2026-08-18 02:41:05.257753"
+    },
+    {
+      "id": "41",
+      "stage": "shape_correction",
+      "rule_key": "thickness=加厚",
+      "rule_text": "阶段shape_correction：字段thickness=加厚；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [14]}",
+      "updated_at": "2026-08-18 02:41:05.242458"
+    },
+    {
+      "id": "42",
+      "stage": "shape_correction",
+      "rule_key": "surface=一面布一面钢丝",
+      "rule_text": "阶段shape_correction：字段surface=一面布一面钢丝；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [14]}",
+      "updated_at": "2026-08-18 02:41:05.242458"
+    },
+    {
+      "id": "43",
+      "stage": "shape_correction",
+      "rule_key": "variant_id=thick_rect_dual_surface",
+      "rule_text": "阶段shape_correction：字段variant_id=thick_rect_dual_surface；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [14]}",
+      "updated_at": "2026-08-18 02:41:05.242458"
+    },
+    {
+      "id": "44",
+      "stage": "shape_correction",
+      "rule_key": "candidate=钢丝抹布-长方形薄款",
+      "rule_text": "阶段shape_correction：字段candidate=钢丝抹布-长方形薄款；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [15]}",
+      "updated_at": "2026-08-18 02:41:05.258758"
+    },
+    {
+      "id": "45",
+      "stage": "shape_correction",
+      "rule_key": "thickness=薄",
+      "rule_text": "阶段shape_correction：字段thickness=薄；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [15]}",
+      "updated_at": "2026-08-18 02:41:05.258758"
+    },
+    {
+      "id": "46",
+      "stage": "shape_correction",
+      "rule_key": "variant_id=thin_rect",
+      "rule_text": "阶段shape_correction：字段variant_id=thin_rect；人工决策统计：selected=1",
+      "sample_count": "1",
+      "status": "draft",
+      "evidence_json": "{\"feedback_ids\": [15]}",
+      "updated_at": "2026-08-18 02:41:05.258758"
+    }
+  ]
+}
