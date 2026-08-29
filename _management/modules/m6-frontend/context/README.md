@@ -87,6 +87,23 @@
 | GET | `/api/workbench/exceptions` | 异常中心 | blocked/waiting_* 任务清单（error_code/evidence 摘要/暂停截止）；对齐旧 ExceptionCenter 语义 |
 | POST | `/api/workbench/retry/{jobId}` | 人工接管后重试 | waiting_* → 断点续跑；记录操作人 |
 
+### 1.8 API 层交付差异登记（v0.2 子代理①实测，来源 `backend/api/REPORT.md`）
+
+> **v0.2 已交付（2026-08-29，75 passed 验收通过）**。接口实现 41 路径与草案一致；以下为字段/语义差异，前端开发必须知悉：
+
+| # | 差异 | 前端处理 |
+|---|---|---|
+| D1 | `/api/jobs` 无 request_id 过滤（workflow_jobs 无该列）；仅 stage/status/error_code + 分页 | 按可用过滤条件开发 |
+| D2 | M4 任务列表 `error_code` 为**派生字段**（取最新 op_log 的 error_code，无记录为 null） | 按可空处理（null 显示「—」） |
+| D3 | M4 任务列表 `title` 为**派生字段**（关联最早 SPU title，无 SPU 为 null） | 按可空处理 |
+| D4 | 金额对外元 float（总控裁决优先于 M5 context 旧口径） | 前端只消费元，零换算 |
+| D5 | **M5 枚举为英文原值**（pending/active/…、excellent/good/…、roi/net_roi/goods），非中文入库 | lib/enums.ts 按 2.3 表翻译 |
+| D6 | M3 decision 已对接 P0-2 规则草稿闭环（learning_rule_drafts） | 审核页正常使用 |
+| D7 | M4 retry 为 v1.0 简化（状态机组合，真实 ListingGate 全量校验留 v1.1） | 按 API 返回处理 |
+| D8 | workbench retry 支持 waiting_verification/waiting_login/**blocked** 三类 | 异常中心重试按钮三类都展示 |
+| D9 | M1 详情 quotes/evidence 由 ORM 直查输出，raw_json 递归脱敏 | 详情页直接展示脱敏字段 |
+| D10 | **错误码扩展**：`VALIDATION_ERROR`(422)/`INVALID_STATE`(409) 为 API 层局部码（DA-008 之外） | lib/enums.ts 加 2 条映射或直接展示 message |
+
 ---
 
 ## 二、展示口径（前端唯一转换层，lib/format.ts + lib/enums.ts）
@@ -121,7 +138,7 @@
 | M2 relevance_status | `pending`→待判定；`passed`→相关放行；`failed`→不相关淘汰；`manual_review`→待人工确认目标款 | M2 context/DA-010 |
 | M2 upload_status | `local`→本地；`uploading`→上传中；`uploaded`→已上传；`failed`→失败；`disabled`→拒审下架 | M2 context |
 | evaluation 标签 | `exploring`→探索期；`efficient`→高效；`potential`→潜力 | M2/M3/M5 共口径 |
-| **M5 中文枚举（入库即中文，原样透传展示，不做反向翻译）** | status：待托管/托管中/已暂停/不可投放/已结束；diagnosis：优秀/良好/1项待优化/N项待优化；target_type：成交ROI/净成交ROI/商品成交 | M5 context 第一节/第二节 |
+| **M5 枚举（代码实测为英文枚举，原值透传，前端翻译——D5 差异：M5 context 文档称中文入库，以代码为准）** | status：`pending`→待托管、`active`→托管中、`paused`→已暂停、`not_eligible`→不可投放、`ended`→已结束；diagnosis：`excellent`→优秀、`good`→良好、`optimize_1`→1项待优化、`optimize_n`→N项待优化；target_type：`roi`→成交ROI、`net_roi`→净成交ROI、`goods`→商品成交 | 代码实测（ads/tables.py、ads/report.py 归一化），待 M5 会签同步文档 |
 | 09 前端状态机（阶段条） | 1 已选品 → 2 淘宝素材 → 3 询价(1688) → 4 生图 → 5 图片审核 → 6 待上架/已上架 → 7 托管投放 | 09 文档四节；映射逻辑见 lib/workflow.ts（重写后） |
 
 ---

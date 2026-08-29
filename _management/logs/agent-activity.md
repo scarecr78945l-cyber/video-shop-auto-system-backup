@@ -1315,3 +1315,143 @@
 - 产出文件：backend/api/（13 个 .py）、backend/tests/test_api_*.py（7 个）+ api_testing.py、backend/pytest.ini、backend/api/REPORT.md。
 - 当前阻塞：无（REPORT.md 含待会签遗留项：M0 auth 表契约、requirements.txt 需补 fastapi/uvicorn/httpx、M5 枚举口径文档漂移等）。
 - 备注：未运行 git；未修改 M0~M5 任何源码；未读写真实库（全部 tmp 库）；无明文密钥；文件全部 write/edit UTF-8 无 BOM；pytest 独立 basetemp .pytest-tmp-m6。
+
+---
+
+### 2026-08-29 16:50 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v0.2 验收通过 + 派工子代理②）
+
+- 任务来源：子代理①完成通知（75 passed），执行验收 + 排期 v0.3 派工。
+- 完成任务：
+  ① **验收子代理①（通过）**：复跑 `python -X utf8 -m pytest tests/test_api_*.py -q --basetemp=".pytest-tmp-m6"` → **75 passed**（17s，1 无害 deprecation 警告）；读 `backend/api/REPORT.md`（41 路径全实现 + 差异表 D1~D10 + 鉴权说明 + 金额换算 + 测试矩阵 + 遗留项 L1~L9）；抽查 `auth.py`（AuthStore 抽象/常数时间比较/无明文密码/m0 表未落地明确报错）、`errors.py`（统一错误 + cents_to_yuan + 递归脱敏）、`app.py`（应用工厂/CORS 白名单/鉴权守卫中间件/健康检查）、`m5_ads.py`（金额分→元换算、状态机 pause/resume/end、审计留痕）——质量合格；**零修改核验**：M0~M5 源码最后修改时间均早于子代理①运行时段（仅新增 api/、tests/test_api_*、pytest.ini）；**BOM 核验**：api 包 + 测试 29 文件全部 UTF-8 无 BOM；
+  ② **文档回填**：data-audit.md DA-011 校验结果（75 passed + 差异 + 待会签 5 项建议）；context/README.md +1.8 差异登记节（D1~D10 含前端处理）+ 2.3 枚举表 M5 行修正（代码实测英文枚举 pending/active/…、excellent/good/…、roi/net_roi/goods，D5）；decisions.md +3 条（v0.2 验收通过 / 错误码 VALIDATION_ERROR·INVALID_STATE 备案 / M5 枚举以代码实测为准）；progress.md v0.2 ✅ 100% + 完成度 15%；
+  ③ **创建子代理②（前端工程）**：subagent id 见本回合消息，后台运行；任务书自包含（背景/必读文档=context 全量 + REPORT.md 差异/输出 frontend/ 工程底座/vitest 单测/验收=next dev 可启动 + 登录闭环 + 单测过/纪律=禁 git·禁明文密钥·UTF-8·不复制旧 .next 与 node_modules·npm 代理核验·小步落盘）。
+- 产出文件：`data-audit.md`（DA-011 校验结果回填）、`context/README.md`（+1.8 差异节 + M5 枚举修正）、`decisions.md`（+3 条）、`progress.md`（v0.2 ✅ 完成度 15%）；子代理②已派工。未改动任何代码。
+- 当前阻塞：无。下一回合：等子代理②完成通知 → 验收（next dev 冒烟 + vitest 复跑 + 代码抽查）→ 汇报总控 → 派工子代理③（页面建设批次1：看板 + 商品队列 + 素材库）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合仅验收未改代码。
+
+---
+
+### 2026-08-29 18:10 ｜ 子代理②（前端工程底座） ｜ m6-frontend / frontend ｜ 角色：子代理
+
+- 任务来源：M6 总工程师派工（v0.3 前端工程底座），任务书自包含（frontend/ 全新初始化）。
+- 完成任务：
+  ① **工程配置**：package.json（依赖基线照旧系统：next ^15.5.20/react 19.0.0/tailwind ^3.4.17/typescript ^5.7.2/vitest ^4.1.10/lucide-react ^0.468.0/cva/clsx/tailwind-merge/@radix-ui/react-slot；dev：autoprefixer/postcss 8.5.10/eslint ^9.17.0/eslint-config-next 15.1.3；保留 overrides: postcss 8.5.10）、next.config.ts、tailwind.config.ts、postcss.config.js、tsconfig.json、vitest.config.mts、eslint.config.mjs（FlatCompat 桥接）、.gitignore、.env.example、next-env.d.ts；
+  ② **lib 层（重写）**：api.ts（fetch 封装 + 类型定义对齐 backend/api/schemas.py + credentials include + 401 全局跳登录 + setUnauthorizedHandler + ApiError/AuthError + NETWORK_ERROR）、format.ts（formatYuan 元直格式化/formatDateTime Intl UTC+8/centsToYuan 兜底）、enums.ts（error_code 7 码 + D10 2 码、M4 9 态、M1/M2 枚举、M5 英文枚举三表 D5、阶段条）、workflow.ts（新枚举→09 阶段 7 段映射，M4 9 态→6、M5 5 态→7）、auth.ts（login/logout/getCurrentUser/守卫辅助）、cn.ts；
+  ③ **app 路由**：根布局 + globals.css、login/page.tsx（LoginForm type=password）、(dashboard)/layout.tsx（路由守卫 /api/auth/me + AppShell）、总览占位 + 7 个业务占位页（v0.4+ 建设中）；components：AppShell（路由导航壳）、LoginForm、StatusBadge、YuanText、PagePlaceholder；
+  ④ **测试**：tests/format|enums|workflow|api.test.ts 共 55 用例（vitest node 环境）；
+  ⑤ **实测验收**：npm install 396 packages exit 0；npm test 55 passed；npx tsc --noEmit 0 errors；next build 12 路由静态生成 exit 0；next dev /login 200；真实后端 E2E 登录闭环（fixtures 模式临时 8123 端口，运行时随机账号）：login 200 + HttpOnly/SameSite=Lax cookie → /me 200(role=admin) → 无 cookie 401 → 错误密码 401 → logout 200 → logout 后 /me 401。
+- 产出文件：frontend/ 40 文件（配置/app/components/lib/tests/README.md/REPORT.md），详见 frontend/REPORT.md。
+- 当前阻塞：无。说明：本机 8000 端口被系统进程 svchost 占用（非本 API），冒烟用 --port 8123；登录账号由后端环境变量决定，前端不接触凭证。
+- 备注：未运行任何 git 命令；backend/ 未做任何修改（只读）；未复制旧系统 .next/node_modules/package-lock.json（全新安装）；无明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）。
+
+---
+
+### 2026-08-29 18:20 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v0.3 验收通过 + 派工子代理③）
+
+- 任务来源：子代理②完成通知（55 passed + E2E 登录闭环），执行验收 + 排期 v0.4 派工。
+- 完成任务：
+  ① **验收子代理②（通过）**：读 `frontend/REPORT.md`（工程结构 40 文件/验收矩阵/API 客户端要点/口径落地/差异处理 D1~D10/遗留项）；复跑 `npm test` → **55 passed**（4 文件，1.54s）+ `npx tsc --noEmit` → **0 errors**；**BOM 核验**：frontend 全量（排除 node_modules/.next）UTF-8 无 BOM；抽查 `lib/api.ts`（API_BASE 归一化/ApiError/AuthError/401 全局拦截 setUnauthorizedHandler/credentials include/统一错误解析）——质量合格；子代理②已实测真实后端 E2E 登录闭环（login→me→401→logout 全链路）；
+  ② **文档回填**：progress.md v0.3 ✅ 100% + 完成度 30% + v0.4 已派工；decisions.md +3 条（v0.3 验收通过 / 冒烟端口 8123（本机 8000 被 svchost 占用）/ next build 跳过 lint）；
+  ③ **创建子代理③（页面建设·批次1）**：subagent id `3060cd5f-ea81-46f0-b64c-96a3556e1e45`，后台运行；任务书自包含（3 个真实业务页接真实 API/必读 backend/api routers 确认字段/口径铁律/在底座上扩展/backend 只读/小步落盘）。
+- 产出文件：`progress.md`（v0.3 ✅ 完成度 30%）、`decisions.md`（+3 条）；子代理③已派工。未改动任何代码。
+- 当前阻塞：无。下一回合：等子代理③完成通知 → 验收（next build + vitest 复跑 + 页面冒烟 + 代码抽查）→ 汇报总控 → 派工子代理③批次2（上架任务页 + 托管看板页）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合仅验收未改代码。
+
+---
+
+### 2026-08-29 18:50 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v0.4 验收通过 + 派工子代理③批次2）
+
+- 任务来源：子代理③（批次1）完成通知（107 passed + API 字段映射冒烟），执行验收 + 排期 v0.5 派工。
+- 完成任务：
+  ① **验收子代理③批次1（通过）**：读 `frontend/REPORT.md` v0.4 小节（3 页面实现/字段映射表/新组件 lib/冒烟实测/测试矩阵/遗留项 8 条）；复跑 `npm test` → **107 passed**（9 文件，916ms）+ `npx tsc --noEmit` → **0 errors** + `npm run build` → **exit 0**（/ 4.49kB、/products 4.98kB、/assets 4.35kB）；抽查 `lib/dashboard.ts`（纯函数 + 09 阶段顺序 JOB_STAGE_ORDER + 枚举集中翻译 + abnormalJobCount 口径）——质量合格；
+  ② **遗留项评估**：①`backend/data/db/m2-materials.db` schema 过期（缺 relevance_status 列，真实库 /api/assets 500）→ 转达 M2 总工（decisions.md 登记）②商品关键词客户端过滤/下拉当前页去重/列表缺 source·updated_at → 待后端补字段/端点（不阻塞验收）③非管理员 kill-switch 403 反馈（前端无 role 上下文，v0.7 闸门可注入）；
+  ③ **文档回填**：progress.md v0.4 ✅ 100% + 完成度 45% + v0.5 已派工；decisions.md +3 条（v0.4 验收通过 / M2 库 schema 上报 / 页面遗留项登记）；
+  ④ **创建子代理③批次2（上架任务页 + 托管看板页）**：subagent id 见本回合消息，后台运行；任务书自包含（输入=frontend 底座 + backend/api routers m4_listing/m5_ads 响应字段/输出=2 个真实业务页/验收=next build + vitest 全绿 + 状态机可视化 + 托管列对齐/口径=金额元·时间 UTC+8·枚举集中翻译含 M4 9 态与 M5 英文枚举/纪律=禁 git·禁明文密钥·UTF-8·小步落盘）。
+- 产出文件：`progress.md`（v0.4 ✅ 完成度 45%）、`decisions.md`（+3 条）；子代理③批次2已派工。未改动任何代码。
+- 当前阻塞：无（M2 库 schema 遗留已上报，待总控转 M2）。下一回合：等子代理③批次2完成通知 → 验收 → 派工子代理③批次3（图片审核工作台 + 素材预审）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合仅验收未改代码。
+
+---
+
+### 2026-08-29 19:15 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v0.5 验收通过 + 派工子代理③批次3）
+
+- 任务来源：子代理③批次2完成通知（150 passed + M4/M5 冒烟全端点吻合），执行验收 + 排期 v0.6 派工。
+- 完成任务：
+  ① **验收子代理③批次2（通过）**：读 `frontend/REPORT.md` v0.5 小节（上架/托管 2 页实现 + 字段映射表 + 新组件 6 + 冒烟实测 + 遗留项 8 条）；复跑 `npm test` → **150 passed**（11 文件，1.01s）+ `npx tsc --noEmit` → **0 errors** + `npm run build` → **exit 0**（/listing 8.31kB、/ads 7.66kB）；抽查 `lib/ads.ts`（纯函数 + 枚举集中翻译 M5_TARGET_TYPE_LABELS + formatTargetBid「成交ROI 2.40」+ barMax 防除零 + buildAdsReportQuery 夹取 + parseMaterialIds 去重）——质量合格；冒烟实测 confirm/retry/409、already、余额告警（58.0<100.0）、报表降序→升序全部吻合；
+  ② **遗留项评估**：①ads/campaigns 无商品名（需后端 join 商品池）②上架任务关键词客户端过滤 ③状态机计数为当前页 ④audit_status/spu.status 平台原样直展 ⑤素材绑定最小版 ⑥ended 不显示恢复（与后端 409 一致）——均不阻塞验收，登记待后端增量；
+  ③ **文档回填**：progress.md v0.5 ✅ 100% + 完成度 60% + v0.6 已派工；
+  ④ **创建子代理③批次3（图片审核工作台 + 素材预审）**：subagent id 见本回合消息，后台运行；任务书自包含（输入=frontend 底座 + backend/api routers m3_optimization/m2_materials 响应字段/输出=图片审核工作台〔批次列表/逐图 approve·reject/整批通过〕+ 素材相关性人工确认〔multi_style→passed〕/验收=next build + vitest 全绿 + 审核/预审流程可用/口径=金额元·时间 UTC+8·枚举集中翻译/纪律=禁 git·禁明文密钥·UTF-8·小步落盘）。
+- 产出文件：`progress.md`（v0.5 ✅ 完成度 60%）；子代理③批次3已派工。未改动任何代码。
+- 当前阻塞：无。下一回合：等子代理③批次3完成通知 → 验收 → 派工子代理④（人工闸门工作台 + 异常中心 + 一键全停，v0.7）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合仅验收未改代码。
+
+---
+
+### 2026-08-29 19:35 ｜ M6 子代理③（页面建设·批次3） ｜ m6-frontend ｜ 角色：子代理
+
+- 任务来源：M6 总工 v0.6 批次3 任务书（图片审核工作台 + 素材预审）。
+- 完成任务：① 新增审核工作台 `/review`（双 tab：M3 生图批次图片审核〔批次列表/状态筛选/分页 → 逐图 approve·reject（驳回必填理由下拉预置+自定义）→ 整批通过（幂等 already_approved）→ 进度条 + D6 规则草稿闭环提示〕+ M2 素材相关性预审〔manual_review 列表 → 确认目标款 → passed 放行，双入口：/review tab + /assets 详情抽屉按钮〕）；② 新增 `lib/review.ts`（19 用例）+ enums.ts 追加 M3 五表 + api.ts 类型重写/新增（函数语义零改动）；③ 冒烟：fixtures 临时后端 8123 + 临时种子库 19 项断言全绿（含 D6 rule_draft_created、422 VALIDATION_ERROR、already_approved、relevance-confirm 幂等 changed）；④ 登记 P-019（Windows 回环 10048）。
+- 产出文件：`app/(dashboard)/review/page.tsx`、`components/ImageReviewPanel.tsx`、`components/MaterialPreReview.tsx`、`lib/review.ts`、`tests/review.test.ts`、`lib/enums.ts`（追加）、`lib/api.ts`（类型）、`components/AssetDetailPanel.tsx`（确认目标款入口）、`app/(dashboard)/assets/page.tsx`（确认流程）、`components/AppShell.tsx`（导航+版本）；`frontend/REPORT.md`（v0.6 批次3 小节）。
+- 验收：`npm test` → **175 passed**（12 文件）+ `npx tsc --noEmit` → **0 errors** + `npm run build` → **exit 0**（13 路由，/review 7.82kB）。
+- 当前阻塞：无。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥（冒烟账号为运行时随机值，未落文件）；全部文件经 write/edit 工具 UTF-8 无 BOM；backend/ 只读零修改；冒烟临时环境已清理（.smoke-b3 已删，8123 已释放）。
+
+---
+
+### 2026-08-29 19:40 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v0.6 验收通过 + 派工子代理④）
+
+- 任务来源：子代理③批次3完成通知（175 passed + 审核/预审冒烟 19 断言全绿），执行验收 + 排期 v0.7 派工。
+- 完成任务：
+  ① **验收子代理③批次3（通过）**：复跑 `npm test` → **175 passed**（12 文件，1.64s）+ `npx tsc --noEmit` → **0 errors** + `npm run build` → **exit 0**（13 路由，/review 7.82kB）；读 `frontend/REPORT.md` v0.6 小节（/review 双 tab 实现/字段映射 D-B3 差异/冒烟 19 断言/遗留项）；**P-019 踩坑日志登记核验通过**（Windows 回环 WinError 10048，冒烟用单条持久连接规避，防复发已落实）；抽查结论：D6 规则草稿闭环（rule_draft_created）、驳回理由必填 6 预置+自定义、整批通过幂等 already_approved、relevance-confirm 幂等 changed=false、REC-迁移-03 确认文案——全部落地；
+  ② **遗留项评估**：①图片预览为占位（backend/api 无媒体服务端点，待后端补媒体端点接真实预览）②批次列表字段按 API 源码实测落地（image_type/plan/gate/target_count，草案字段不存在）③review_status 三态无 excluded——均不阻塞验收，登记 decisions.md；
+  ③ **文档回填**：progress.md v0.6 ✅ 100% + 完成度 75% + v0.7 已派工；decisions.md +3 条（v0.5 验收/v0.6 验收/D-B3 差异登记）；
+  ④ **创建子代理④（人工闸门工作台 + 异常中心）**：subagent id 见本回合消息，后台运行；任务书自包含（输入=frontend 底座 + backend/api routers workbench/m1_sourcing 响应字段/输出=/workbench 闸门聚合待办页〔选品复核 gate-confirm + 各闸门计数跳转〕+ /exceptions 异常中心〔waiting_*/blocked 清单 + retry 断点续跑〕/验收=next build + vitest 全绿 + 全流程可操作/口径=金额元·时间 UTC+8·枚举集中翻译/纪律=禁 git·禁明文密钥·UTF-8·小步落盘）。
+- 产出文件：`progress.md`（v0.6 ✅ 完成度 75%）、`decisions.md`（+3 条）；子代理④已派工。未改动任何代码。
+- 当前阻塞：无。下一回合：等子代理④完成通知 → 验收 → 派工子代理⑤（集成验收，v0.8~v1.0：e2e 联调 + 全量回归 + 验收报告）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合仅验收未改代码。
+
+---
+
+### 2026-08-29 20:05 ｜ M6 子代理④ ｜ m6-frontend ｜ 角色：子代理（v0.7：人工闸门工作台 + 异常中心）
+
+- 完成任务：①`app/(dashboard)/workbench/page.tsx` 改造——6 类闸门待办卡片（GATE_DEFS/gateCount 计数 + count=0 置灰「无待办」+ 跳转目标页）+ KillSwitch 一键全停快捷卡（状态取 /api/overview risk）+ 选品复核内联面板；②`app/(dashboard)/exceptions/page.tsx` 改造——status 筛选 chips + 异常清单 + 人工接管重试（retryConfirmText 三类文案）；③新增 `lib/workbench.ts` 纯函数（GATE_DEFS/gateCount/totalGateCount/exceptionGroups/retryConfirmText/evidenceSummary/complianceReasonsSummary/buildReviewProductsQuery/buildExceptionsQuery）+ `tests/workbench.test.ts`（22 用例）；④`lib/api.ts` 类型对齐 workbench.py（WorkbenchException 全字段 + WorkbenchRetryResult/GateConfirmResult）；⑤新增组件 GateTodoCard/SourcingReviewPanel/ExceptionCenter；⑥products/review/listing 三页挂载时读取 query 参数做初始筛选（闸门卡片跳转直达）；⑦冒烟：fixtures 临时后端 8123 + 临时种子库（M0 4 任务 + M1 3 商品），37 断言全绿（gates 计数/字段/409/404/retry 断点续跑/状态过滤），环境已清理。
+- 产出文件：`frontend/lib/workbench.ts`（新）、`frontend/tests/workbench.test.ts`（新，22 用例）、`frontend/components/GateTodoCard.tsx` / `SourcingReviewPanel.tsx` / `ExceptionCenter.tsx`（新）、`frontend/app/(dashboard)/workbench/page.tsx` / `exceptions/page.tsx`（改造）、`frontend/lib/api.ts`（类型追加）、`products/review/listing/page.tsx`（query 参数种子）、`components/AppShell.tsx`（版本 v0.7）、`frontend/REPORT.md`（追加 v0.7 小节）。
+- 验收：`npm test` → **197 passed**（13 文件 = 既有 175 + 新增 22）+ `npx tsc --noEmit` → **0 errors** + `npm run build` → **exit 0**（13 路由，/workbench 5.7kB /exceptions 4.44kB）。
+- 当前阻塞：无。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥（冒烟账号运行时随机，仅进程内存）；全部文件经 write/edit 工具 UTF-8 无 BOM；backend/ 只读零修改；冒烟临时环境已清理（.smoke-b4 已删，8123 已释放，netstat 验证）。
+
+---
+
+### 2026-08-29 20:05 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v0.7 验收通过 + 派工子代理⑤）
+
+- 任务来源：子代理④完成通知（197 passed + 冒烟 37 断言全绿），执行验收 + 排期 v0.8~v1.0 派工。
+- 完成任务：
+  ① **验收子代理④（通过）**：复跑 `npm test` → **197 passed**（13 文件，1.51s）+ `npx tsc --noEmit` → **0 errors** + `npm run build` → **exit 0**；读 `frontend/REPORT.md` v0.7 小节（闸门工作台/异常中心实现 + 字段映射 + 冒烟 37 断言 + 遗留 6 项）；路由决策核验（选品复核内联+跳转双通道；products/review/listing/exceptions 四页 query 参数直达）；差异登记核验（草案 paused_until 不存在→实际 retry_after，前端列名「可重试时间」）；
+  ② **progress.md 结构修复**：清理 v0.7 表头下误挂的 v0.6/v0.5/v0.4 旧任务残留行（历轮迭代小节替换遗留）；
+  ③ **文档回填**：progress.md v0.7 ✅ 100% + 完成度 90% + v0.8~v1.0 已派工；decisions.md +1 条（v0.7 验收通过 + paused_until→retry_after 差异）；
+  ④ **创建子代理⑤（集成验收 v0.8~v1.0）**：subagent id 见本回合消息，后台运行；任务书自包含（范围=全量回归〔vitest 197 + API 层 pytest 75〕+ e2e 联调〔fixtures 后端 + 前端 dev，登录→8 页走通 + 关键闸门操作〕+ v1.0 验收报告〔控制台可启动/各页数据可展示/闸门可操作逐项核对〕+ 缺陷修复 + 文档同步/验收=验收报告完成且全绿/纪律=禁 git·禁明文密钥·UTF-8·全量 pytest 由总控执行〔子代理只跑 test_api_* 子集〕·小步落盘）。
+- 产出文件：`progress.md`（v0.7 ✅ 完成度 90% + 结构修复）、`decisions.md`（+1 条）；子代理⑤已派工。未改动任何代码。
+- 当前阻塞：无。下一回合：等子代理⑤完成通知 → 验收 v1.0 报告 → 汇报总控（模块 v1.0 交付，申请总控执行全量回归与备份标签）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合仅验收未改代码。
+
+---
+
+### 2026-08-29 21:10 ｜ M6 子代理⑤ ｜ m6-frontend ｜ 角色：子代理（v1.0 集成验收）
+
+- 完成任务：①**全量回归（本模块范围）**：`npm test` → 197 passed（13 文件）；`python -X utf8 -m pytest tests/test_api_*.py -q --basetemp=".pytest-tmp-m6"` → 75 passed；未跑 M0~M5 全量；②**端到端联调**：fixtures 后端（8123，临时 6 库种子：M1 manual_review×2 / M2 素材×3 / M3 待审批次 / M4 4 任务 / M5 2 托管+快照+账户 / M0 4 任务）+ 前端 next dev（3000）——API 层 31 断言全绿（登录→me→401 鉴权回归→gates 计数→gate-confirm 减 1→listing confirm→creating→图片 approve+规则草稿→relevance pass→retry→pending→kill-switch 开关回读→操作后计数联动）+ 9 路由 200（8 业务页壳渲染 + 登录表单）；③**v1.0 验收报告**：4 条验收标准逐项核对全过；④**缺陷修复**：5 项均为冒烟脚本自身问题（F1 enqueue 返回对象当 id / F2 confirm 缺请求体 / F3 逐请求建 socket 触 P-019 / F4 not-found 字符串误判 RSC payload / F5 build 后 dev 需删 .next），前端业务代码零缺陷；⑤**文档同步**：README.md 重写 v1.0（环境变量/登录账号来源/9 路由清单/对接说明/next build 后删 .next 备注）、REPORT.md 追加 v1.0 小节（回归/联调/验收核对/缺陷/遗留复核/移交总控清单）。
+- 产出文件：`frontend/REPORT.md`（追加 v1.0 集成验收小节）、`frontend/README.md`（重写 v1.0）。未改动任何业务代码；backend/ 零修改。
+- 当前阻塞：无。请总工验收 REPORT v1.0 小节 → 汇报总控（申请执行 M0~M5 全量回归 + v1.0 备份标签；移交总控清单见 REPORT 第六节：M2 materials.db schema 过期 / M0 auth 表 / 媒体端点 / 托管商品名 join 等）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥（联调账号运行时随机，SHA-256 仅进程环境）；全部文件 write/edit 工具 UTF-8 无 BOM；pytest 独立 basetemp；冒烟临时环境已清理（.smoke-v10 已删，8123/8125/3000 netstat 验证释放）。
+
+---
+
+### 2026-08-29 20:55 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v1.0 最终验收通过 · M6 模块交付完成）
+
+- 任务来源：子代理⑤（v1.0 集成验收）完成通知，执行最终验收 + 文档收尾 + 汇报总控。
+- 完成任务：
+  ① **最终验收子代理⑤（通过）**：复跑双回归——前端 `npm test` → **197 passed**（13 文件，1.43s）+ API 层 `python -X utf8 -m pytest tests/test_api_*.py -q --basetemp=".pytest-tmp-m6"` → **75 passed**（37.58s）；读 `frontend/REPORT.md` v1.0 小节（全量回归/e2e 40 断言/v1.0 四标准逐项核对/缺陷 5 项〔均冒烟脚本自身，业务代码零缺陷〕/遗留 31 条+L1~L9 逐条复核/移交总控清单/文档同步/纪律核验）；P-020/P-021 踩坑日志登记核验；
+  ② **文档收尾**：progress.md 完成度 **100%**（v1.0 ✅，状态=等总控全量回归+备份标签）；decisions.md +2 条（v1.0 验收通过 / M6 移交总控事项清单）；
+  ③ **汇报总控**：report 工具提交 M6 模块 v1.0 交付报告（验收证据 + 移交清单 + 申请全量回归/备份标签）。
+- 产出文件：`progress.md`（完成度 100%）、`decisions.md`（+2 条）、本日志追加条目。未改动任何代码。
+- 当前阻塞：无。M6 模块 v1.0 交付完成；等总控执行 M0~M5 全量回归（确认零回归）+ 备份标签（建议 v0.40+/m6-v1.0）+ 协调移交清单（M2 库迁移/M0 auth 表/媒体端点/商品名 join/requirements 补依赖/M5 文档同步/DA-011 会签）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合仅验收未改代码。

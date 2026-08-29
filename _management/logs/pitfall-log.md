@@ -153,3 +153,30 @@
 - **现象与根因**：M0 执行全量回归（`--basetemp=".pytest-tmp-m0"`）报 **13 failed**（`test_listing_pipeline.py` ×11、`test_listing_candidate_pool.py` ×1、`test_foundation_integration.py` ×1），根因 `'ListingPipeline' object has no attribute '_prefill_from_category_memory'`——`listing/pipeline.py` 已加入调用点（第 76 行 `candidate, prefill = self._prefill_from_category_memory(candidate)`）而方法尚未落盘。排查：grep 确认 `listing/repo.py`（get_category_memory/upsert_category_memory）与 `tables.py`（listing_category_memory）均已实现、`pipeline.py` 第 398 行方法随后存在——回归执行时正值 M4 侧 REC-融合 P0-1 迁移**在途写入的中间状态**（P-015 同型竞态，非代码缺陷）。
 - **解决方案**：无需改代码。M4 侧落盘完成后复跑 `pytest tests/test_listing_pipeline.py tests/test_listing_candidate_pool.py tests/test_foundation_integration.py --basetemp=".pytest-tmp-m0"` → **26 passed 全绿**；M0 foundation 子集 **94 passed**（79 既有 + manifest 15 新增）零回归。
 - **防复发措施**：① 全量回归前先确认目标模块代理均完成（P-015 已立）；② 回归失败先复跑确认——本坑再次验证该流程有效（失败仅出现在并行代理在途期间 → 中间状态误报）；③ 跨模块并行期间，M0 验收以「foundation 子集 + 相关模块复跑」双证为准；④ P0-1 类目记忆融合由 M4 侧完成（新增 listing_category_memory 表），M0 共享表治理不受影响。
+
+---
+
+## P-019 ｜ Windows 回环快速 HTTP 请求 WinError 10048（TIME_WAIT 端口复用）
+
+- **出现时间**：2026-08-29 ｜ **模块**：M6 前端控制台（批次3 冒烟） ｜ **代理**：子代理③
+- **现象与根因**：冒烟脚本（Python urllib 逐请求新建 socket，快速连续请求 127.0.0.1:8123）在第 2~4 个请求起随机报 `OSError: [WinError 10048] 通常每个套接字地址(协议/网络地址/端口)只允许使用一次`。根因：Windows 回环连接后进入 TIME_WAIT（默认约 2×MSL），系统为同一目标 (127.0.0.1, port) 复用最低可用本地临时端口时命中 TIME_WAIT 元组，connect 直接 10048（Windows 较 Linux 严格，无 SO_REUSEADDR 时不允许复用）。`SO_REUSEADDR` 客户端方案在本机仍不稳定；改用**单条持久连接**（http.client keep-alive + 手动 Set-Cookie 捕获）后 19 项断言全绿。
+- **解决方案**：冒烟/联调脚本对同一本机服务的多次请求一律使用**持久连接**（http.client 复用同一 HTTPConnection；requests.Session 同理），不要逐请求新建 socket；需要会话 cookie 时从登录响应 `Set-Cookie` 手动取 `m6_session=...` 随请求头携带。
+- **防复发**：① 本机/CI 冒烟脚本禁止逐请求新建 socket 打回环服务；② 已把该模式写入批次3 冒烟脚本（`frontend/.smoke-b3/`，用完已删，模式见 REPORT 说明）；③ 若必须逐请求新建，先设置 `TcpTimedWaitDelay` 或接受重试。
+
+---
+
+## P-020 ｜ M6 v1.0 联调 1 次瞬态连接超时（retry 后 exceptions 回读，未复现）
+
+- **出现时间**：2026-08-29 ｜ **模块**：M6 前端控制台（v1.0 集成验收冒烟） ｜ **代理**：子代理⑤
+- **现象与根因**：冒烟脚本（http.client 持久连接）在 `POST /api/workbench/retry/{job}` 成功后，下一次 `GET /api/workbench/exceptions?status=waiting_verification` 连接超时（10s，客户端抛 TimeoutError）；服务端同链路其他请求均 2-12ms。**复跑与后续多轮未复现**（含同链路 pytest 75 用例全绿）；根因未定位，倾向瞬态环境抖动（SQLite 文件锁时序/Windows 回环连接状态），非代码缺陷。
+- **解决方案**：无需改代码。冒烟脚本增加「失败打印服务端日志尾巴」辅助定位；确认未复现后按环境抖动处理。
+- **防复发措施**：① 冒烟断言遇超时先复跑确认（P-015/P-018 同型方法论：并行/瞬态失败先排除环境再判缺陷）；② 冒烟脚本把服务端日志写文件而非管道（避免 pipe 死锁掩盖真因）；③ 若再现，按 SQLite 写锁方向排查（审计写 M0 logs 与异常查询的锁时序）。
+
+---
+
+## P-021 ｜ next build 后直接 next dev → 全路由返回 not-found 页（HTTP 200 误导）
+
+- **出现时间**：2026-08-29 ｜ **模块**：M6 前端控制台（v1.0 路由冒烟） ｜ **代理**：子代理⑤
+- **现象与根因**：`npm run build` 后再 `npm run dev`，dev 命中陈旧 `.next` manifest（build 产物与 dev 态冲突），**所有路由返回 HTTP 200 但页面内容为 not-found 页**；且 Next.js App Router 每个页面 RSC flight payload 内嵌客户端 404 兜底组件定义（`HTTPAccessErrorFallback`，"This page could not be found" 字符串出现在每个正常页面的 HTML 里），单纯字符串标记判断会误报。
+- **解决方案**：dev 前删除 `.next` 目录（`Remove-Item -Recurse -Force .next`）；路由冒烟判定改为「HTTP 200 + 页面内容标记（工作台壳/登录表单）+ 未知路由 404 基线」。
+- **防复发措施**：① README 快速开始已备注「build 后需删 .next 再 dev」；② 路由冒烟/页面验收禁止以「HTTP 200」或「not-found 字符串」单独作判据；③ 冒烟前先验证 /login 含真实表单内容。
