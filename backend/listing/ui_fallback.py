@@ -228,7 +228,8 @@ class FallbackRunner:
                 },
             }
         except PageChangedError as exc:
-            return self._fail("page_changed", exc.evidence)
+            # 错误码对齐 M0 error_codes 权威码表（DA-008：PAGE_CHANGED 大写，09 文档 8+1 码）
+            return self._fail("PAGE_CHANGED", exc.evidence)
         except Exception as exc:
             return self._fail(
                 self._map_error(exc),

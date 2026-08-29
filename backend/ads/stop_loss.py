@@ -1,60 +1,62 @@
-"""M5 自动小店投放（商品托管）· 止损规则引擎（v0.4）。
+"""M5 自动小店投放（商品托管）· 止损规则引擎（v0.4，v1.1 基座引用改造）。
 
-实现 08 文档第五节 + 10 文档第一节的止损规则表 S1~S8 与四层资金防线：
-  1. 预算三重硬约束（S7，check_budget_triple，任一超限即停）；
-  2. 自动止损（S1 暂停 / S3 降档，rule_s1/rule_s3）；
-  3. 余额检测（S5，rule_s5，暂停新托管 + 告警人工充值）；
-  4. 一键全停（S8，kill_switch_enabled，最高优先级）。
-另含诊断回读枚举化（normalize_diagnosis：excellent/good/optimize_1/optimize_n/unknown，
-与并行子代理 report.py 同口径，独立实现不互相 import）。
+实现 08 文档第五节 + 10 文档第一节的止损规则表 S1~S8 与四层资金防线。
 
-设计约束（本任务宪法）：
+**共享规则引用基座（总控裁决 DA-008 / M0 会签，v1.1）**：
+  - S1 止损暂停 / S3 ROI 降档 / S5 余额检测 / S7 预算三重硬约束 / S8 一键全停
+    与 normalize_diagnosis、RuleVerdict/BudgetVerdict/EngineResult 数据类型
+    一律 **import M0 基座 `foundation.risk`**（同签名同语义，以基座为准），
+    本模块不再持有自有实现；
+  - S2（诊断优化记录）/ S4（平台补贴记录）/ S6（活跃数上限）为投放业务专属
+    规则，保留在本模块；StopLossEngine 编排（含 S6 与 subsidy_only_report
+    语义）亦为本模块业务组合，基座 RiskEngine 不替代。
+
+设计约束：
   - 全部纯函数 / 数据驱动：输入为快照/账户状态/预算上下文数据（dict 或 ORM 对象，
-    _get 统一取值），输出结构化判定结果（RuleVerdict / BudgetVerdict / EngineResult）；
-    零浏览器、零 DB 写（app_config 只读由调用方完成）。
+    _get 统一取值），输出结构化判定结果；零浏览器、零 DB 写。
   - 金额一律「分」（int）；ROI 为浮点倍数（不走分）。
   - 枚举英文：诊断 excellent/good/optimize_1/optimize_n/unknown；动作
     pause/halt_new/stop_new/degrade_material/record_optimization/record_subsidy/
     record_optimize（别名）/halt_all。
-  - 快照列表按 recorded_at 升序语义传入（引擎内对可比较时间戳排序，缺失保持输入顺序）。
+  - 快照列表按 recorded_at 升序语义传入。
 """
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+# ---- 共享规则引用 M0 基座（DA-008 会签：同签名同语义，以基座为准）----
+from foundation.risk import (  # noqa: F401  （re-export 保持本模块接口兼容）
+    ACTION_DEGRADE_MATERIAL,
+    ACTION_HALT_ALL,
+    ACTION_HALT_NEW,
+    ACTION_PAUSE,
+    DEFAULT_MIN_BALANCE_FEN,
+    DEFAULT_ROI_FLOOR_RATIO,
+    DEFAULT_STOPLOSS_IMPRESSION,
+    BudgetVerdict,
+    EngineResult,
+    RuleVerdict,
+    check_budget_triple,
+    kill_switch_enabled,
+    normalize_diagnosis,
+    rule_s1_stop_loss,
+    rule_s3_roi_floor,
+    rule_s5_balance,
+)
+
 # ---------------------------------------------------------------- 常量
 
-# 动作枚举（宪法 5：动作 pause/halt_new/stop_new/degrade_material/
-# record_optimization/record_subsidy/record_optimize/halt_all）
-ACTION_PAUSE = "pause"                              # S1 暂停该托管
-ACTION_HALT_NEW = "halt_new"                        # S5 暂停新托管（余额不足）
+# 业务专属动作枚举（S2/S4/S6，基座不含）
 ACTION_STOP_NEW = "stop_new"                        # S6 停止新增（活跃数超限）
-ACTION_DEGRADE_MATERIAL = "degrade_material"        # S3 降素材优先级/调 ROI
 ACTION_RECORD_OPTIMIZATION = "record_optimization"  # S2 记录优化项（标记优先重投）
 ACTION_RECORD_SUBSIDY = "record_subsidy"            # S4 补贴计入报表（单独统计）
 ACTION_RECORD_OPTIMIZE = "record_optimize"          # S2 别名（枚举兼容，主用 record_optimization）
-ACTION_HALT_ALL = "halt_all"                        # S8 一键全停
 
-# 诊断中文 → 英文枚举（normalize_diagnosis 权威映射）
-_DIAGNOSIS_CN_TO_EN: dict[str, str] = {
-    "优秀": "excellent",
-    "良好": "good",
-    "1项待优化": "optimize_1",
-}
-_EN_DIAGNOSIS_VALUES = frozenset(("excellent", "good", "optimize_1", "optimize_n"))
-# 正则：N 项待优化（N>1 → optimize_n；N==1 → optimize_1）
-_OPTIMIZE_RE = re.compile(r"(\d+)\s*项待优化")
-
-# S1 默认止损曝光阈值 / S5 默认余额阈值（分，¥100）/ S6 默认活跃上限
-DEFAULT_STOPLOSS_IMPRESSION = 500
-DEFAULT_MIN_BALANCE_FEN = 10000
+# S6 默认活跃上限（业务专属）
 DEFAULT_ACTIVE_CAP = 40
-# S3 默认 ROI 止损线比例（目标×80%）
-DEFAULT_ROI_FLOOR_RATIO = 0.8
 
 # 引擎逐规则命中时的建议文案（recommendations 聚合，按规则顺序输出）
 _RECOMMENDATION_TEMPLATES: dict[str, str] = {
@@ -126,41 +128,12 @@ def _sort_snapshots(snapshots: list[Any]) -> list[Any]:
 
 
 # ---------------------------------------------------------------- 结构化判定结果
+# RuleVerdict / BudgetVerdict / EngineResult 引用 M0 基座 foundation.risk（DA-008 会签，
+# 字段结构与本模块 v0.4 原定义完全一致），见文件头 import 段。
 
-@dataclass
-class RuleVerdict:
-    """单条止损规则判定结果（evidence 保证可 JSON 序列化）。"""
+# ---------------------------------------------------------------- 业务专属规则
 
-    rule_id: str                     # S1..S8
-    action: str                      # 英文动作枚举
-    reason: str                      # 中文原因（含实际值，展示/告警用）
-    evidence: dict[str, Any] = field(default_factory=dict)   # 可 JSON 的证据明细
-    suggested_actions: list[str] = field(default_factory=list)  # 建议动作（标签/人工指引）
-
-
-@dataclass
-class BudgetVerdict:
-    """预算三重硬约束（S7）判定结果。rule: single/daily/plan/none；0=不限。"""
-
-    over_limit: bool
-    rule: str                        # single / daily / plan / none
-    reason: str
-    spend_fen: int
-    budget_fen: int
-
-
-@dataclass
-class EngineResult:
-    """引擎整体判定结果。halt_all：kill_switch 或 S5 或 S6 命中时为 True。"""
-
-    verdicts: list[RuleVerdict] = field(default_factory=list)
-    halt_all: bool = False
-    actions: dict[str, int] = field(default_factory=dict)     # action → 命中次数汇总
-    recommendations: list[str] = field(default_factory=list)
-
-
-# ---------------------------------------------------------------- 诊断回读枚举化
-
+# S2：诊断优化记录（业务专属，基座不含）
 def normalize_diagnosis(raw: str | None) -> str:
     """后台智能诊断回读值 → 英文枚举（与 report.py 同口径，独立实现）。
 

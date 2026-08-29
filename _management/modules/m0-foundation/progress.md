@@ -32,8 +32,8 @@
 | [x] A4-4（修复任务）：foundation_security 2 失败修复——`test_redact_text_bearer_token` 按总控裁决改实现（`_mask_secret_value` 回调：值为 Bearer 时保留原文 → 输出 `Authorization: Bearer ***`，**Bearer 前缀保留、仅 token 脱敏**）；`test_no_plaintext_secret_in_outputs` 排查结论：纯函数无共享可变状态，偶发为旧断言/P-011 并发抖动，断言已改为键值/URL/Bearer 形式 → **11 passed + 全量 1089 passed, 2 skipped 零回归** | 总工 | 100% | 无 |
 | [x] A5-1：`database/migrations/0001_create_base_tables.pg.sql`（PG 五表 DDL + 9 错误码种子，幂等 IF NOT EXISTS + ON CONFLICT DO NOTHING；方言映射 JSONB/TIMESTAMPTZ/BIGSERIAL/BOOLEAN）| 总工 | 100% | 无 |
 | [x] A5-2：`0001_rollback.pg.sql`（逆序 DROP）+ `README.md`（四阶段迁移计划/方言差异清单/执行方式/回滚方案（切回 SQLite 快照）/校验 SQL）→ database/README.md 迁移记录 v0.6 | 总工 | 100% | 无 |
-| [x] 治理前置：数据字典定稿 + 跨模块契约会签 | 总工 | 0% | 排期 A6，下一步（亲办） |
-| [ ] 集成：与 M1~M5 联调 | 总工 | 0% | 排期 A7（亲办） |
+| [x] A6-1：A6 会签登记——`data-audit.md` +DA-008（全局数据字典基准：金额分/时间 UTC _at/ID/指纹/枚举 + 错误码表权威 + 共享表读写边界 + M1~M5 分模块核对项清单） | 总工 | 30% | 待总控转达 M1~M5 总工会签，收集确认后回传 |
+| [ ] 集成：与 M1~M5 联调 | 总工 | 0% | 排期 A7（亲办，A6 会签完成后） |
 
 ## 里程碑进度
 

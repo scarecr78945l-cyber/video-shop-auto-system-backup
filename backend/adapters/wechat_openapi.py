@@ -16,19 +16,27 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _logger = logging.getLogger(__name__)
 
-# WorkflowJob 统一错误码表
+# WorkflowJob 统一错误码表（09 文档 8+1 码，对齐 M0 error_codes 权威码表 DA-008；
+# 本模块不产出 INSUFFICIENT_REFERENCES / PAGE_CHANGED，但集合含全量以保证非法码归一正确）
 ERROR_CODES = frozenset({
     "VERIFICATION_REQUIRED",
     "AUTH_REQUIRED",
     "RATE_LIMIT",
     "TIMEOUT",
     "NO_MATCH",
+    "INSUFFICIENT_REFERENCES",
     "PLATFORM_REJECT",
     "UNEXPECTED",
+    "PAGE_CHANGED",
 })
 
-# 重试退避（秒）：RATE_LIMIT=180 / TIMEOUT=60 / NO_MATCH=120 / 其余=60
-_BACKOFF_SECONDS = {"RATE_LIMIT": 180.0, "TIMEOUT": 60.0, "NO_MATCH": 120.0}
+# 重试退避（秒）：RATE_LIMIT=180 / TIMEOUT=60 / NO_MATCH=120 / INSUFFICIENT_REFERENCES=120 / 其余=60
+_BACKOFF_SECONDS = {
+    "RATE_LIMIT": 180.0,
+    "TIMEOUT": 60.0,
+    "NO_MATCH": 120.0,
+    "INSUFFICIENT_REFERENCES": 120.0,
+}
 _DEFAULT_BACKOFF_SECONDS = 60.0
 
 # 默认令牌桶参数：每接口 capacity=10，refill_rate=1.0/s

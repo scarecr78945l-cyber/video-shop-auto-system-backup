@@ -70,7 +70,7 @@ class OptVideoVariant(Base):
     review_status: Mapped[str] = mapped_column(String(20), default="pending")
     upload_status: Mapped[str] = mapped_column(String(20), default="local")
     platform_material_id: Mapped[str] = mapped_column(String(120), default="")
-    evaluation: Mapped[str] = mapped_column(String(20), default="exploration")
+    evaluation: Mapped[str] = mapped_column(String(20), default="exploring")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
@@ -200,7 +200,7 @@ class OptEvaluationFeedback(Base):
     roi: Mapped[float] = mapped_column(Float, default=0.0)
     diagnosis_json: Mapped[dict] = mapped_column(JSON, default=dict)
     score: Mapped[float] = mapped_column(Float, default=0.0)
-    evaluation: Mapped[str] = mapped_column(String(20), default="exploration")
+    evaluation: Mapped[str] = mapped_column(String(20), default="exploring")
     stale: Mapped[bool] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 

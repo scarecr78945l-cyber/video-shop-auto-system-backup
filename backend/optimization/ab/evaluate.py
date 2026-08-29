@@ -1,12 +1,12 @@
 """M3 A/B 优化闭环 · 评估标签与幂等回写（对齐 06 文档第五节 + context README 1.4 评估标签）。
 
-- 标签计算（阈值配置化，边界 >= 达标）：:
+- 标签计算（阈值配置化，边界 >= 达标；枚举与 M2/M5 共口径 exploring/efficient/potential，DA-008）：:
 
-    高效 high_efficiency = ROI ≥ roi_high（默认 2.0）
+    高效 efficient    = ROI ≥ roi_high（默认 2.0）
                           或 (CTR ≥ ctr_qualify（默认 2%）且 ROI ≥ roi_potential（默认 1.0）)
-    潜力 potential       = 有数据（exposure ≥ min_exposure，默认 100）未达高效
+    潜力 potential    = 有数据（exposure ≥ min_exposure，默认 100）未达高效
                           （含「有曝光无成交」，及有成交但未达高效标准——成交待观察）
-    探索期 exploration   = 无数据 / 低数据（exposure < min_exposure）
+    探索期 exploring  = 无数据 / 低数据（exposure < min_exposure）
 
 - 回写：``EvaluationService.record()`` 先按原始指标重算 score+evaluation，再经
   ``EvaluationRepo.upsert``（公共骨架只使用不修改）按 (variant_id, report_date)
@@ -14,7 +14,7 @@
   （本模块自有表，直接经 db.session，属使用而非修改骨架）。
 - stale（无新数据）：``mark_stale`` 检查最新快照 report_date 距今是否超过
   stale_days（默认 7）；超期 → stale=1，否则 stale=0（幂等自愈）。
-- 无回写数据：``latest()`` 返回 None → 排序层按 score=0 / exploration 处理。
+- 无回写数据：``latest()`` 返回 None → 排序层按 score=0 / exploring 处理。
 """
 
 from __future__ import annotations
@@ -32,9 +32,9 @@ from ..models import EvaluationSnapshot
 from ..repo import EvaluationRepo
 from .scoring import MaterialScorer, ctr_of
 
-HIGH_EFFICIENCY = "high_efficiency"
+HIGH_EFFICIENCY = "efficient"
 POTENTIAL = "potential"
-EXPLORATION = "exploration"
+EXPLORATION = "exploring"
 EVALUATION_VALUES = (HIGH_EFFICIENCY, POTENTIAL, EXPLORATION)
 
 # ---------- 环境变量名（只出现名字，不出现密钥值） ----------

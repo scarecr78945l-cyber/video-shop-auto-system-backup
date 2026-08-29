@@ -96,10 +96,10 @@ class EvaluationSnapshot(BaseModel):
     report_date: str                      # UTC YYYY-MM-DD
     exposure: int = 0
     clicks: int = 0
-    spend: float = 0.0
+    spend: float = 0.0                     # 金额单位「分」（DA-001/DA-008，M5 回写 spend_cents 直存）
     orders: int = 0
     roi: float = 0.0
     diagnosis: dict[str, Any] = Field(default_factory=dict)
     score: float = 0.0                    # 素材评分 = f(ROI, CTR, 诊断)
-    evaluation: str = "exploration"       # 探索期/潜力/高效
+    evaluation: str = "exploring"         # 探索期/潜力/高效（M2/M5 共口径 exploring/efficient/potential，DA-008）
     stale: bool = False

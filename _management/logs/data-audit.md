@@ -112,3 +112,83 @@
 - **M3 消费入口**：`backend/optimization/ab/ingest.py`（ingest_m5_record / ingest_m5_batch）——unmatched material_id 不落库（失败隔离），幂等回写 opt_evaluation_feedback，驱动评估标签与模板重训练。
 - **校验结果**：联调契约测试 `test_optimization_m5_integration.py` **5 用例全绿**（金额分→元换算、ROI 计算、中文诊断兼容、unmatched 隔离、幂等、排序消费）；全量回归 **1021 passed, 2 skipped**（M3 全范围全绿）。
 - **总控核对结论**：（待总控核对字段/单位后填写；建议 M5 侧同步登记对端，双方在 data-exchange JSON 文件头会签）
+
+---
+
+## DA-008 ｜ A6 数据字典定稿 + 跨模块契约会签（申请方：M0 总工 ｜ 涉及 M1~M5）
+
+- **会签目的**：全局数据字典口径定稿 + 共享基座契约核对（M0 基座 v0.6 已就绪：五表 DDL/队列/调度器/风控/脱敏）。M0 侧基准已定稿——`_management/modules/m0-foundation/context/README.md`（全局字段口径表）+ `database/README.md`（五表 DDL v0.2）。
+- **全局数据字典基准（各方确认口径一致）**：
+  1. 金额一律「分」int 存储（含 JSON 内金额），展示层转元（DA-001 REC-005，M4/M5 已 ✅）；
+  2. 时间一律 UTC（ISO8601 带时区）存储，时间戳字段后缀 `_at`，展示层转 UTC+8（DA-001）；
+  3. 主键 ID=自增整数；指纹=SHA-256 hex（64 位小写）；枚举=小写下划线 snake_case（英文，如 error_code/status/evaluation）；
+  4. 错误码唯一权威=`error_codes` 表（09 文档 8+1 码：VERIFICATION_REQUIRED/AUTH_REQUIRED/RATE_LIMIT/TIMEOUT/NO_MATCH/INSUFFICIENT_REFERENCES/PLATFORM_REJECT/UNEXPECTED/PAGE_CHANGED）。
+- **共享表契约（读写边界，M0 拥有，全员只读）**：`workflow_jobs`/`tasks`/`logs`/`app_config`/`error_codes`——写入经 M0 队列 API/总控协调；其他模块只读（宪法第 4 节）。
+- **分模块核对项（请各模块总工会签确认）**：
+  - **M1（选品）**：① workflow_jobs 入队/查询契约（product_id/stage/generation_version 幂等键）是否对接；② app_config 键 `category.whitelist`/`scoring.weights` 口径（M1 pipeline 已接线读取）；③ m1_ad_conversion_cache/ingests 金额=分 int、generated_at UTC 校验（M1 S1b 已实现）。
+  - **M2（素材）**：① downloader 错误分类（RATE_LIMIT/TIMEOUT/NO_MATCH/AUTH_REQUIRED/PLATFORM_REJECT/UNEXPECTED）与 M0 error_codes 表码表一致确认；② asset_* 表时间 _at UTC/金额（如有）分 int；③ evaluation 枚举 exploring/efficient/potential 共口径。
+  - **M3（优化）**：① app_config 只读（`risk.high_risk_categories` 扩展点预留）；② opt_* 表时间 _at UTC、金额分 int（如有）；③ evaluation 枚举与 M2/M5 共口径（DA-003/DA-007 已互认）。
+  - **M4（上架）**：① listing_tasks 幂等键 (product_id, stage, generation_version) 与 M0 workflow_jobs 同构确认（是否双写/引用 M0 队列，由总控裁定）；② listing 状态机错误码映射（09 码表子集）与 M0 error_codes 一致确认；③ 金额分 int（price_cents）/时间 _at UTC 确认。
+  - **M5（投放）**：① **风控共享规则引用基座**——M0 `foundation/risk.py`（S7 预算三重/S1·S3 止损/S5 余额/S8 全停）与 M5 `ads/stop_loss.py` 同签名同语义，M5 后续 import 基座替换自有实现（总控协调）；② ad_* 表金额分 int/时间 _at UTC 确认（DA-001 已 ✅）；③ app_config 只读确认。
+- **状态**：M0 侧基准已定稿；**待总控转达 M1~M5 总工会签**，各方确认后回传 M0，完成会签后更新 progress.md/decisions.md（A6）并推进 A7 集成联调。
+- **总控核对结论**：（待填）
+
+### DA-008 ｜ M1 会签意见（2026-08-29 ｜ M1 总工）
+
+按 4 项核对逐条确认/提出异议（已核实 M1 代码实现）：
+
+1. **全局数据字典口径** ✅ **确认**——M1 已符合：金额一律分 int（`ad_backfill` sales_amount INTEGER 分、`m1_ad_conversion_cache.sales_amount` int、示例交换文件校验 int ge=0）；时间一律 UTC（`models.utcnow` aware UTC + `DateTime(timezone=True)`，`_at` 后缀：generated_at/ingested_at）；主键自增整数（tables.py 全部 Integer PK autoincrement）；指纹 SHA-256 hex（`dedup.py:33` `hashlib.sha256(...).hexdigest()`，String(64) 吻合）；枚举 snake_case 英文（ComplianceState: hard_reject/candidate/manual_review；state: pool/manual_review/rejected）。
+2. **队列入队契约（product_id/stage/generation_version 幂等键）** ✅ **确认**——M1 当前**无独立 workflow_jobs 入队实现**：选品产出商品池（products 表 state=pool），入队由上架链 M4 消费；M1 调度器走 source+board 账本（source_board_states），不经 workflow_jobs。若后续 M1 需驱动 workflow_jobs（如询价/补全任务入队），将严格使用 M0 幂等键 product_id/stage/generation_version 并只经 M0 队列 API 写入。
+3. **app_config 键约定** ⚠️ **提出对齐项**——M1 已实现键名为 **`category_whitelist`**（下划线，`pipeline._load_category_whitelist` 第 57 行已接线，`test_compliance_appconfig.py` 6 例测试覆盖），与 M0 定稿 **`category.whitelist`**（点分隔）不一致。**M1 表态：跟随 M0 定稿，将 `category_whitelist` → `category.whitelist`（改 pipeline.py 1 处 + 测试键名 + context/README 契约），在 S3c 验收后一并修改并跑回归**（成本低，请总控裁定后执行）。`scoring.weights`：M1 打分权重现于 `config.scoring`（ScoringConfig 配置化，环境变量 SOURCING_* 可覆盖），**尚未接 app_config 读取**；确认「后续迭代接入 app_config 的 `scoring.weights` 键」（当前以 config 默认/环境变量为准，功能不受影响）。
+4. **错误码唯一权威 = M0 error_codes 表** ✅ **确认**——M1 使用的错误码（AUTH_REQUIRED / VERIFICATION_REQUIRED / RATE_LIMIT / TIMEOUT / NO_MATCH / PLATFORM_REJECT / UNEXPECTED / **PAGE_CHANGED**）全部在 09 文档 8+1 码表内（M0 基准已含 PAGE_CHANGED 扩展码，M1 采集器 5 处使用该码语义对齐 P-003，与 M0 一致 ✅）。
+
+**结论：M1 会签确认（4 项中 2 项确认、2 项有对齐动作或补充说明），唯一待执行项为 app_config 键名对齐（category_whitelist → category.whitelist，S3c 后执行）。** 其余核对项（③金额/时间/主键/指纹/枚举、④错误码）M1 实现与 M0 基准一致，无需改动。
+
+---
+
+### DA-008 ｜ M2 会签确认（2025 体系建立日 ｜ M2 总工）
+
+按 M2 分模块核对项（DA-008 第 129 行）逐条确认（已核实 `backend/materials/` 实现）：
+
+1. **downloader 错误分类与 M0 error_codes 码表一致** ✅ **确认**——`backend/materials/downloader.py` 使用 RATE_LIMIT/TIMEOUT/NO_MATCH/PLATFORM_REJECT/AUTH_REQUIRED/VERIFICATION_REQUIRED/UNEXPECTED，全部在 09 文档 8+1 码表内；collectors（tiktok_wrapper/wechat_video/taobao_refs/board_image_cache）、tagger、integration、pipeline 全部对齐该码表。⚠️ **补充说明**：M2 未采用 `PAGE_CHANGED` 码（页面结构变化统一映射 `PLATFORM_REJECT` + HTML 快照证据，见 B2'/B1 的 page_changed 实现）；`INSUFFICIENT_REFERENCES` 为选品专用码（M2 不涉及）。
+2. **asset_* 时间/金额口径** ✅ **确认**——时间一律 TEXT ISO8601 UTC + `_at` 后缀（created_at/updated_at/next_run_at/lease_expires_at/claimed_at）；**金额字段：M2 素材库无金额字段**（`heat_score` 为 REAL 热度归一化分数，非金额，无冲突）。⚠️ **指纹差异登记**：M2 素材指纹=**MD5 32 位小写 hex**（`asset_items.md5`，05 文档双去重指定，判重非安全用途）+ 感知哈希 phash（图片 16 位 hex / 视频关键帧 JSON 数组），**非 SHA-256**——与 M0「指纹=SHA-256 hex」口径不同源（M0 指纹规范适用于商品/通用指纹）；素材文件判重用 MD5 为行业惯例且 05 文档权威，**若总控要求全系统统一 SHA-256 请裁决**（不阻塞，M2 表结构已定型；如需切换仅涉及 `dedup.compute_md5` 与 `asset_items.md5` 列语义）。
+3. **evaluation 枚举共口径** ✅ **确认**——`exploring`（探索期）/`efficient`（高效）/`potential`（潜力），`asset_items.evaluation` 与 `asset_evaluations.evaluation` 均有 CheckConstraint 锁定（tables.py ck_asset_items_evaluation/ck_asset_evaluations_evaluation），与 M3/M5 共口径（DA-001/DA-003/DA-004/DA-007 互认）；`EVALUATION_VALUES` 常量与 config.py 同口径。
+
+**结论：M2 会签确认（3 项全部确认，含 2 处口径差异登记：PAGE_CHANGED 未采用、素材指纹 MD5 非 SHA-256，均不阻塞，SHA-256 统一与否请总控裁决）。** 佐证：`backend/materials/tables.py`（7 表 DDL）、`downloader.py`（码表）、`integration.py`（EvaluationFeedbackService 为 M5-OUT-02 对端，已就绪）。
+
+---
+
+### DA-008 ｜ M4 会签确认（2025 体系建立日 ｜ M4 总工）
+
+按 M4 分模块核对项（DA-008 第 131 行）逐条确认（已核实 `backend/adapters/wechat_openapi.py`、`backend/services/listing_gate.py`、`backend/listing/` 实现）：
+
+1. **金额分 int / 时间 UTC（_at）/ 主键自增 / 枚举 snake_case 英文 —— ✅ 确认**：
+   - 金额：`listing_skus.price_cents/cost_cents`、`candidate_pool.price_min/max_cents`、adapter `update_price(int(price_cents))` 全部整数「分」（DA-001/REC-005）；
+   - 时间：`listing_tasks/listing_op_logs/listing_audit_records` 等时间戳 `_at` 后缀 TEXT ISO8601 UTC（`models.utcnow_iso`），展示层转 UTC+8；
+   - 主键：自增表（`listing_upload_assets.asset_id`/`listing_op_logs.log_id`/`listing_audit_records.audit_record_id` AUTOINCREMENT）+ 业务主键表（`listing_tasks.task_id`/`listing_spus.spu_id`/`listing_skus.sku_id`，与 M0 workflow_jobs 任务表同模式）；
+   - 枚举：状态机 `status`（pending/creating/draft/platform_auditing/listed/rejected/retry_candidate/manual/failed）、`REJECT_CATEGORIES`（title/category/qualification/image/price/content_compliance/other）全部小写下划线英文。
+2. **listing_tasks 幂等键与 M0 workflow_jobs 同构 —— ✅ 确认**：`UNIQUE(product_id, stage, generation_version)`（P3 `listing/tables.py` 已实现，与 M0 DDL v0.2 同构）；M4 任务经 `workflow_jobs.stage=listing_upload` 关联，双写/引用 M0 队列的落点方式由总控裁定（M4 侧幂等键同构已满足，无异议）。
+3. **状态机错误码映射与 M0 error_codes 一致 —— ✅ 确认（会签发现一处差异已当场修正）**：
+   - M4 全链错误码（adapter `ERROR_CODES`、state_machine/pipeline/ui_fallback/rejection）与 09 文档 8+1 码表一致：VERIFICATION_REQUIRED/AUTH_REQUIRED/RATE_LIMIT/TIMEOUT/NO_MATCH/INSUFFICIENT_REFERENCES/PLATFORM_REJECT/UNEXPECTED/PAGE_CHANGED；
+   - **差异修正**：会签核对发现 `backend/listing/ui_fallback.py` 原用 `error_code="page_changed"`（小写）→ 已改为 **`PAGE_CHANGED`**（对齐 M0 权威码表，注释注明 DA-008）；`backend/adapters/wechat_openapi.py` ERROR_CODES 集合补充 `INSUFFICIENT_REFERENCES`/`PAGE_CHANGED` 至全量 8+1 码（含退避 `INSUFFICIENT_REFERENCES=120s`）；测试断言同步（test_listing_fallback.py 1 处）；
+   - 修正后 M4 全量复跑：**131 passed**（12.80s，`--basetemp=".pytest-tmp-m4"`）无回归。
+   - ⚠️ 补充说明（与 M2 同向）：M4 目前实际产出码为 09 文档基础 7 码 + PAGE_CHANGED（ui_fallback）；`INSUFFICIENT_REFERENCES` 为选品专用码 M4 不产出，仅入集合保证非法码归一正确。
+
+**结论：M4 会签确认（3 项全部确认，含 1 处已当场修正：page_changed → PAGE_CHANGED 对齐权威码表）。** 回传 M0；同意推进 A7 集成联调（M4 侧 mock 模式全链路就绪，live 待官方 OpenAPI 契约核对 T1~T7 与主体/资质开通）。佐证：`backend/listing/tables.py`（幂等键）、`ui_fallback.py`（PAGE_CHANGED）、`adapters/wechat_openapi.py`（ERROR_CODES 8+1 码）。
+
+---
+
+## 总控会签裁决记录（REC-009 ~ REC-011）
+
+### REC-009 ｜ M2 两处口径差异裁决（2026-08-29 ｜ 总控）
+1. **PAGE_CHANGED → PLATFORM_REJECT 映射**：✅ 批准（M2 未采用 PAGE_CHANGED 码，页面结构变化统一映射 PLATFORM_REJECT + HTML 快照证据，合理且与 P-003 留证要求一致；M0 error_codes 保留 PAGE_CHANGED 供 M1/M4 使用）。
+2. **素材指纹 MD5 + phash**：✅ 批准保留（双去重判重用途，05 文档权威）；数据字典最终口径：**安全/证据指纹=SHA-256 hex（商品/通用/证据摘要），去重指纹=MD5 32 位 hex + phash（素材/文件判重）**——两类指纹并存，各模块按用途选用。
+
+### REC-010 ｜ M1 app_config 键名对齐裁决（2026-08-29 ｜ 总控）
+- **批准 M1 跟随 M0 定稿**：category_whitelist → **category.whitelist**（改 pipeline.py + 测试键名 + context/README 契约），M1 在 S3c 验收后执行并跑回归；scoring.weights 键确认 M1 后续迭代接入（当前 config 默认/环境变量为准）。
+
+### REC-011 ｜ M4 幂等键双写问题裁定（2026-08-29 ｜ 总控）
+- **批准 M4 独立维护 listing_tasks（模块内幂等键同构），不双写 M0 workflow_jobs**；队列语义（租约/失败隔离/错误码）与 M0 一致；M0 workflow_jobs 作为跨模块编排队列，A7 集成联调确认对接方式。
+
+### 会签状态
+- ✅ 已确认：M0（基准定稿）、M1、M2、M4 ｜ ⏳ 待确认：M3、M5（M5 含风控基座引用任务）

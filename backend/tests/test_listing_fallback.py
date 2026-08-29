@@ -104,7 +104,7 @@ def test_runner_page_changed_structured_failure(tmp_path):
     runner = FallbackRunner(_config(tmp_path), ops=ops)
     result = runner.run("category_form", "select_category")
     assert result["ok"] is False
-    assert result["error_code"] == "page_changed"
+    assert result["error_code"] == "PAGE_CHANGED"  # M0 error_codes 权威码表（DA-008）
     assert "#submit-btn" in result["evidence"]["missing"]
     assert result["evidence"]["screenshot_path"]
     assert runner.consecutive_failures == 1  # 失败计数（不抛到队列层）

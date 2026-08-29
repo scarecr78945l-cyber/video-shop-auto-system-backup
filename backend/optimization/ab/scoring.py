@@ -10,7 +10,7 @@
   excellent/优秀=1.0、good/良好=0.7、optimize_1/1项待优化=0.4、
   optimize_n/N项待优化=0.2、unknown/无=0.0；
 - 无回写数据（exposure/orders 全 0）→ 输入 0 → score=0，由 evaluate/ranking 层
-  一并置 evaluation=exploration（本层只算分，标签计算在 evaluate.py）；
+  一并置 evaluation=exploring（本层只算分，标签计算在 evaluate.py）；
 - 权重与饱和点配置化：``ScoringPolicy.from_env()`` 读环境变量
   M3_AB_ROI_WEIGHT / M3_AB_CTR_WEIGHT / M3_AB_DIAG_WEIGHT /
   M3_AB_ROI_SCORE_CAP / M3_AB_CTR_SCORE_CAP（只出现环境变量名，不写密钥）。

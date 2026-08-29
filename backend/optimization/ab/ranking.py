@@ -24,9 +24,9 @@ from ..db import Database
 from .evaluate import EXPLORATION, EvaluationService
 
 EVALUATION_ORDER: dict[str, int] = {
-    "high_efficiency": 0,
+    "efficient": 0,    # 高效（M2/M5 共口径，DA-008）
     "potential": 1,
-    "exploration": 2,
+    "exploring": 2,    # 探索期
 }
 
 
