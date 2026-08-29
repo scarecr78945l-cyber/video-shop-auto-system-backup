@@ -1,0 +1,36 @@
+{
+  "schema": "old-system.compliance-words/v1",
+  "provenance": "E:\\视频号上架系统\\视频号上架系统\\backend\\app\\services\\compliance.py",
+  "notes": "旧系统合规模块词表。新系统 sourcing/compliance.py 已有同三态框架与示例词表，迁移时应以本文件全量覆盖/扩充（重点缺口：鞋服词见 hard-block-policy.json）。",
+  "risk_states": ["hard_reject", "candidate", "manual_review"],
+  "ALLOWED_CATEGORIES": ["家居用品", "厨房用品", "收纳用品", "清洁用品", "宠物用品", "汽车用品", "小百货", "日用品", "户外用品"],
+  "ALLOWED_CATEGORIES_OPPORTUNITY_SCRIPT": ["家居", "厨房", "收纳", "清洁", "宠物", "汽车", "小百货", "日用", "户外"],
+  "BLOCKED_KEYWORDS": [
+    "鞋", "服装", "内衣", "袜", "食品", "生鲜", "药", "保健", "医疗", "成人",
+    "危险品", "易燃", "虚拟", "高仿", "平替", "联名", "迪士尼", "漫威", "明星",
+    "马甲", "冰袖", "斗篷", "穿戴", "骑行服", "防晒衣"
+  ],
+  "SEMANTIC_BLOCKED_KEYWORDS": [
+    "零食", "饼干", "糕点", "糖果", "巧克力", "坚果", "山楂", "酸奶",
+    "饮料", "咖啡豆", "咖啡粉", "茶叶", "果干", "电影票", "观影券",
+    "电影券", "门票", "代金券", "优惠券", "兑换券", "充值", "虚拟商品", "会员",
+    "纸巾", "抽纸", "卫生纸", "卷纸", "厨房纸", "湿巾", "棉柔巾", "纸抽"
+  ],
+  "NON_BRAND_LATIN_TOKENS": [
+    "ABS", "CM", "DIY", "EVA", "INS", "IPX", "KG", "LED", "L", "ML", "MM",
+    "PET", "PP", "PVC", "USB"
+  ],
+  "KNOWN_BRAND_TOKENS": [
+    "得力", "炊大皇", "康巴赫", "红狗", "RedDog", "BUV", "Samsung", "Sony",
+    "Nike", "蕉下", "清风", "维达", "心爵", "XINJUE"
+  ],
+  "PROMINENT_GENUINE_CLAIMS": ["品牌正品", "官方正品", "旗舰正品", "正品保证"],
+  "BEAUTY_QUALIFICATION_KEYWORDS": [
+    "洁面", "洗脸皂", "洗面奶", "护肤", "化妆", "美容", "美白", "祛痘",
+    "粉刺", "毛孔", "精华", "面膜"
+  ],
+  "GENERIC_COMPATIBILITY_TARGETS": [
+    "家庭", "家用", "日常", "厨房", "浴室", "卫生间", "办公室", "宿舍",
+    "多种场景", "通用场景"
+  ]
+}

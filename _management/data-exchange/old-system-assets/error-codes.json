@@ -1,0 +1,18 @@
+{
+  "schema": "old-system.error-codes/v1",
+  "provenance": "E:\\视频号上架系统\\视频号上架系统\\backend\\app\\services\\workflow_runner.py  _classify_error (L922-955) + storage/models.py WorkflowJob",
+  "codes": [
+    {"code": "VERIFICATION_REQUIRED", "retryable": false, "backoff_seconds": 0, "action": "人工接管，单任务暂停不阻塞队列"},
+    {"code": "AUTH_REQUIRED", "retryable": false, "backoff_seconds": 0, "action": "人工登录后断点续跑（SessionWatcher 轮询 resume_on_login）"},
+    {"code": "RATE_LIMIT", "retryable": true, "backoff_seconds": 180},
+    {"code": "TIMEOUT", "retryable": true, "backoff_seconds": 60},
+    {"code": "NO_MATCH", "retryable": true, "backoff_seconds": 120},
+    {"code": "INSUFFICIENT_REFERENCES", "retryable": true, "backoff_seconds": 120},
+    {"code": "UNEXPECTED", "retryable": true, "backoff_seconds": 60}
+  ],
+  "lease": {"minutes": 45, "fields": ["lease_owner", "lease_expires_at"], "reclaim": "过期自动回收"},
+  "max_attempts": 3,
+  "unique_constraint": "(product_id, stage, generation_version) 防重复入队",
+  "successor_gating": "taobao_reference 完成才入队 image_generation；wechat_upload 完成才入队 promotion",
+  "note": "新系统 DA-008 权威码表已对齐（adapters/wechat_openapi.py ERROR_CODES 全量 frozenset + _BACKOFF_SECONDS 同值），本文件存档溯源。"
+}

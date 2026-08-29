@@ -1,0 +1,18 @@
+{
+  "schema": "old-system.scheduler-params/v1",
+  "provenance": "E:\\视频号上架系统\\视频号上架系统\\backend\\app\\services\\sourcing_scheduler.py",
+  "THROTTLE_ACTION_DELAYS": [0, 2, 5, 15, 30],
+  "throttle_levels": 5,
+  "LOGIN_PAUSE_MINUTES": 30,
+  "VERIFICATION_PAUSE_MINUTES": 60,
+  "KAOGUJIA_PAGE_RETRY_SECONDS": 30,
+  "REALTIME_HOURLY_MINUTES": 60,
+  "REALTIME_EMPTY_HOURLY_THRESHOLD": 24,
+  "interval_minutes_default": 1440,
+  "platform_states": ["idle", "waiting_login", "waiting_verification", "risk_control", "risk_recovery", "paused"],
+  "RISK_CIRCUIT_STATUSES": ["risk_control", "risk_recovery"],
+  "risk_control_trigger": "连续失败 >= 2 → 整平台暂停",
+  "throttle_recovery": "探针板成功后 throttle 逐级 -1（recovered_level = max(0, level-1)）",
+  "ledger_fields": ["cursor_value", "last_item_id", "last_run_at", "next_run_at", "completed_for_date", "scanned_pages", "scanned_items", "evidence_json", "failure_count", "throttle_level"],
+  "note": "新系统 foundation/scheduler.py + sourcing/scheduler.py 同机制（账本/节流/熔断/降频/断点续跑），本文件用于参数对照。"
+}

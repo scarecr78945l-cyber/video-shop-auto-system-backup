@@ -1,0 +1,48 @@
+{
+  "schema": "old-system.listing-requirements/v1",
+  "provenance": "listing_content_rules.py / listing_projection.py / listing_manager.py / schemas.py / open_wechat_upload_product.py（E:\\视频号上架系统\\视频号上架系统\\backend\\app\\...）",
+  "title": {
+    "min_chars": 15,
+    "max_chars": 35,
+    "effective_count": "仅统计 L+N 类字符（unicodedata），标点/空格不计",
+    "prefixes_to_strip": ["###", "##", "#", "商品标题：", "商品标题:", "标题：", "标题:"],
+    "generic_titles_to_replace": ["商品标题", "视频号小店商品文案", "商品文案"]
+  },
+  "main_images": {
+    "min_count": 5,
+    "ratio": "1:1",
+    "dedupe": "image phash(aHash) 汉明距离判重",
+    "quality_gate": "Pillow 宽高比检查，容差可配"
+  },
+  "detail_images": {"min_count": 5},
+  "required_attrs_5": {
+    "brand": {"label": "品牌", "default": "无品牌"},
+    "pack_spec": {"label": "单包规格", "default": "1片"},
+    "origin": {"label": "产地", "default": "中国大陆"},
+    "material": {"label": "材质", "default": "其他"},
+    "gross_weight_g": {"label": "商品毛重", "default": 10}
+  },
+  "sku": {
+    "price_must_exceed_cost": true,
+    "stock_default": 1000,
+    "differentiated_pricing": "多 SKU 差异化售价（逐 SKU 报价）"
+  },
+  "purchase_settings": ["限购", "物流", "售后"],
+  "image_rejection_reasons": ["产品不一致", "卖点不清晰", "文字错误", "场景不合适", "颜色不对"],
+  "customer_service_backfill": {
+    "status": "needs_1688_customer_service",
+    "question_template": "请确认该商品的{label}用于上架商品参数。",
+    "missing_field_labels": ["适用年龄", "包装清单", "重量", "容量", "适用场景", "类别", "功能"],
+    "sync_api": "POST /api/alibaba/customer-service-attrs",
+    "flow": "1688 询价缺参 → 生成问题+客服目标 → 并行询问 → 回填 sync → 缺参清零才允许上架",
+    "target_selector": "fetch_1688_quotes.py build_customer_service_targets（在 1688 店铺页定位在线客服入口）"
+  },
+  "snapshot": {
+    "schema": "wechat-listing.cbp/v1",
+    "component_hashes": ["identity", "catalog", "skus", "media_main", "media_detail"],
+    "error_codes": ["CBP_CONFIRMATION_MISSING", "CBP_CONFIRMATION_STALE"],
+    "purpose": "人工确认快照与提交内容一致性校验（防跨商品表单串页 / 防改后不重确认）"
+  },
+  "listed_rule": "没有真实可访问商品链接时不得标记已上架（旧系统迁移复验第 12 条；新系统已升级为 R22 铁律 + link_verified 证据）",
+  "neutralize_terms": "上架前对标题/详情做合规词中和（_neutralize_upload_terms），与 compliance 词表联动"
+}

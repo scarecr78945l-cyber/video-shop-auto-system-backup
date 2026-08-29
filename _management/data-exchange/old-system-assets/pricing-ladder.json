@@ -1,0 +1,16 @@
+{
+  "schema": "old-system.pricing-ladder/v1",
+  "provenance": "E:\\视频号上架系统\\视频号上架系统\\backend\\app\\services\\pricing.py  PricingService.suggest_price（取整件落地成本 total_cost）",
+  "tiers": [
+    {"max_cost": 3.0, "price": 9.0},
+    {"max_cost": 5.0, "price": 19.9},
+    {"max_cost": 10.0, "price": 29.9},
+    {"max_cost": 15.0, "price": 49.9},
+    {"max_cost": 20.0, "price": 59.9},
+    {"max_cost": 30.0, "price": 79.9},
+    {"max_cost": 40.0, "price": 99.9}
+  ],
+  "fallback": {"formula": "total_cost * 3", "ending": ".9 尾价（_price_ending）"},
+  "sku_variants": "同商品多 SKU 尺寸变体保留紧/松两档阶梯（PricingService 内部），迁移时按需保留",
+  "note": "新系统 backend/sourcing/pricing.py 已实现同阶梯（tests/test_pricing.py），本文件用于逐档对照校验。"
+}

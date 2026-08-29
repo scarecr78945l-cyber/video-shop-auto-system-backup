@@ -1,0 +1,24 @@
+{
+  "schema": "old-system.scoring-model/v1",
+  "provenance": "E:\\视频号上架系统\\视频号上架系统\\backend\\app\\services\\sourcing_score.py",
+  "dimensions": {
+    "trend": {"label": "热度趋势", "max": 35, "formula": "rank_points + min(10, sales_points + confidence_bonus)，封顶 35"},
+    "profit": {"label": "利润率", "max": 30, "formula": "margin/0.9*30 封顶 30；未询价 pending 不计分"},
+    "after_sales": {"label": "售后风险", "max": 20, "formula": "见 after_sales_bands"},
+    "supply": {"label": "供给稳定", "max": 15, "formula": "suppliers/20*12（封顶12）+ 跨榜交叉加分，封顶 15"}
+  },
+  "total": 100,
+  "after_sales_bands": [
+    {"max_return_rate": 0.03, "score": 20},
+    {"max_return_rate": 0.08, "score": 16},
+    {"max_return_rate": 0.15, "score": 8},
+    {"above": true, "score": 0}
+  ],
+  "return_rate_missing": 5.0,
+  "preference_adjustment": {
+    "inputs": ["positive_category_weights", "negative_category_weights", "price_band_weights", "feature_weights", "source_board_weights"],
+    "bounded": "±MAX_PREFERENCE_ADJUSTMENT",
+    "clamp": "热度趋势分量封顶 35"
+  },
+  "note": "新系统 backend/sourcing/scoring.py 已实现同四维权重 + 第5维「投放转化」10分（无数据时从其他四维按 (100-10)/100 折算，和仍为 100）。本文件用于逐维对照。"
+}
