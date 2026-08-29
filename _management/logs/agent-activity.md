@@ -1455,3 +1455,18 @@
 - 产出文件：`progress.md`（完成度 100%）、`decisions.md`（+2 条）、本日志追加条目。未改动任何代码。
 - 当前阻塞：无。M6 模块 v1.0 交付完成；等总控执行 M0~M5 全量回归（确认零回归）+ 备份标签（建议 v0.40+/m6-v1.0）+ 协调移交清单（M2 库迁移/M0 auth 表/媒体端点/商品名 join/requirements 补依赖/M5 文档同步/DA-011 会签）。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合仅验收未改代码。
+
+---
+
+### 2026-08-29 21:10 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v1.1 迭代启动 · 契约定稿 + 派工子代理⑥⑦）
+
+- 任务来源：总控派发 M6 v1.1 迭代 5 项（①服务端关键词过滤 D1 ②分页统一 ③批量接管 ④素材选择器 ⑤preview 媒体端点 + 托管商品名 join），验收 = API pytest 全绿 + 前端 vitest 全绿 + 回归不破坏，小步执行逐项落盘。
+- 完成任务：
+  ① **侦察**：核验踩坑日志 P-022（CORS 中间件顺序，总控已修复）/P-023（SameSite=Lax 跨站 127.0.0.1 vs localhost cookie 不携带，联调须同主机名）；确认 products 现状（limit/offset 分页、无 keyword）、jobs 现状；
+  ② **契约定稿（decisions.md 落盘）**：分页统一 = 全端点 page/page_size 信封 `{total,page,page_size,items}`（products 从 limit/offset 迁移，唯一特例，与 assets/listing/ads/workbench 一致）；products 增 keyword（title/sanitized_title LIKE）；jobs 增 keyword+limit；新增 `GET /api/assets/{id}/preview`（图片流 + 路径白名单防穿越）；campaigns 增 product_name（跨库 join M1 products）；新增 `POST /api/workbench/retry-batch`（`{job_ids}` → `{results}`，单 job 失败不影响其他）；
+  ③ **progress.md**：v1.1 迭代任务表（5 项 + 验收）+ 排期表 v1.1 行 + 里程碑（v1.0 ✅ 上线，v1.1 进行中）；
+  ④ **创建子代理⑥（后端 API 层 v1.1）**：subagent id `2d88b477-9566-4830-b9da-8945e756a3b5`，后台并行；任务书自包含（5 项后端增强/契约/只改 backend/api + test_api_*/pytest `.pytest-tmp-m6` 全绿/M0~M5 源码只读/禁 git/禁明文密钥/UTF-8/小步落盘/汇报 REPORT_v11.md + 同步 context 契约文档）；
+  ⑤ **创建子代理⑦（前端 v1.1）**：subagent id `b6bf28e4-22e6-481f-8748-13f053205c56`，后台并行；任务书自包含（商品池服务端关键词 + Pagination 统一 + 异常中心批量接管 + 素材选择器 + preview 展示/商品名显示/契约以 backend/api 源码为准/P-023 同主机名联调/vitest 全绿 + tsc + build/backend 只读/小步落盘）。
+- 产出文件：`decisions.md`（+4 条 v1.1 契约决策）、`progress.md`（v1.1 任务表 + 排期 + 里程碑）；子代理⑥⑦已派工。未改动任何代码。
+- 当前阻塞：无。下一回合：等子代理⑥⑦完成通知 → 分别验收（pytest/vitest/tsc/build 复跑 + 代码抽查 + 前后端联调核对契约一致性）→ 更新 progress/台账 → 汇报总控 v1.1 交付。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合未改代码。
