@@ -180,3 +180,9 @@
 - **现象与根因**：`npm run build` 后再 `npm run dev`，dev 命中陈旧 `.next` manifest（build 产物与 dev 态冲突），**所有路由返回 HTTP 200 但页面内容为 not-found 页**；且 Next.js App Router 每个页面 RSC flight payload 内嵌客户端 404 兜底组件定义（`HTTPAccessErrorFallback`，"This page could not be found" 字符串出现在每个正常页面的 HTML 里），单纯字符串标记判断会误报。
 - **解决方案**：dev 前删除 `.next` 目录（`Remove-Item -Recurse -Force .next`）；路由冒烟判定改为「HTTP 200 + 页面内容标记（工作台壳/登录表单）+ 未知路由 404 基线」。
 - **防复发措施**：① README 快速开始已备注「build 后需删 .next 再 dev」；② 路由冒烟/页面验收禁止以「HTTP 200」或「not-found 字符串」单独作判据；③ 冒烟前先验证 /login 含真实表单内容。
+## P-022 ｜ FastAPI CORS 中间件顺序：内层 401 响应缺 CORS 头（跨域登录失败）
+
+- **出现时间**：2026-08-29 ｜ **模块**：M6 API 层 ｜ **代理**：总控（前端联调排查）
+- **现象与根因**：前端跨域访问 `/api/auth/me` 报 `No 'Access-Control-Allow-Origin' header`——OPTIONS 预检和 200 响应有 CORS 头，但 **auth_guard 内层中间件直接返回的 401 响应无 CORS 头**。根因：Starlette `add_middleware` 先注册的在栈**内层**，CORS 注册在 auth_guard 之前 → auth_guard 短路返回时跳过 CORS。
+- **解决方案**：CORS 中间件**最后注册**（栈最外层），保证所有响应（含内层中间件的 401/异常）都过 CORS 加头。修复后验证：401/200 均带 Allow-Origin + Allow-Credentials。
+- **防复发**：① FastAPI 中间件顺序纪律：CORS 必须最外层；② 跨域登录闭环测试须覆盖「未登录 401 响应带 CORS 头」断言；③ 前端联调异常先查 Console 的 CORS 报错并核对响应头。

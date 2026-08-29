@@ -62,16 +62,6 @@ def create_app(
         openapi_url="/api/openapi.json",
     )
 
-    # ---- CORS：白名单收口（R-API-02 / R-SEC-04），credentials 精确匹配 ----
-    origins = settings.cors_origin_list
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "Authorization"],
-    )
-
     # ---- 请求日志中间件（路径/状态码；不打印请求体/响应体敏感内容）----
     @app.middleware("http")
     async def request_logging(request: Request, call_next):
@@ -139,6 +129,18 @@ def create_app(
             "version": APP_VERSION,
             "auth_mode": settings.api_auth_mode,
         }
+
+    # ---- CORS：白名单收口（R-API-02 / R-SEC-04），credentials 精确匹配 ----
+    # 注意：add_middleware 后注册的中间件位于栈**外层**。CORS 必须在最外层，
+    # 否则 auth_guard 等内层中间件直接返回的 401 响应会跳过 CORS 头
+    # （浏览器跨域报 No 'Access-Control-Allow-Origin'）。故此处最后注册。
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization"],
+    )
 
     return app
 
