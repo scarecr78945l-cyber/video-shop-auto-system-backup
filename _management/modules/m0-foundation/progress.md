@@ -20,16 +20,18 @@
 | [x] A1-3：复核五表 DDL（无乱码/对齐 REC-005）+ `backend/foundation/tables.py` 字段命名对齐 DDL（retry_after/evidence_json/Task 补全） | 总工 | 100% | 无 |
 | [x] A1-4：repo.py 字段对齐 DDL（retry_after/evidence_json）+ foundation 单测 30 个（五表可建/列对齐/唯一约束/seed 幂等/enqueue/claim/complete/fail/租约 45min 回收/幂等/错误码退避/失败隔离，SQLite 内存库 StaticPool）+ 全量回归全绿 | 总工 | 100% | 无 |
 | [x] 基座开发 A（A1 队列基座）验收：`python -m pytest tests -q --basetemp=".pytest-tmp-m0"` → **417 passed, 1 skipped 全绿**（宪法第 12 节独立 basetemp；含 sourcing 41+21+23 + materials + optimization + ads + foundation 30；5 个 foundation 既有失败已全部修复） | 总工 | 100% | 无 |
-| [ ] 基座开发 B：调度器进程化（独立进程 + resume_on_startup 断点恢复） | 总工/子代理 | 0% | 排期 A2，待总控批准派发 |
-| [ ] 风控落地：预算三重/止损/余额/一键全停 | 总工/子代理 | 0% | 排期 A3 |
+| [x] A2-1：调度器进程化实现——`backend/foundation/scheduler.py`（Worker 抽象 + WorkflowScheduler：resume_on_startup 断点自愈/run_once 单轮驱动/节流 0~4 级/连续失败 ≥2 熔断暂停 stage/run_forever 常驻循环优雅退出）+ `__main__.py`（init-db/scheduler CLI，--once/--loop/--db-url）+ `SchedulerConfig`（M0_SCHEDULER_* 前缀） | 总工 | 100% | 无 |
+| [x] A2-2：调度器单测 12 例（断点自愈/单轮成功/失败退避/人工接管失败隔离/熔断暂停/冷却恢复/全暂停跳过/常驻循环 stop_event/worker_id 格式/LoggingWorker/成功重置计数）→ foundation 全量 **42 passed**（30 既有 + 12 新增）+ CLI 冒烟（init-db 建表+9 种子 / scheduler --once 统计） | 总工 | 100% | 无 |
+| [x] A2-3：A2 设计落盘 `context/README.md`（调度与运行小节：独立进程方案/断点自愈/节流熔断/Worker 契约/配置与代码位置） | 总工 | 100% | 无 |
+| [ ] 风控落地：预算三重/止损/余额/一键全停（先读 M5 stop_loss.py 对齐口径，共享规则以基座为准） | 总工/子代理 | 0% | 排期 A3，下一步 |
 | [ ] 工程基座：环境变量化/脱敏巡检/.env.example/迁移脚本 | 总工/子代理 | 0% | 排期 A4/A5 |
 | [ ] 治理：数据字典定稿 + 跨模块契约会签 | 总工 | 0% | 排期 A6 |
 | [ ] 集成：与 M1~M5 联调 | 总工 | 0% | 排期 A7 |
 
 ## 里程碑进度
 
-- 本模块当前完成度：**30%**（筹备 15% + A1 队列基座 15%；**里程碑 v0.2 达成：workflow_jobs 建库可跑 + 队列 API 全绿**）
-- 距离目标还差：调度器进程化（A2）→ 风控落地（A3）→ 工程基座（A4/A5）→ 治理（A6）→ 集成（A7）
+- 本模块当前完成度：**40%**（筹备 15% + A1 队列基座 15% + A2 调度器 10%；**里程碑 v0.3 达成：调度器进程化可跑**——独立进程 CLI + 断点自愈 + 节流熔断全绿）
+- 距离目标还差：风控落地（A3）→ 工程基座（A4/A5）→ 治理（A6）→ 集成（A7）
 
 ## 后续开发排期（可拆给子代理的任务标注 ✅）
 

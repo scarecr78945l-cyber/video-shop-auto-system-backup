@@ -928,3 +928,18 @@
 - 跨模块确认：M0 总工已修复 foundation 既有失败（v0.2 全量 417 passed），此前反馈的 4~5 个失败已销项。
 - 当前阻塞：无。S3b 执行中；**S3c 真实采集待登录态确认（浏览器已持有登录态页面，S3a 探测发现，总控批准后即可实测）**；之后 S4 联调验收（M4/M5 交换、日有效候选≥200 度量）。
 - 备注：未运行任何 git 命令；未读写其他模块库；临时验证全部走 .pytest-tmp-m1 独立目录；全部文件经 write/edit 工具 UTF-8 无 BOM；无明文密钥。
+
+---
+
+### 2026-08-28 ｜ M0 总工程师 ｜ m0-foundation ｜ 角色：总工（A2 调度器进程化验收通过 · v0.3 里程碑达成）
+
+- 完成任务（A2 调度器进程化，先读 M5 `ads/stop_loss.py` 对齐 A3 风控口径，再实现 A2）：
+  ① **`backend/foundation/scheduler.py`**：`Worker` 抽象（execute(job)->{ok,error_code,evidence}，业务模块注入）+ `WorkflowScheduler`——`resume_on_startup()` 断点自愈（recover_expired_leases，45min 租约回收）、`run_once()` 单轮驱动（恢复→领取到期 job 跳过熔断 stage→分派→complete/fail 回写）、节流 0~4 级（连续失败 ≥2 → 熔断暂停 stage 至 `base×2^level`，冷却自动恢复，成功清零）、`run_forever()` 常驻循环（stop_event/KeyboardInterrupt 优雅退出）、`default_worker_id()`（hostname-pid）；`LoggingWorker` CLI 占位；`SchedulerConfig`（M0_SCHEDULER_* 前缀：poll_interval=30/max_claim_per_round=10/throttle_base=30/levels=5/circuit_breaker=2）；
+  ② **`backend/foundation/__main__.py`**：init-db（幂等建表+9 错误码种子）/scheduler（--once/--loop --interval/--db-url）CLI；config.py 嵌套 SchedulerConfig；tables.py 加 STAGE_VALUES/JOB_STATUSES 常量（修复一次误删 VERIFICATION_REQUIRED 种子行）；
+  ③ **测试 12 例**（test_foundation_scheduler.py）：断点自愈/单轮成功/失败退避（RATE_LIMIT→pending+retry_after≈now+180s）/人工接管失败隔离（VERIFICATION→waiting_verification 不阻塞其他 job）/熔断暂停 stage/冷却恢复/全暂停跳过/常驻循环 stop_event/worker_id 格式/LoggingWorker/成功重置计数；1 个首测失败为测试设计（limit=10 一轮领取两 job）已修正；
+  ④ **验收**：foundation 全量 `python -m pytest tests/test_foundation_scheduler.py tests/test_foundation_queue.py tests/test_foundation_tables.py -q --basetemp=".pytest-tmp-m0"` → **42 passed**；CLI 冒烟 `python -m foundation init-db --db-url ...`（建表+9 种子）与 `scheduler --once`（统计输出）正常（修复 --db-url 需放子解析器位置 bug）；
+  ⑤ **A3 口径对齐预读**：M5 stop_loss.py S7=check_budget_triple（预算三重硬约束）、S8=kill_switch_enabled（一键全停），金额分 int/ROI 浮点/枚举英文——M0 A3 实现同口径通用规则，共享规则以基座为准（decisions.md 预登记，改 M5 代码需总控协调）。
+- 产出文件：`backend/foundation/scheduler.py`、`__main__.py`（新建）、`config.py`（+SchedulerConfig）、`tables.py`（+STAGE_VALUES/JOB_STATUSES）、`tests/test_foundation_scheduler.py`（12 例）；`context/README.md`（+「调度与运行 A2」小节 + M0_SCHEDULER_* 环境变量行）；`progress.md`（A2-1~A2-3 勾选、完成度 **40%**、v0.3 里程碑）；`decisions.md`（+4 条：A2 进程化/内存态节流熔断/LoggingWorker/A3 口径预登记）；本日志追加条目。
+- 里程碑：**v0.3 达成：调度器进程化可跑**（独立进程 CLI + 断点自愈 + 节流熔断 + 失败隔离，foundation 42 passed 全绿）。
+- 当前阻塞：无。**请总控提交备份（里程碑：v0.3 调度器进程化验收通过）**；批准后推进 A3 风控规则引擎（预算三重/止损/余额/一键全停，口径已对齐 M5 S7/S8）。
+- 备注：未运行任何 git 命令；未读写其他模块库（M5 stop_loss.py 仅只读勘察）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m0`（P-001/P-011）；误建的 backend/data/m0-foundation.db 已清理（默认路径 A4 统一修正为 data/db/）。
