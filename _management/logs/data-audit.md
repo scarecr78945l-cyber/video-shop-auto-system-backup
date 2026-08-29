@@ -288,3 +288,20 @@
 - **REC-融合-04**：P1-4 学习资料仅作内部策略参考，不直接进商品图（版权合规）。
 - **REC-融合-05**：批次排期——P0 四项当前批（与 C1–C3 同批推进），P1 一批，P2 随知识库建设持续吸收。
 - **执行模式**：子代理环境不稳定，P0 由**总控直接编码**（fixtures 测试 ≥3 用例/项），完成后全量回归 + 标签备份。
+
+---
+
+## DA-011 ｜ M6 前端 API 层跨模块取数申请（申请方：M6 总工 ｜ 提供方：M0~M5）
+
+- **背景**：M6 前端控制台从零建设（后端 M0~M5 已全量 1227 测试全绿、均无 HTTP API）。M6 将在 `backend/api/` 新建 FastAPI 应用作为**前端唯一取数通道**，聚合 M0~M5 的 repo/服务能力（只读消费 + 人工闸门写操作），前端不直连任何模块库（宪法第 4 节防数据污染）。
+- **申请内容（只读）**：
+  - M0：workflow_jobs（任务队列/错误码/租约）、app_config（配置）、logs（脱敏日志）、风控状态（M0_KILL_SWITCH/预算/余额）；
+  - M1：products（商品池/五维打分/合规三态）、source 账本（节流/熔断/人工接管状态）、sourcing_report 聚合；
+  - M2：asset_items（素材规格/双去重/相关性门/评估标签/上传状态）；
+  - M3：image_batches/image_assets（审核状态）、opt_copywrites（文案）、learning_rule_drafts（P0-2 规则草稿，经 M0）；
+  - M4：listing_tasks/listing_spus/listing_skus/listing_audit_records/listing_op_logs（9 态状态机/拒审/操作留痕）；
+  - M5：ad_campaigns/ad_report_snapshots/ad_account_states（托管看板列：商品/目标出价/诊断/曝光/花费/成交/补贴/操作）。
+- **申请内容（人工闸门写操作，经各模块 repo 幂等函数）**：选品复核（M1 gate-confirm）、图片审核判定（M3 review gate + 规则草稿闭环）、素材相关性人工确认（M2 RelevanceGateService 语义）、上架确认/重提（M4 confirm/retry）、托管暂停/恢复/结束/换素材（M5 幂等操作）、验证码/登录接管重试（M0 队列语义）、一键全停（M0 S8）。
+- **口径对齐（REC-005/DA-001/DA-008）**：金额统一「分」int 输出（M1 元字段在 API 层 ×100 转分）；时间 UTC ISO8601；枚举复用 DA-008 码表与各模块枚举唯一源（M5 中文枚举原样透传）。契约草案见 `_management/modules/m6-frontend/context/README.md` 第一节。
+- **校验结果**：（待 API 层子代理产出后回填 pytest 结果；待各模块总工会签契约后回填）。
+- **总控核对结论**：（待总控核对口径后填写；建议转达 M0~M5 总工对 API 契约草案会签）。

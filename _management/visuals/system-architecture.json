@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "视频号微信小店全自动系统 · 系统架构与管理体系",
+    "output": "_management/visuals/system-architecture.html",
+    "viewBox": [1040, 760],
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "master", "type": "backend", "label": "总控 Agent", "sublabel": "总控会话·全局决策", "pos": [40, 60], "size": [150, 70] },
+    { "id": "engineers", "type": "backend", "label": "总工×7", "sublabel": "M0~M6 独立会话·子代理管理", "pos": [40, 240], "size": [150, 90] },
+    { "id": "foundation", "type": "backend", "label": "M0 基座", "sublabel": "队列/调度/风控/脱敏/迁移/会话服务", "pos": [300, 50], "size": [170, 70] },
+    { "id": "sourcing", "type": "backend", "label": "M1 选品", "sublabel": "三源采集/五维打分/回写", "pos": [300, 150], "size": [170, 70] },
+    { "id": "materials", "type": "backend", "label": "M2 素材收集", "sublabel": "asset_* 库/双去重/标准化", "pos": [300, 250], "size": [170, 70] },
+    { "id": "optimization", "type": "backend", "label": "M3 素材优化", "sublabel": "文案/主图/视频二创/A-B", "pos": [300, 350], "size": [170, 70] },
+    { "id": "listing", "type": "backend", "label": "M4 上架", "sublabel": "OpenAPI/硬门禁/状态机 R22", "pos": [300, 450], "size": [170, 70] },
+    { "id": "ads", "type": "backend", "label": "M5 托管投放", "sublabel": "执行/监控/止损 S1~S8/回写", "pos": [300, 550], "size": [170, 70] },
+    { "id": "frontend", "type": "frontend", "label": "M6 前端控制台", "sublabel": "Next.js·看板/闸门（建设中）", "pos": [560, 50], "size": [170, 70] },
+    { "id": "exchange", "type": "database", "label": "数据契约层", "sublabel": "data-exchange JSON + data-audit 审计", "pos": [560, 250], "size": [170, 70] },
+    { "id": "github", "type": "external", "label": "GitHub 备份", "sublabel": "video-shop-auto-system-backup", "pos": [560, 550], "size": [170, 70] },
+    { "id": "chrome", "type": "cloud", "label": "共享 Chrome", "sublabel": "CDP 9223/9555 登录态", "pos": [820, 250], "size": [170, 70] },
+    { "id": "wechat", "type": "external", "label": "微信小店平台", "sublabel": "OpenAPI·投放后台·素材库", "pos": [820, 450], "size": [170, 70] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "管理体系", "wraps": ["master", "engineers"] },
+    { "kind": "region", "label": "后端模块（backend/）", "wraps": ["foundation", "sourcing", "materials", "optimization", "listing", "ads"] },
+    { "kind": "security-group", "label": "外部平台边界", "wraps": ["chrome", "wechat"] }
+  ],
+  "connections": [
+    { "id": "master-engineers", "from": "master", "to": "engineers", "label": "派工·验收·裁决", "labelDy": 24 },
+    { "id": "engineers-backend", "from": "engineers", "to": "foundation", "label": "总工管理模块", "variant": "emphasis", "fromSide": "right", "toSide": "top", "via": [[190, 285], [260, 285], [260, 30], [385, 30], [385, 50]], "labelAt": [165, 140] },
+    { "id": "engineers-frontend", "from": "engineers", "to": "frontend", "label": "M6 总工", "variant": "emphasis", "fromSide": "right", "toSide": "top", "via": [[190, 285], [280, 285], [280, 240], [280, 30], [645, 30], [645, 50]], "labelAt": [400, 20] },
+    { "id": "sourcing-exchange", "from": "sourcing", "to": "exchange", "label": "候选/回写载体", "labelDx": -75 },
+    { "id": "ads-exchange", "from": "ads", "to": "exchange", "label": "C-2 回写", "variant": "emphasis", "toSide": "bottom", "via": [[470, 585], [470, 700], [1000, 700], [1000, 350], [645, 350], [645, 320]] },
+    { "id": "materials-optimization", "from": "materials", "to": "optimization", "label": "原始素材", "labelDy": 24 },
+    { "id": "optimization-listing", "from": "optimization", "to": "listing", "label": "主图/文案", "labelDy": 24 },
+    { "id": "sourcing-listing", "from": "sourcing", "to": "listing", "label": "商品候选", "fromSide": "right", "toSide": "right", "via": [[470, 185], [495, 185], [495, 485], [470, 485]], "labelDx": 55, "labelDy": -10 },
+    { "id": "listing-ads", "from": "listing", "to": "ads", "label": "销售中商品", "labelDy": 24 },
+    { "id": "listing-wechat", "from": "listing", "to": "wechat", "label": "OpenAPI", "variant": "security" },
+    { "id": "ads-wechat", "from": "ads", "to": "wechat", "label": "投放后台", "variant": "security" },
+    { "id": "sourcing-chrome", "from": "sourcing", "to": "chrome", "label": "CDP 采集", "variant": "security" },
+    { "id": "frontend-backend", "from": "frontend", "to": "foundation", "label": "API 消费", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "开发完成度", "items": ["M0/M2/M4 100%，M1/M3 95%，M5 代码完成（v1.1）", "全量回归 1227 passed / 2 skipped", "旧系统融合 C1~C3 + P0~P2 全部落地（+134 测试）"] },
+    { "dot": "rose", "title": "体系纪律", "items": ["总工独立会话 + 子代理任务书自包含 + 验收退回", "一模块一数据库 + 表名前缀 + 数据契约审计（DA-001~011）", "全局踩坑日志 P-001~P-018 闭环，防复发固化"] },
+    { "dot": "cyan", "title": "备份与真实化", "items": ["git 标签 v0.1~v0.45 + GitHub 双端同步", "真实模式前置：登录态✅/ffmpeg/密钥/资质/T1~T7", "M6 前端控制台建设中（API 层→工程→页面→闸门）"] }
+  ]
+}

@@ -1270,3 +1270,48 @@
 - 产出文件：`backend/foundation/manifest.py`（新）、`backend/foundation/__init__.py`（+导出）、`backend/foundation/__main__.py`（+manifest 子命令）、`backend/tests/test_foundation_manifest.py`（新，15 例）；`_management/modules/m0-foundation/context/knowledge/corpus/`（2 语料 + README）、`context/knowledge/superpowers/`（3 份归档 + 总览）、`context/knowledge/README.md`；progress.md / decisions.md / pitfall-log.md（+P-018）；本日志追加条目。
 - 当前阻塞：无。P2 三项全部完成，等总控验收；外部观察项：总控已并行完成融合 P0-1/P0-2/P0-3/P1-2（M0 域新增 learning_rule_drafts/session_service/prompts，全量 1179 passed），M0 下一批可纳入基线核对。
 - 备注：未运行任何 git 命令；未读写其他模块库（旧系统仅只读语料/文档，零写入）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；pytest 全程 `.pytest-tmp-m0`（P-001/P-011）；语料存档为只读复制，已确认脱敏声明（头部抽查）。
+
+---
+
+### 2026-08-29 16:25 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v0.1 筹备 · 首回合）
+
+- 任务来源：总控派发 M6 前端控制台模块启动任务（前端 0% 从零建设；必读宪法/踩坑日志/设计文档 03·09·10/第二波融合清单/各模块 context；产出 brief/risks/context/progress/台账并结束回合等批准）。
+- 通读完成：宪法全文（角色链/交付物/第 5 节跨模块取数/第 9 节子代理/第 11 节 UTF-8/第 12 节 pytest）；pitfall-log P-001~P-018（重点 P-001/P-011 独立 basetemp、P-008 8787 端口占用、P-009 代理、P-014 子代理中断零产出、P-015/P-018 并行竞态、P-017 GBK）；03/09/10 设计文档；《旧系统第二波融合清单》（P1-7 前端工作台）+《旧系统门禁迁移清单》（闸门语义）；M0~M5 context/README.md 全部；旧系统前端实测（`E:\视频号上架系统\视频号上架系统\frontend`：Next 15.5.20/React 19/Tailwind 3.4.17，components 15 个文件 + lib 5 个文件，提取 26 个旧 API 端点）。
+- 完成任务（本回合 6 项全部落盘）：
+  ① **brief.md**：任务书（目标=管理控制台 6 大能力；范围边界；技术选型；7 项交付物+验收标准；里程碑 v0.1~v1.0；5 个可拆子代理任务书草案；宪法纪律）；
+  ② **risks.md**：风险预判 6 大类 23 条（R-API 鉴权 5 / R-DATA 口径 6 / R-FE 依赖 5 / R-REUSE 旧组件复用 5 / R-SEC 数据安全 5 / R-COL+R-MS 协作与里程碑 7），每条含等级与应对；核心风险=金额分/元混用（M1 元 vs M4/M5 分）+ M5 中文枚举；
+  ③ **context/README.md**：API 契约草案（鉴权/系统/M1~M5/闸门工作台 7 组 40+ 端点，待会签）+ 展示口径表（金额分→元/时间 UTC→UTC+8/枚举中文映射含 M4 9 态）+ 旧组件清单 P1-7（含 props 签名与改造点）+ 旧 API 端点参考 + 环境事实（Node 24.19/端口 8000·3000/8787 禁用/pytest `.pytest-tmp-m6`）；
+  ④ **progress.md**：v0.1 筹备 100%；排期 v0.2~v1.0（8 迭代）；5 个可拆子代理清单；完成度 5%；待总控决策 4 项；
+  ⑤ **data-audit.md**：登记 DA-011（M6 API 层跨模块取数申请，宪法第 5 节）；
+  ⑥ 本日志追加台账。
+- 产出文件：`_management/modules/m6-frontend/brief.md`（重写）、`risks.md`（重写）、`context/README.md`（重写）、`progress.md`（重写）；`_management/logs/data-audit.md`（+DA-011）；本日志追加条目。未改动任何代码（后端 M0~M5 零触碰，前端未建）。
+- 当前阻塞：无。下一回合（等总控批准排期）：批准后派工 子代理①（后端 API 层 FastAPI+鉴权+M1~M5 聚合接口），任务书已备于 brief.md 第六节。
+- 备注：未运行任何 git 命令；未读写其他模块库（仅只读旧系统前端源码与文档）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合无代码改动未跑 pytest。
+
+---
+
+### 2026-08-29 16:40 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v0.2 开工 · 裁决回填 + 派工子代理①）
+
+- 任务来源：总控批准 M6 排期 + 4 项裁决（①排期批准并指示即刻派工子代理①；②DA-011 转 M0~M5 会签；③鉴权会话表挂 M0 foundation，API 层只消费；④v1.0 验收 = fixtures/mock 模式；⑤补充裁决：金额对外 API 一律**元（float）**，内部存储分不变，API 层 ÷100 换算，前端只消费元）。
+- 完成任务：
+  ① **裁决回填**：decisions.md 追加 5 条决策（金额对外元/鉴权挂 M0/v1.0 fixtures 验收/排期批准/DA-011 会签流转）；risks.md R-DATA-01 + R-API-02 应对方案按裁决更新；context/README.md 统一约定 + 2.1 金额口径表 + 环境变量表（新增 `M6_API_AUTH_MODE`）同步为「对外元 float、鉴权挂 M0、fixtures 过渡」；
+  ② **progress.md 更新**：v0.2 状态「🔄 已派工（运行中）」；总控裁决回填区；完成度 5%（v0.1 ✅ / v0.2 进行中）；
+  ③ **创建子代理①（后端 API 层）**：subagent id `1cbadafa-05d3-4f7a-a571-9ce1681eb875`，后台运行；任务书自包含（背景/必读文档/输出路径 backend/api/ + tests/test_api_*.py/40+ 端点清单/硬性口径=金额对外元·时间 UTC·枚举透传·错误格式·鉴权 AuthStore 挂 M0 fixtures 过渡/测试要求 fixtures 模式 pytest `.pytest-tmp-m6`/纪律=禁 git·禁明文密钥·UTF-8·不改 M0~M5 源码·小步落盘/汇报=backend/api/REPORT.md）。
+- 产出文件：`decisions.md`（+5 条）、`risks.md`（2 处更新）、`context/README.md`（3 处更新）、`progress.md`（2 处更新）；子代理①已派工（产出待其 REPORT.md）。未改动任何代码。
+- 当前阻塞：无。下一回合：等待子代理①完成通知 → 读取 `backend/api/REPORT.md` 验收（跑 test_api_* 复核）→ 不合格退回修改 / 合格登记 data-audit 校验结果并汇报总控 → 派工子代理②（前端工程）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合无代码改动未跑 pytest。
+
+---
+
+### 2026-08-29 ｜ 子代理①（后端 API 层） ｜ m6-frontend / backend/api ｜ 角色：子代理
+
+- 任务来源：M6 总工程师派工（v0.2 API 层），任务书见 m6-frontend/context/README.md 第一节 API 契约草案。
+- 完成任务：
+  ① **backend/api/ FastAPI 应用**：app.py（create_app 工厂 + CORS 白名单 + 请求日志 + 鉴权守卫中间件 + 统一错误处理器）、config.py（M6_* pydantic-settings）、errors.py（{code,message,detail?} + 金额分→元 + 时间 ISO8601 UTC + 递归脱敏）、auth.py（AuthStore 抽象 + fixtures 内存实现 + m0 实现〔auth 表未落地抛明确错误〕+ httpOnly/SameSite=Lax cookie）、services.py（M0~M5 六库惰性容器 + kill-switch + 审计写 M0 logs）、schemas.py（请求/响应模型，金额字段 float 元）、deps.py（会话/管理员/分页依赖）；
+  ② **routers/** 8 个：auth（3）、system（overview/jobs/jobs{id}/kill-switch/app-config/logs）、m1_sourcing（products/products{id}/sourcing-status/gate-confirm/report）、m2_materials（assets/assets{id}/relevance-confirm/uploads）、m3_optimization（batches/batches{id}/assets{id}decision/approve/copywrites）、m4_listing（tasks/tasks{id}/op-logs/confirm/retry/ready）、m5_ads（campaigns/campaigns{id}/account/pause/resume/end/materials/report）、workbench（gates/exceptions/retry{jobId}）——共 41 路径；
+  ③ **鉴权**：除 POST /api/auth/login 与 /api/health 外全部端点需登录（中间件 + 依赖双保险）；kill-switch/app-config 写仅管理员；密码只走环境变量 M6_ADMIN_USERNAME/M6_ADMIN_PASSWORD_HASH，fixtures 测试账号密码运行时随机生成不落文件；
+  ④ **测试**：tests/test_api_*.py × 7 + tests/api_testing.py（隔离 6 tmp SQLite 库 + 造数辅助）；75 passed（命令 `python -X utf8 -m pytest tests/test_api_*.py -q --basetemp=".pytest-tmp-m6"`）；
+  ⑤ **pytest.ini + api/_pytest_glob.py**：Windows 无 shell glob 展开，插件让验收命令原样可用（对不含通配符的既有命令零影响）。
+- 产出文件：backend/api/（13 个 .py）、backend/tests/test_api_*.py（7 个）+ api_testing.py、backend/pytest.ini、backend/api/REPORT.md。
+- 当前阻塞：无（REPORT.md 含待会签遗留项：M0 auth 表契约、requirements.txt 需补 fastapi/uvicorn/httpx、M5 枚举口径文档漂移等）。
+- 备注：未运行 git；未修改 M0~M5 任何源码；未读写真实库（全部 tmp 库）；无明文密钥；文件全部 write/edit UTF-8 无 BOM；pytest 独立 basetemp .pytest-tmp-m6。

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "视频号微信小店全自动系统 · 业务数据流闭环",
+    "output": "_management/visuals/business-flow.html",
+    "viewBox": [1180, 760],
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "main-chain", "label": "主链路", "focus": ["collect", "dedup", "score", "pool", "gate", "listing", "listed", "ads", "report", "feedback"], "note": "采集→选品→上架→托管→回写 的完整闭环" },
+      { "id": "material-chain", "label": "素材链路", "focus": ["collect", "ads", "feedback"], "note": "素材准备（收集+优化）→投放绑定→评估回流（见卡片）" }
+    ]
+  },
+  "stages": [
+    { "label": "采集" },
+    { "label": "选品" },
+    { "label": "素材·上架" },
+    { "label": "投放" },
+    { "label": "回流" }
+  ],
+  "nodes": [
+    { "id": "collect", "type": "backend", "label": "三源采集", "sublabel": "商机/有米/罗盘", "stage": 0, "row": 0, "tag": "节流熔断" },
+    { "id": "dedup", "type": "security", "label": "去重+合规", "sublabel": "MD5/phash·三态", "stage": 1, "row": 0, "tag": "词表配置化" },
+    { "id": "score", "type": "backend", "label": "五维打分", "sublabel": "含投放转化", "stage": 1, "row": 1, "tag": "可解释" },
+    { "id": "pool", "type": "database", "label": "商品池 TopN", "sublabel": "日候选 ≥200", "stage": 1, "row": 2, "tag": "人工复核可选" },
+    { "id": "gate", "type": "security", "label": "上架硬门禁", "sublabel": "六项+缺参", "stage": 2, "row": 1, "tag": "失败不入队" },
+    { "id": "listing", "type": "cloud", "label": "OpenAPI 上架", "sublabel": "SPU/SKU/审核", "stage": 2, "row": 2, "tag": "双轨·UI 兜底" },
+    { "id": "listed", "type": "database", "label": "已上架", "sublabel": "真实链接验证", "stage": 3, "row": 2, "tag": "R22 铁律" },
+    { "id": "ads", "type": "cloud", "label": "托管投放", "sublabel": "≤50/批·ROI", "stage": 3, "row": 1, "tag": "无转化不扣费" },
+    { "id": "report", "type": "backend", "label": "回读·止损", "sublabel": "快照+S1~S8", "stage": 4, "row": 0, "tag": "预算三重" },
+    { "id": "feedback", "type": "database", "label": "数据回写", "sublabel": "C-2·评估回流", "stage": 4, "row": 1, "tag": "data-exchange" }
+  ],
+  "flows": [
+    { "from": "collect", "to": "dedup", "label": "榜单条目", "variant": "emphasis" },
+    { "from": "dedup", "to": "score", "label": "候选" },
+    { "from": "score", "to": "pool", "label": "TopN" },
+    { "from": "pool", "to": "gate", "label": "候选入队", "variant": "emphasis" },
+    { "from": "gate", "to": "listing", "label": "门禁通过", "variant": "emphasis" },
+    { "from": "listing", "to": "listed", "label": "链接验证" },
+    { "from": "listed", "to": "ads", "label": "销售中商品", "variant": "emphasis" },
+    { "from": "ads", "to": "report", "label": "报表" },
+    { "from": "report", "to": "feedback", "label": "快照", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "主闭环", "items": ["三源采集→去重合规→五维打分→商品池→上架→托管→回写", "投放转化维度回写选品打分、评估标签回流素材优化（data-exchange）", "全链路 mock/fixtures 可跑，真实模式按前置就绪启用"] },
+    { "dot": "rose", "title": "停止条件与人工闸门", "items": ["验证码/登录失效→人工接管，单任务暂停不阻塞队列", "预算三重硬约束 + S1~S8 止损规则 + 一键全停", "平台改版→page_changed 留证降级（上架主线 OpenAPI 免疫）"] },
+    { "dot": "cyan", "title": "数据契约", "items": ["金额一律分 int、时间 UTC、枚举 snake_case（DA-001）", "跨模块数据走 data-exchange JSON + 总控审计（DA-001~010）", "每里程碑 git 标签 + GitHub 备份（v0.1~v0.45）"] }
+  ]
+}
