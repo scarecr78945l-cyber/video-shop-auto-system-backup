@@ -71,7 +71,11 @@ class CandidatePool:
 
     # ------------------------------------------------------------ 候选池查询
 
-    def get_sale_candidates(self, limit: int | None = None) -> list[dict]:
+    def get_sale_candidates(
+        self,
+        limit: int | None = None,
+        relevance_ready_ids: set[str] | None = None,
+    ) -> list[dict]:
         """只读查询销售中商品候选（status=listed 且链接已验证）。
 
         - 过滤：status == "listed" 且 link_verified_at 非空且 product_link 非空；
@@ -83,6 +87,10 @@ class CandidatePool:
         - 按 link_verified_at 升序（先上架先出）；
         - limit 生效且不超过 candidate_batch_max（超出截断，截断证据写入
           self.last_evidence）。
+        - REC-迁移-03（C3 素材相关性门，M4 消费端）：relevance_ready_ids 为
+          编排层传入的「素材相关性已过（M2 is_ready_for_chain 仅 passed 放行）」
+          product_id 集合；传入时仅返回集合内商品（不直读 M2 库，保持模块边界）；
+          None = 不启用相关性过滤（向后兼容）。
         """
         batch_max = self.config.candidate_batch_max
         if limit is None:
@@ -106,6 +114,14 @@ class CandidatePool:
                 .all()
             )
             total_matched = len(task_rows)
+            # C3：素材相关性门过滤（仅 passed 商品放行；多款式 manual_review 由编排层转人工）
+            if relevance_ready_ids is not None:
+                task_rows = [t for t in task_rows if t.product_id in relevance_ready_ids]
+                self.last_evidence = {
+                    **self.last_evidence,
+                    "relevance_filtered": total_matched - len(task_rows),
+                }
+                total_matched = len(task_rows)
             task_rows = task_rows[:applied]
 
             task_ids = [t.task_id for t in task_rows]
@@ -161,12 +177,15 @@ class CandidatePool:
                 }
             )
 
-        self.last_evidence = {
+        evidence: dict[str, Any] = {
             "truncated": total_matched > applied,
             "requested": limit,
             "applied": applied,
             "total_matched": total_matched,
         }
+        if relevance_ready_ids is not None:
+            evidence["relevance_filtered"] = self.last_evidence.get("relevance_filtered", 0)
+        self.last_evidence = evidence
         return results
 
     # ------------------------------------------------------------ 错峰窗口

@@ -128,6 +128,25 @@ def test_only_listed_with_verified_link_returned(repo_listing, machine_listing, 
     assert t_bad_empty.task_id not in task_ids
 
 
+def test_relevance_ready_filter(repo_listing, machine_listing, db_listing):
+    """REC-迁移-03（C3）：候选池相关性过滤——仅返回素材相关性已过（passed）
+    的商品；未在集合内的商品被排除（不直读 M2 库，由编排层传入集合）。"""
+    t1 = _run_to_listed(repo_listing, machine_listing, 201, link_url=f"{LISTED}201")
+    t2 = _run_to_listed(repo_listing, machine_listing, 202, link_url=f"{LISTED}202")
+    t3 = _run_to_listed(repo_listing, machine_listing, 203, link_url=f"{LISTED}203")
+
+    pool = CandidatePool(repo_listing)
+    # 不传过滤 → 全部返回（向后兼容）
+    assert len(pool.get_sale_candidates()) == 3
+    # 只放行 201/203（202 素材相关性未过）；product_id 为 int
+    results = pool.get_sale_candidates(relevance_ready_ids={201, 203})
+    task_ids = {r["task_id"] for r in results}
+    assert task_ids == {t1.task_id, t3.task_id}
+    assert t2.task_id not in task_ids
+    # 证据记录过滤数量
+    assert pool.last_evidence.get("relevance_filtered") == 1
+
+
 def test_non_listed_statuses_excluded(repo_listing, machine_listing):
     """草稿/审核中/驳回/人工/待重提一律不出现（仅销售中商品，07 文档六节）。"""
     for pid, status in [
