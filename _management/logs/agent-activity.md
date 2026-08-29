@@ -1230,3 +1230,15 @@
   4. P0-4 来源轮换（M1：source_rotation.py 失败降权/风控隔离）— 5 测试
 - 产出：新增 4 个模块文件 + 4 个测试文件；全量回归 **1151 passed / 2 skipped**（迁移前 1093 → 1151）。
 - 当前阻塞：无。待用户确认前置条件后启用真实模式（ffmpeg/密钥/账号/资质/T1~T7）。
+### 2026-08-29 ｜ 总控 Agent ｜ 全局 ｜ 角色：总控（第二波融合 P1 直接执行）
+
+- 完成任务：旧系统第二波融合 P1 批次（总控直接编码）：
+  1. P1-5 投放 ROI 计算器（M5：ads/roi.py 可投金额/break_even/目标建议，退费率10%佣金7%配置化）— 5 测试
+  2. P1-6 选品周报（M1：sourcing/report.py 来源/错误/漏斗聚合）— 4 测试
+  3. P1-3 主图后处理避坑（M3：images/postprocess.py 裁水印条/遮瑕/饱和度评分/主色）— 7 测试
+  4. P1-2 LLM prompt 模板库（M0：foundation/prompts.py + prompts.json 4 类任务 + _chat_json 容错）— 8 测试
+  5. P1-4 主图方法论知识库（M3：images/knowledge.py + knowledge.json 模板/公式/配色）— 4 测试
+  6. P1-1 Qwen-VL 抽帧：已在 C3 relevance.py 实现（FFmpegFrameSampler 前 15 秒抽帧），不重复
+- 产出：5 个新模块 + 5 个测试文件 + 2 个 JSON 配置；全量回归 **1179 passed / 2 skipped**（P0 后 1151 → 1179）。
+- P1-7 前端人工工作台：新系统无前端项目，记录待办（建控制台时搬组件）。
+- 当前阻塞：无。
