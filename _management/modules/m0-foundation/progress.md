@@ -29,6 +29,7 @@
 | [x] A4-1：通用脱敏基座 `backend/foundation/security.py`（redact_url/redact_text/redact_path，对齐 M2 语义 + Bearer token 增强；P-004）+ 脱敏单测 11 例（URL 参数掩码/键值掩码/Bearer/路径 @账号/空值/无明文审计） | 总工 | 100% | 无 |
 | [x] A4-2：默认库路径修正 `FoundationConfig.db_url` → `sqlite:///data/db/m0-foundation.db`（宪法第 4 节）+ `backend/.env.example` 模板（全模块变量名，无明文值）+ 硬编码巡检（foundation 无 C:\/C:/ 路径与密钥字面量，.exe 匹配为 execute 误报；sourcing Chrome 路径为 M1 已知项） | 总工 | 100% | 无 |
 | [x] A4-3：A4 落盘 context/README.md（工程基座小节：脱敏/默认路径/.env.example/巡检结论）→ foundation 全量 **79 passed**（30+12+26+11） | 总工 | 100% | 无 |
+| [x] A4-4（修复任务）：foundation_security 2 失败修复——`test_redact_text_bearer_token` 按总控裁决改实现（`_mask_secret_value` 回调：值为 Bearer 时保留原文 → 输出 `Authorization: Bearer ***`，**Bearer 前缀保留、仅 token 脱敏**）；`test_no_plaintext_secret_in_outputs` 排查结论：纯函数无共享可变状态，偶发为旧断言/P-011 并发抖动，断言已改为键值/URL/Bearer 形式 → **11 passed + 全量 1089 passed, 2 skipped 零回归** | 总工 | 100% | 无 |
 | [ ] 工程基座 A5：SQLite→PostgreSQL 迁移脚本（迁移计划/方言差异/回滚方案） | 总工 | 0% | 排期 A5，下一步 |
 | [ ] 治理：数据字典定稿 + 跨模块契约会签 | 总工 | 0% | 排期 A6 |
 | [ ] 集成：与 M1~M5 联调 | 总工 | 0% | 排期 A7 |

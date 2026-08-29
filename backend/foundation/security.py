@@ -37,6 +37,15 @@ _REDACT_VALUE_RE = re.compile(
 _BEARER_RE = re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._\-]+")
 
 
+def _mask_secret_value(m: re.Match) -> str:
+    """key=value 掩码回调；若值为 "Bearer"（token 已由 Bearer 规则掩码为 ***）则保留原样，
+    确保输出保留 "Bearer" 前缀字样（总控裁决：Bearer 前缀保留，仅 token 脱敏）。"""
+    value = m.group(2)
+    if value.lower() == "bearer":
+        return m.group(0)
+    return m.group(1) + "=***"
+
+
 def _truncate(text: Any, n: int = 300) -> str:
     s = str(text or "")
     return s if len(s) <= n else s[: n - 3] + "..."
@@ -66,8 +75,8 @@ def redact_text(text: Any, max_len: int = 300) -> str:
         return ""
     s = str(text)
     s = _URL_RE.sub(lambda m: redact_url(m.group(0)), s)
-    s = _BEARER_RE.sub("Bearer ***", s)  # 先 Bearer <token>（避免 key= 规则吃掉 "Bearer " 前缀）
-    s = _REDACT_VALUE_RE.sub(lambda m: m.group(1) + "=***", s)
+    s = _BEARER_RE.sub("Bearer ***", s)  # 先 Bearer <token>（token 段掩码，前缀保留）
+    s = _REDACT_VALUE_RE.sub(_mask_secret_value, s)  # 键值掩码（值为 Bearer 时保留原样）
     return _truncate(s, max_len)
 
 

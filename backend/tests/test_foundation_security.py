@@ -57,10 +57,10 @@ def test_redact_text_key_colon_value() -> None:
 
 
 def test_redact_text_bearer_token() -> None:
-    """Bearer <token> 形式：token 段掩码（Authorization 头常见形态，P-004 无明文）。"""
+    """Bearer <token> 形式：Bearer 前缀保留，仅 token 脱敏（总控裁决）。"""
     r = redact_text("Authorization: Bearer SECRETTOK12345 rest-ok")
     assert "SECRETTOK12345" not in r  # token 绝不出现在输出
-    assert "***" in r
+    assert "Bearer ***" in r  # Bearer 前缀字样保留（仅 token 掩码）
     assert "rest-ok" in r  # 非敏感文本保留
 
 
