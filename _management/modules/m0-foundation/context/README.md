@@ -63,7 +63,7 @@
 
 - **运行时**：Python 3.12、FastAPI、SQLAlchemy 2.0、Playwright、ffmpeg（11 文档前置清单）
 - **CDP 端口**：商机中心/1688/淘宝 → 共享浏览器 9223（历史 9222，以配置为准）；有米云 → 独立 9555；抖店罗盘 → 共享 9223（见 `backend/sourcing/config.py`）
-- **pytest 约定（P-001）**：一律 `python -m pytest tests -q --basetemp=".pytest-tmp"`；本地临时目录不可用 WinError 5，已写入 `backend/README.md`
+- **pytest 约定（P-001/P-011，宪法第 12 节）**：M0 专属命令 `python -m pytest tests -q --basetemp=".pytest-tmp-m0"`——**禁止共用 `.pytest-tmp`**（多代理并行共享 basetemp 会互相清理，导致间歇性 PermissionError/WinError 5，串行复跑会掩盖真实失败）；全量回归由总控统一执行（总控用 `.pytest-tmp-verify`）；P-001 本机默认临时目录 WinError 5 无权限
 - **数据库**：开发 SQLite（`backend/data/db/<模块>.db`，不入 git）；生产 PostgreSQL（`POSTGRES_DSN`）
 - **迁移包**：`app.sanitized.db` → `backend/app.db`（498 products / 521 product_library / 939 tasks / 657 image_assets / 40 workflow_jobs），由总控执行，落地后 M0 核对 `tasks`/`workflow_jobs` DDL
 

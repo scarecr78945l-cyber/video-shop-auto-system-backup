@@ -19,9 +19,12 @@
 
 ## 3. 从 M5（投放）回写 —— 投放效果
 
-- **字段**：platform_material_id、exposure、clicks、spend、orders、roi、diagnosis_json
+- **字段**：platform_material_id（= M5 素材记录 material_id）、report_date（UTC YYYY-MM-DD）、impressions（曝光）、clicks（点击，可选缺省 0）、**spend_cents / gmv_cents（金额「分」int，DA-001 M5 口径）**、orders（可选缺省 0）、diagnosis（M5 中文枚举：优秀/良好/1项待优化/N项待优化）
 - **用途**：计算 evaluation 标签（探索期/潜力/高效）、素材评分（f(ROI, CTR, 诊断)）、模板参数按类目重训练
 - **频率**：日快照回写（report_date 聚合）
+- **消费入口**：`backend/optimization/ab/ingest.py`（ingest_m5_record / ingest_m5_batch，v1.1-① 联调已验收，5 用例）
+- **换算**：spend 元 = spend_cents/100；roi = gmv_cents/spend_cents（spend>0）；诊断字符串 → {"level": ...} 字典形状
+- **载体**：经总控协调的 data-exchange JSON（规划 `_management/data-exchange/m5-to-m3-evaluation.json`）；unmatched material_id 不落库（失败隔离）
 - **口径**：经 opt_evaluation_feedback 落库；M3 不直写 M2 assets.evaluation，由总控协调同步
 
 ## 4. 提供给 M4（上架）—— 优化素材

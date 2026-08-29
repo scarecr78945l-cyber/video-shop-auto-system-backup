@@ -896,3 +896,35 @@
 - 里程碑：**v1.0 全链路闭环达成**——三路输出 → 审核闸门 → A/B 闭环 → 上传素材库 全链路代码+测试完成，全量 1016 passed 无回归；opt_* 9 表 + fixtures 离线全链路可跑。
 - 下一步（v1.1+ 迭代，待总控指示）：M5 回写联调（data-audit 数据联动）→ 模板重训练数据驱动 → 上传真实化（用户提供小店账号，REC-002 契约替换点已预留）→ 真实 ffmpeg 出片验证（环境就绪自动启用）。
 - 当前阻塞：无。**已请总控提交备份（里程碑：M3 v1.0 全链路闭环验收通过）**。
+
+---
+
+### 2026-08-28 ｜ M0 总工程师 ｜ m0-foundation ｜ 角色：总工（A1 队列基座验收通过 · v0.2 里程碑达成）
+
+- 完成任务：
+  ① **A1-4 开发与 5 个测试失败修复**（总控返工单，逐一修复）——
+     a. naive/aware 时间 TypeError×2（SQLite 丢时区）：治本方案新增 `AwareUTCDateTime`（TypeDecorator：bind 补 UTC tzinfo、result 读回强制 aware UTC），全部时间列改用（tables.py 单行+多行写法全部替换）；
+     b. 唯一约束断言排序 bug（tuple(sorted) 顺序错乱）：改 frozenset 比较；
+     c. 失败隔离测试逻辑错误（claim limit=10 把两个 job 都领走）：改 limit=1 只领一个再 fail；
+     d. 时间戳 _at 断言（test_timestamp_columns_at_suffix）：发现 `retry_after` 以 `ter` 结尾不满足 `_at` 后缀——**总控第 1 步指定字段名，命名例外保留**，测试改为单独验证 retry_after 存在性（decisions.md 已记录）；
+  ② **repo.py 字段对齐 DDL**：next_retry_at→retry_after、result→evidence_json（complete 参数改名 evidence）；db.py 支持 `sqlite:///:memory:`（StaticPool 单连接）；
+  ③ **foundation 单测 30 个**（test_foundation_tables.py 10 + test_foundation_queue.py 20）：五表可建/列对齐 DDL/唯一约束/时间戳 _at/retry_after 验证/seed 幂等/错误码种子值/enqueue 幂等/claim 租约互斥与过期回收/complete/fail 错误码策略/失败隔离/list 过滤/状态机安全；
+  ④ **最终验收（宪法第 12 节独立 basetemp）**：`python -m pytest tests -q --basetemp=".pytest-tmp-m0"` → **417 passed, 1 skipped 全绿**（期间确认：M2 tiktok 测试失败=共享 .pytest-tmp 残留锁（P-011），清空后过；M1 ad_backfill 2 失败=顺序/basetemp 状态（先跑其文件后全量稳定全绿），均非 M0 引入）；
+  ⑤ **P-011/宪法第 12 节纪律落档**：context/README.md 环境事实改 `.pytest-tmp-m0`（禁止共用 .pytest-tmp，全量回归归总控）。
+- 产出文件：`backend/foundation/tables.py`（+AwareUTCDateTime）、`repo.py`（字段对齐）、`db.py`（+StaticPool）、`backend/tests/test_foundation_tables.py`、`test_foundation_queue.py`（新增 30 例）；`progress.md`（A1-4 勾选、基座开发 A 100%、完成度 **30%**、v0.2 里程碑达成）；`decisions.md`（+4 条：AwareUTCDateTime/retry_after 命名例外/StaticPool/）；`context/README.md`（测试纪律 P-011）；本日志追加条目。
+- 里程碑：**v0.2 达成：workflow_jobs 建库可跑 + 队列 API 全绿**（enqueue/claim/complete/fail/租约 45min 回收/幂等唯一约束/失败隔离/错误码退避）；此前其他模块台账记录的「M0 foundation 4~5 个既有失败」已全部修复（全量 417 passed 无 M0 失败）。
+- 当前阻塞：无。**请总控提交备份（里程碑：v0.2 队列基座验收通过）**；批准后派发 A2（调度器进程化：独立进程 + resume_on_startup 断点恢复，依赖 A1 队列 API）。
+- 备注：未运行任何 git 命令；未读写其他模块库（m2-materials.db/m5-ads.db 等未动，测试全部内存库）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；foundation 包现有 30 测试，全量回归请总控统一执行（建议 `.pytest-tmp-verify`）。
+
+---
+
+### 2025 体系建立日 ｜ M1 总工程师 ｜ M1 自动选品（m1-sourcing） ｜ 角色：总工（S3a 验收 + fixtures 全链路 e2e + S3b 派发）
+
+- 完成任务：① **S3a 验收通过**（子代理 00389792）——独立复跑 sourcing 域 12 文件 → **91 passed**（85+6）；读 selector-log.md 质量高（5 来源全覆盖：config.selectors 全空=生效选择器在代码 DEFAULT_SELECTORS、有米云 URL 日期硬编码待动态化、抖店飙升榜缺 URL/fixtures、动态列定位死代码、商机中心 price/sales/category 恒空与 fixtures 口径差异、alibaba/taobao 宽泛选择器；每来源含待实测项；A1~A6 校准建议登记）；环境探测关键发现：**Chrome 标准路径存在、CDP 9223/9555/9222 全可达、launch-browsers 幂等跳过、probe-browsers 显示共享浏览器已打开商机中心/抖店罗盘/有米云页面（持有登录态页面，真实采集仍待总控批准）**；page_changed 单测 6 例（mock 零浏览器）；环境事实已更新 context/README；
+② **fixtures 全链路 e2e 验证（总工独立执行，临时库）**：`run-pipeline --mode fixtures --top-n 20` → 三源采集 23 条（opportunities 5 + youmi 7 + doudian 8 + 其他）→ 入池 TopN 成功（pool 显示 84.7/80.2/80.0 分候选），**投放转化维度生效**（打分输出含投放转化 8.0/6.0/4.0/10.0）；二次运行去重幂等（采集 23 → 去重后 0，防重复入库）；
+③ **e2e 冒烟脚本（总工，临时库 .pytest-tmp-m1/e2e2.db）**：① app_config 白名单接线端到端——写入 `category_whitelist=["收纳整理"]` 后，宠物用品→manual_review（白名单外转人工）、收纳整理→candidate；② ad-sync 回写导入——示例交换文件 4 类目导入 cache（roi/sales_amount 分/sample_count/period 全对）+ 审计行 status=ok；③ 幂等——重复导入 upserted=4/inserted=0，cache 行数不变、ingests 不重复；④ 弱样本留痕（厨房用品 sample_count=3 仍导入，消费端过滤）→ **E2E_SMOKE_OK**；临时脚本与库已清理；
+④ **S3b（校准动作实施 A1~A4）已派发**（子代理 45e06cf4：A1 config.selectors 迁移 / A2 有米云 URL 日期动态化 / A3 抖店飙升榜 fixtures 补样本 / A4 动态列定位启用；A5/A6 依赖真实页面待登录态）。
+- 产出文件：S3a 产出 `context/selector-log.md`（新建）、`backend/tests/test_page_changed.py`（6 例）、`context/README.md`（+S3a 探测快照）；`progress.md`（S3a 勾选 100%、完成度 **30%**、S3b/S3c 行更新）；本日志追加条目。
+- 跨模块确认：M0 总工已修复 foundation 既有失败（v0.2 全量 417 passed），此前反馈的 4~5 个失败已销项。
+- 当前阻塞：无。S3b 执行中；**S3c 真实采集待登录态确认（浏览器已持有登录态页面，S3a 探测发现，总控批准后即可实测）**；之后 S4 联调验收（M4/M5 交换、日有效候选≥200 度量）。
+- 备注：未运行任何 git 命令；未读写其他模块库；临时验证全部走 .pytest-tmp-m1 独立目录；全部文件经 write/edit 工具 UTF-8 无 BOM；无明文密钥。

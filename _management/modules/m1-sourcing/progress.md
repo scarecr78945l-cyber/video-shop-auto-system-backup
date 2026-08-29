@@ -18,15 +18,17 @@
 | [x] S1a 基线改造+DSN 切换（config/db/README） | 子代理 32dfb48b | 100% | ✅ 验收通过（186 passed, 1 skipped） |
 | [x] S1b 打分扩展+白名单接线+m1 表（tables/pipeline/迁移/测试） | 子代理 58579182 | 100% | ✅ 验收通过（sourcing 62 passed；全量 331 passed / 4 failed 均为 M0 foundation 既有问题） |
 | [x] S2 投放转化回写：`ad_backfill.py` + CLI `ad-sync` + 单测 | 子代理 3e6fd497 | 100% | ✅ 验收通过（sourcing 域 85 passed 串行复跑；子代理自测全量 417 passed, 1 skipped） |
-| [ ] S3 真实采集：S3a 探测+选择器校准先发（fixtures 对照），真实采集待登录态 | 子代理 00389792 | 已派发 | S3a 执行中；真实采集部分待登录态就绪 |
+| [x] S3a 探测+选择器校准（fixtures 对照，page_changed 单测） | 子代理 00389792 | 100% | ✅ 验收通过（91 passed；selector-log.md A1~A6 建议登记） |
+| [ ] S3b 校准动作实施（A1 config.selectors 迁移 / A2 有米云日期动态化 / A3 飙升榜 fixtures / A4 动态列定位） | 待派发 | 0% | 不依赖登录态，可先行 |
+| [ ] S3c 真实采集联调（三源真实入库、A5/A6 实测收敛） | 待派发 | 0% | 依赖登录态就绪（用户侧） |
 | [ ] S4 联调与验收：M4/M5 交换联调、日有效候选≥200 度量、打分可解释抽查 | 总工 | 0% | 全部 |
 | [ ] S5 迭代：闸门放松、LLM 复核（可选）、PostgreSQL 迁移配合 | 总工 | 0% | 全部 |
 
 ## 里程碑进度
 
-- 本模块当前完成度：**25%**（筹备 100% + S1a/S1b/S2 验收通过；S3 待派发）
-- 距离目标还差：S3 真实采集 → S4 联调验收 → S5 迭代
-- 里程碑达成（S1+S2 收官）：① 配置化——类目白名单 app_config 运行时接线 + 打分权重/新鲜度阈值配置化；② 库——默认 DSN 切 `backend/data/db/m1-sourcing.db`，m1_ 投放转化两表可建；③ 投放转化第 5 维数据闭环——M5 回写接入器 `ad_backfill.py`（幂等导入+审计+CLI ad-sync）+ 消费端新鲜度/弱样本过滤落地（REC-007/008 全链路）
+- 本模块当前完成度：**30%**（筹备 + S1a/S1b/S2/S3a 验收通过 + fixtures 全链路 e2e 验证通过；S3b 待派发）
+- 距离目标还差：S3b 校准动作 → S3c 真实采集（登录态）→ S4 联调验收 → S5 迭代
+- 里程碑达成（S1+S2+S3a）：① 配置化——类目白名单 app_config 运行时接线（e2e 验证：白名单外类目转 manual_review）；② 库——默认 DSN 切 `backend/data/db/m1-sourcing.db`，m1_ 投放转化两表可建；③ 投放转化第 5 维数据闭环——ad_backfill 幂等导入（e2e：4 类目导入+重复导入 upserted 不重复）+ 新鲜度/弱样本过滤；④ **选品全链路可测可跑（fixtures 模式）**——run-pipeline 采集 23→入池 TopN，投放转化维度生效，二次运行去重幂等；⑤ 选择器校准基线——selector-log.md（5 来源+A1~A6 建议）+ page_changed 单测 6 例
 
 ## 后续排期（可拆子代理的任务）
 

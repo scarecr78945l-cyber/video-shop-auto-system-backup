@@ -174,6 +174,23 @@ class ErrorCode(Base):
     description: Mapped[str] = mapped_column(String(300), default="")
 
 
+# 任务阶段（09 文档第二节 stage 枚举；workflow_jobs/tasks.stage 共用）
+STAGE_VALUES: list[str] = [
+    "source_collect",      # 选品采集（调度器驱动）
+    "alibaba_quote",       # 1688 逐 SKU 询价
+    "taobao_reference",    # 淘宝素材参考
+    "image_generation",    # 生图
+    "listing_upload",      # 上架（OpenAPI 主 / UI 兜底）
+    "shop_ads_run",        # 托管投放执行
+    "shop_ads_report",     # 投放报表回读
+]
+
+# 任务状态（workflow_jobs/tasks.status 共用）
+JOB_STATUSES: list[str] = [
+    "pending", "running", "waiting_login", "waiting_verification",
+    "blocked", "success", "failed", "cancelled",
+]
+
 ERROR_CODE_SEEDS: list[dict] = [
     {"code": "VERIFICATION_REQUIRED", "retryable": False, "backoff_seconds": 0, "action": "manual_takeover", "description": "验证码/安全验证：单任务暂停 60min 等人工"},
     {"code": "AUTH_REQUIRED", "retryable": False, "backoff_seconds": 0, "action": "manual_takeover", "description": "登录失效：人工登录后断点续跑"},

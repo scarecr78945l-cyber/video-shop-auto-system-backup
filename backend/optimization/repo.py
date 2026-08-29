@@ -190,6 +190,26 @@ class VideoVariantRepo:
                 "evaluation": row.evaluation,
             }
 
+    def get_by_platform_material_id(self, platform_material_id: str) -> Optional[dict[str, Any]]:
+        """按小店素材库 ID 反查本地版本（M5 回写仅有平台素材 ID，联调反查用）。"""
+        if not platform_material_id:
+            return None
+        with self.db.session() as s:
+            row = s.execute(
+                select(tables.OptVideoVariant).where(
+                    tables.OptVideoVariant.platform_material_id == platform_material_id
+                )
+            ).scalars().first()
+            if row is None:
+                return None
+            return {
+                "variant_id": row.variant_id,
+                "product_id": row.product_id,
+                "variant_no": row.variant_no,
+                "platform_material_id": row.platform_material_id or "",
+                "evaluation": row.evaluation,
+            }
+
     def update_platform_material_id(
         self, variant_id: str, platform_material_id: str,
         upload_status: str = "uploaded",
