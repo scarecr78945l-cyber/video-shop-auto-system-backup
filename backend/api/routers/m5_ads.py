@@ -53,10 +53,12 @@ def _snapshot_dict(snap) -> dict[str, Any]:
     }
 
 
-def _campaign_dict(cam, latest_snapshot: Optional[dict[str, Any]] = None) -> dict[str, Any]:
+def _campaign_dict(cam, latest_snapshot: Optional[dict[str, Any]] = None,
+                   product_name: Optional[str] = None) -> dict[str, Any]:
     return {
         "id": cam.id,
         "product_id": cam.product_id,
+        "product_name": product_name,  # v1.1：跨库 join M1 products.title（缺失 → null）
         "ad_mode": cam.ad_mode,
         "target_type": cam.target_type,
         "target_roi": cam.target_roi,
@@ -90,7 +92,12 @@ def list_campaigns(
     page_size: int = Query(20, ge=1, le=100),
     services: Services = Depends(get_services),
 ) -> dict:
-    """托管看板列表（对齐后台列：商品/目标出价/诊断/曝光/花费/成交/补贴/操作）。"""
+    """托管看板列表（对齐后台列：商品/目标出价/诊断/曝光/花费/成交/补贴/操作）。
+
+    v1.1：每项增 product_name —— 跨库 join M1 products.title（M5 库
+    ad_campaigns.product_id → M1 库 products.id；经 services 六库容器分别查询，
+    product_id 批量取回后映射）；M1 库不可用或商品不存在 → null。
+    """
     from ads.tables import AdCampaign, AdReportSnapshot
 
     with services.m5_db.session() as session:
@@ -121,12 +128,35 @@ def list_campaigns(
             )
             for r in rows:
                 latest.setdefault(r.campaign_id, r)  # 每条 campaign 保留最新快照
+
+    # 跨库 join：M5 product_id → M1 products.title（批量取回映射；M1 库不可用 → 全 null）
+    product_names: dict[int, str] = {}
+    product_ids = [c.product_id for c in cams]
+    if product_ids:
+        try:
+            from sourcing.tables import Product
+
+            with services.sourcing_db.session() as session:
+                rows = session.execute(
+                    select(Product.id, Product.title, Product.sanitized_title).where(
+                        Product.id.in_(product_ids)
+                    )
+                ).all()
+            for pid, title, sanitized in rows:
+                product_names[pid] = (title or sanitized or "")
+        except Exception:  # noqa: BLE001 —— M1 库不可用 → 商品名全部 null（不阻塞看板）
+            product_names = {}
+
     return {
         "total": total,
         "page": page,
         "page_size": page_size,
         "items": [
-            _campaign_dict(c, latest_snapshot=_snapshot_dict(latest[c.id]) if c.id in latest else None)
+            _campaign_dict(
+                c,
+                latest_snapshot=_snapshot_dict(latest[c.id]) if c.id in latest else None,
+                product_name=product_names.get(c.product_id),
+            )
             for c in cams
         ],
     }

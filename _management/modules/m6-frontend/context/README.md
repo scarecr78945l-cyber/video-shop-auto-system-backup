@@ -20,7 +20,7 @@
 | POST | `/api/auth/logout` | 登出 | 失效会话 |
 | GET | `/api/auth/me` | 当前用户/权限 | 前端路由守卫用；返回 `{username, role}` |
 | GET | `/api/overview` | 总览看板聚合 | 任务队列统计（stage/status/error_code 分组计数）、错误码分布、今日漏斗、风控状态（余额/预算/kill_switch） |
-| GET | `/api/jobs` | 任务队列列表 | 过滤：stage/status/error_code/request_id；分页 |
+| GET | `/api/jobs` | 任务队列列表 | 过滤：stage/status/error_code/**keyword**（product_id 数字字符串 + error_message 模糊匹配，LIKE 大小写不敏感）+ **limit** 硬上限（默认 100，ge=1 le=500）；分页 page/page_size 信封 `{total, page, page_size, items}` |
 | GET | `/api/jobs/{id}` | 任务详情 | 含 evidence 脱敏摘要 |
 | POST | `/api/kill-switch` | 一键全停（S8） | 管理员；body `{enabled}`；对齐 M0 `M0_KILL_SWITCH`/app_config `risk.kill_switch` |
 | GET/PUT | `/api/app-config/{key}` | 配置读写 | 类目白名单/预算上限/权重等；管理员写 |
@@ -30,7 +30,7 @@
 
 | 方法 | 路径 | 用途 | 说明 |
 |---|---|---|---|
-| GET | `/api/products` | 商品池列表 | 按 score 排序；过滤 category/state/score 区间；返回含 score_breakdown 摘要、compliance 三态 |
+| GET | `/api/products` | 商品池列表 | 按 score 排序；过滤 category/state/compliance/score 区间 + **keyword**（title/sanitized_title LIKE %kw% 大小写不敏感）；分页 **page/page_size** 信封 `{total, page, page_size, items}`（v1.1 由 limit/offset 迁移）；返回含 score_breakdown 摘要、compliance 三态 |
 | GET | `/api/products/{id}` | 商品详情 | 完整打分理由（五维 raw/weight/weighted/reasons）+ quotes + source_evidence |
 | GET | `/api/sourcing/status` | 调度状态 | 各源账本（next_run_at/throttle_level/consecutive_failures/status 含 waiting_*）；对齐旧 `/sourcing/status` 语义 |
 | POST | `/api/sourcing/gate-confirm` | 选品复核闸门 | body `{product_id}`；manual_review → pool（对齐 CLI `gate-confirm`）；记录操作人 |
@@ -42,6 +42,7 @@
 |---|---|---|---|
 | GET | `/api/assets` | 素材库列表 | 过滤 asset_type/source_platform/relevance_status/upload_status/evaluation；分页 |
 | GET | `/api/assets/{id}` | 素材详情 | 规格字段（duration/resolution/size）+ 双去重指纹 + 评估标签 |
+| GET | `/api/assets/{id}/preview` | **图片素材预览（v1.1）** | 媒体流 FileResponse（免 JSON 信封，鉴权仍生效）；仅 asset_type=image 可预览（video → 400 INVALID_STATE）；file_path 白名单校验防路径穿越（越界/不存在 → 404 NO_MATCH）；存储根读 M2 `MATERIALS_STORAGE_DIR`，未配置 → 503；Content-Type 按扩展名 image/png\|jpeg\|webp |
 | POST | `/api/assets/{id}/relevance-confirm` | 素材相关性人工确认 | multi_style → 确认目标款（调 M2 `RelevanceGateService` 语义）；记录操作人 |
 | GET | `/api/assets/uploads` | 上传记录 | upload_status 追踪（对齐旧素材库页） |
 
@@ -70,7 +71,7 @@
 
 | 方法 | 路径 | 用途 | 说明 |
 |---|---|---|---|
-| GET | `/api/ads/campaigns` | 托管看板列表 | **对齐后台列**：商品/目标出价(target_roi+target_type)/诊断/曝光/花费/成交/补贴/操作（09 文档四节）；金额分 int |
+| GET | `/api/ads/campaigns` | 托管看板列表 | **对齐后台列**：商品（**product_name**，v1.1 跨库 join M1 products.title，无商品/库不可用 → null）/目标出价(target_roi+target_type)/诊断/曝光/花费/成交/补贴/操作（09 文档四节）；金额分 int；分页 page/page_size |
 | GET | `/api/ads/campaigns/{id}` | 托管详情 | 设置（target_type/target_roi/material_ids）+ 报表快照序列（ad_report_snapshots 按 recorded_at） |
 | GET | `/api/ads/account` | 投放账户状态 | 余额（分）/status（active/risk_control/waiting_*/paused）/节流级（对齐 S5 余额告警） |
 | POST | `/api/ads/campaigns/{id}/pause` | 暂停托管 | 对齐后台操作；记录操作人 |
@@ -84,8 +85,9 @@
 | 方法 | 路径 | 用途 | 说明 |
 |---|---|---|---|
 | GET | `/api/workbench/gates` | 闸门待办聚合 | 各闸门待办计数：选品复核(manual_review 数)/上架确认(pending 数)/图片审核(待审核数)/素材预审(manual_review 素材数)/验证码接管(waiting_verification 数)/登录接管(waiting_login 数) |
-| GET | `/api/workbench/exceptions` | 异常中心 | blocked/waiting_* 任务清单（error_code/evidence 摘要/暂停截止）；对齐旧 ExceptionCenter 语义 |
+| GET | `/api/workbench/exceptions` | 异常中心 | blocked/waiting_* 任务清单（error_code/evidence 摘要/暂停截止）；分页 page/page_size 信封 `{total, page, page_size, items}`（v1.1 由 limit 迁移）；对齐旧 ExceptionCenter 语义 |
 | POST | `/api/workbench/retry/{jobId}` | 人工接管后重试 | waiting_* → 断点续跑；记录操作人 |
+| POST | `/api/workbench/retry-batch` | **批量接管（v1.1）** | body `{job_ids:[int] 1~100}`（空数组/超 100 → 422 VALIDATION_ERROR）；返回 `{ok, total, success_count, results:[{job_id, ok, status?, error?}]}`，error 为 `{code, message}`；逐 job 复用单端点语义（仅 blocked/waiting_* 可重试，非异常 → INVALID_STATE，不存在 → NO_MATCH），单 job 失败不影响其他（整体恒 200），成功 job 走审计留痕 |
 
 ### 1.8 API 层交付差异登记（v0.2 子代理①实测，来源 `backend/api/REPORT.md`）
 
@@ -103,6 +105,21 @@
 | D8 | workbench retry 支持 waiting_verification/waiting_login/**blocked** 三类 | 异常中心重试按钮三类都展示 |
 | D9 | M1 详情 quotes/evidence 由 ORM 直查输出，raw_json 递归脱敏 | 详情页直接展示脱敏字段 |
 | D10 | **错误码扩展**：`VALIDATION_ERROR`(422)/`INVALID_STATE`(409) 为 API 层局部码（DA-008 之外） | lib/enums.ts 加 2 条映射或直接展示 message |
+
+### 1.9 v1.1 API 契约变更登记（子代理⑥交付，2026-08-29，110 passed 验收）
+
+> **前端子代理⑦按本节开发**（总控派发 v1.1 并行）。分页信封统一（总控决策）为 **`{total, page, page_size, items}`**；既有端点字段只增不改，分页信封迁移除外。
+
+| # | 端点 | 变更 | 前端处理 |
+|---|---|---|---|
+| V1 | `GET /api/products` | ①新增 `keyword`（title/sanitized_title LIKE %kw%，大小写不敏感）；②**分页由 limit/offset 迁移 page/page_size**（page 默认 1 ge=1；page_size 默认 20 ge=1 le=100）；信封 `{total, page, page_size, items}`（**不再返回 limit/offset 键**） | 商品池页改服务端关键词（去客户端过滤标注）；Pagination 组件对接 page/page_size |
+| V2 | `GET /api/jobs` | 新增 `keyword`（product_id 数字字符串 + error_message 模糊）+ `limit`（默认 100 ge=1 le=500，单次返回条数硬上限，生效页大小 = min(page_size, limit)）；信封不变 | 任务队列页可加搜索框；传参 `keyword`/`limit` |
+| V3 | `GET /api/assets/{id}/preview`（新） | 图片媒体流（免 JSON 信封，鉴权仍生效）；仅 image 可预览（video → 400 INVALID_STATE）；路径穿越/不存在 → 404 NO_MATCH；存储未配置 → 503 | ImageReviewPanel/AssetDetailPanel 图片预览接本端点（`<img src>` 或 fetch blob）；400/404/503 按错误码展示 |
+| V4 | `GET /api/ads/campaigns` | 每项新增 `product_name`（M1 products.title，无商品/库不可用 → null）；既有字段不变 | 托管看板「商品」列显示 product_name（null 显示占位） |
+| V5 | `POST /api/workbench/retry-batch`（新） | body `{job_ids:[int] 1~100}`（空数组/超 100 → 422 VALIDATION_ERROR）；返回 `{ok, total, success_count, results:[{job_id, ok, status?, error?}]}`；单 job 失败不影响其他，整体恒 200 | 异常中心批量选择 → 勾选 job_ids 调用；按 results 逐条提示（INVALID_STATE/NO_MATCH） |
+| V6 | `GET /api/workbench/exceptions` | 分页信封补 `page`/`page_size`（默认 20；原 limit 参数移除） | 异常中心列表分页对接 page/page_size |
+| V7 | `GET /api/listing/ready` | 分页信封补 `page`/`page_size`（默认 20；原 limit 参数移除；`evidence` 附加键保留） | 待上架列表分页对接 |
+| V8 | 信封一致性 | jobs/products/assets/assets-uploads/optimization-batches/listing-tasks/listing-ready/ads-campaigns/workbench-exceptions 全部 `{total, page, page_size, items}`；ads/report 例外 `{days, total, items}`；copywrites/logs/op-logs 不在统一清单保持原样 | 分页组件统一对接；ads/report 按 days 聚合处理 |
 
 ---
 
@@ -209,7 +226,7 @@
 | `M6_CORS_ORIGINS` | CORS 白名单（逗号分隔前端 origin） | M6 |
 | `NEXT_PUBLIC_API_BASE` | 前端 API 地址（仅地址，不含密钥） | M6 |
 | `NEXT_PUBLIC_USE_MOCK` | 前端 mock 开关（UI 先行开发用） | M6 |
-| 只读消费 | `M0_DB_URL`/`SOURCING_DB_URL`/`MATERIALS_DB_URL`/`M3_DB_URL`/`M4_DB_URL`/`M5_DB_URL` 等各模块库连接 | M0~M5（API 层只读） |
+| 只读消费 | `M0_DB_URL`/`SOURCING_DB_URL`/`MATERIALS_DB_URL`/`M3_DB_URL`/`M4_DB_URL`/`M5_DB_URL` 等各模块库连接；`MATERIALS_STORAGE_DIR`（v1.1 preview 端点读 M2 素材存储根） | M0~M5（API 层只读） |
 
 ---
 

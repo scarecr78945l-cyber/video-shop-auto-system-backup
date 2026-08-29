@@ -51,6 +51,17 @@ class AdsMaterialsBody(BaseModel):
     material_ids: list[str] = Field(..., min_length=1)
 
 
+class RetryBatchBody(BaseModel):
+    """异常中心批量接管请求：job id 列表（1~100 个；空数组/超上限 → 422 VALIDATION_ERROR）。"""
+
+    job_ids: list[int] = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="待人工接管重试的 job id 列表（1~100 个）",
+    )
+
+
 # ================================================================ 响应模型
 
 

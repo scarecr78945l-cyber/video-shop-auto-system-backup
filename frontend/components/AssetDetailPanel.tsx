@@ -11,7 +11,7 @@
  */
 "use client";
 
-import { Loader2, X } from "lucide-react";
+import { ImageOff, Loader2, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { AssetSummary, AssetUploadRecord } from "@/lib/api";
@@ -25,6 +25,7 @@ import {
 } from "@/lib/enums";
 import { formatBytes, formatDateTime, formatDuration } from "@/lib/format";
 import { isManualReviewAsset } from "@/lib/review";
+import { AssetPreview } from "@/components/AssetPreview";
 import { StatusBadge } from "@/components/StatusBadge";
 import { cn } from "@/lib/cn";
 
@@ -146,6 +147,34 @@ function DetailContent({
 
   return (
     <div className="space-y-5">
+      {/* v1.1 预览：图片走真实预览（GET /api/assets/{id}/preview），video 保持占位 */}
+      <section className="rounded-lg border border-zinc-200 p-4">
+        <h4 className="mb-2 text-sm font-semibold text-zinc-900">
+          预览
+          <span className="ml-2 text-xs font-normal text-zinc-400">
+            {asset.asset_type === "image"
+              ? "GET /api/assets/{id}/preview（鉴权同会话）"
+              : "视频类型暂无媒体预览端点（保持占位）"}
+          </span>
+        </h4>
+        {asset.asset_type === "image" ? (
+          <AssetPreview
+            assetId={asset.id}
+            enabled
+            aspectClass="aspect-[4/3]"
+            className="max-h-80 rounded-lg border border-zinc-100"
+            alt={`素材 #${asset.id} 预览`}
+          />
+        ) : (
+          <div className="grid aspect-[4/3] place-items-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50">
+            <div className="text-center text-xs text-zinc-400">
+              <ImageOff className="mx-auto mb-1 text-zinc-300" size={28} />
+              视频素材预览占位（需媒体服务端点）
+            </div>
+          </div>
+        )}
+      </section>
+
       {/* 概览 + 规格 */}
       <section className="rounded-lg border border-zinc-200 p-4">
         <h3 className="text-sm font-semibold text-zinc-900">

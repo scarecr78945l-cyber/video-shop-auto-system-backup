@@ -1,6 +1,7 @@
 /**
  * 分页条（v0.4 批次1）：共 N 条 · 第 p/N 页 + 上一页/下一页 + 每页条数（可选）。
- * 商品池（limit/offset）与素材库（page/page_size）共用。
+ * v1.1 起全部列表页统一对接 page/page_size 信封（products 已从 limit/offset 迁移），
+ * 商品池/素材库/上架任务/托管看板/审核批次共用本组件。
  */
 "use client";
 

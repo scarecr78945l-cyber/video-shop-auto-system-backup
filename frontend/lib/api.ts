@@ -383,6 +383,8 @@ export type AdsSnapshot = {
 export type AdsCampaign = {
   id: number;
   product_id: number;
+  /** v1.1：跨库 join M1 products.title，缺失为 null（前端 #product_id 兜底）。 */
+  product_name?: string | null;
   ad_mode: string;
   target_type: string; // roi / net_roi / goods（D5）
   target_roi: number | null;
@@ -459,6 +461,21 @@ export type WorkbenchRetryResult = {
   stage: string;
   error_code: string | null;
   operator: string;
+};
+
+// ---- v1.1：异常中心批量接管（POST /api/workbench/retry-batch） ----
+
+/** 批量接管单 job 结果（error 为 {code,message}；单 job 失败不影响其余）。 */
+export type WorkbenchRetryBatchItem = {
+  job_id: number;
+  ok: boolean;
+  status?: string | null;
+  error?: { code: string; message: string } | null;
+};
+
+/** POST /api/workbench/retry-batch 响应（body {job_ids: []}；空数组 → 422）。 */
+export type WorkbenchRetryBatchResult = {
+  results: WorkbenchRetryBatchItem[];
 };
 
 /** POST /api/sourcing/gate-confirm 响应（manual_review → pool；已在池中 → 409 INVALID_STATE）。 */

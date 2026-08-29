@@ -18,7 +18,7 @@ import {
   enumLabel,
 } from "@/lib/enums";
 import { formatDateTime } from "@/lib/format";
-import { formatTargetBid } from "@/lib/ads";
+import { campaignProductLabel, formatTargetBid } from "@/lib/ads";
 import { StatusBadge } from "@/components/StatusBadge";
 import { YuanText } from "@/components/YuanText";
 
@@ -70,7 +70,7 @@ export function AdsCampaignDetailPanel({ detail, loading, error, onClose }: Prop
                   <StatusBadge labels={M5_STATUS_LABELS} value={detail.status} />
                   <StatusBadge labels={M5_DIAGNOSIS_LABELS} value={detail.diagnosis} />
                   <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
-                    商品 #{detail.product_id}
+                    商品 {campaignProductLabel(detail)}
                   </span>
                   <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
                     模式 {detail.ad_mode || "—"}

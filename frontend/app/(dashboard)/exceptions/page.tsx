@@ -1,10 +1,13 @@
 /**
- * 异常中心（v0.7）：blocked / waiting_verification / waiting_login 任务清单 + 人工接管重试。
+ * 异常中心（v0.7 + v1.1 批量接管/分页统一）：blocked / waiting_verification /
+ * waiting_login 任务清单 + 人工接管重试（单条 / 批量）。
  *
- * - 取数：GET /api/workbench/exceptions（status 筛选 + limit，buildExceptionsQuery）；
+ * - 取数：GET /api/workbench/exceptions（status 筛选 + page/page_size 分页，
+ *   buildExceptionsQuery；v1.1 由 limit 迁移为统一信封 {total,page,page_size,items}）；
  * - 顶部统计：待接管总数 + 按 error_code 分组计数卡片（ExceptionCenter 内）；
  * - 人工接管：POST /api/workbench/retry/{jobId} → pending（断点续跑，立即可领取）；
- *   409 INVALID_STATE / 404 message 展示在弹窗内（D8：三类状态均支持重试）；
+ *   v1.1 批量接管：行多选 + POST /api/workbench/retry-batch（{job_ids} → {results}，
+ *   逐 job 独立失败不影响其余）；409/404 message 展示在弹窗内（D8：三类状态均支持重试）；
  * - 闸门工作台跳转 `?status=waiting_*`：挂载时读取 query 参数做初始筛选（仅客户端运行时，
  *   不影响静态生成）。
  * 展示口径：时间 formatDateTime、枚举 enumLabel/StatusBadge、摘要走 lib/workbench.ts。
@@ -13,12 +16,13 @@
 
 import { useEffect, useState } from "react";
 
-import { apiGet, type WorkbenchException } from "@/lib/api";
+import { apiGet, type Paginated, type WorkbenchException } from "@/lib/api";
 import { useAsyncData } from "@/lib/useAsyncData";
 import { buildExceptionsQuery } from "@/lib/workbench";
 import { JOB_STATUS_LABELS } from "@/lib/enums";
 import { cn } from "@/lib/cn";
 import { ExceptionCenter } from "@/components/ExceptionCenter";
+import { Pagination } from "@/components/Pagination";
 
 /** 异常中心关注的状态（对齐 workbench.py EXCEPTION_STATUSES；"" = 全部）。 */
 const STATUS_FILTERS: ReadonlyArray<string> = [
@@ -28,10 +32,10 @@ const STATUS_FILTERS: ReadonlyArray<string> = [
   "waiting_login",
 ];
 
-type ExceptionsResponse = { total: number; items: WorkbenchException[] };
-
 export default function ExceptionsPage() {
   const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   // 闸门卡片跳转 `?status=waiting_*` 初始筛选（仅客户端；静态生成不受影响）
   useEffect(() => {
@@ -41,13 +45,23 @@ export default function ExceptionsPage() {
     }
   }, []);
 
-  const query = buildExceptionsQuery(status, 100);
-  const list = useAsyncData<ExceptionsResponse>(
+  const query = buildExceptionsQuery(status, page, pageSize);
+  const list = useAsyncData<Paginated<WorkbenchException>>(
     () => apiGet(`/api/workbench/exceptions${query}`),
     [query],
   );
 
   const items = list.data?.items ?? [];
+
+  function changeStatusFilter(value: string) {
+    setStatus(value);
+    setPage(1);
+  }
+
+  function handlePageSizeChange(size: number) {
+    setPageSize(size);
+    setPage(1);
+  }
 
   return (
     <div>
@@ -55,7 +69,7 @@ export default function ExceptionsPage() {
         <h1 className="text-xl font-semibold text-zinc-900">异常中心</h1>
         <p className="mt-1 text-sm text-zinc-500">
           blocked / waiting_verification / waiting_login 任务清单 · 人工接管后断点续跑
-          （GET /api/workbench/exceptions + POST /api/workbench/retry/{"{id}"}）
+          （GET /api/workbench/exceptions + POST /api/workbench/retry/{"{id}"} | retry-batch）
         </p>
       </div>
 
@@ -67,7 +81,7 @@ export default function ExceptionsPage() {
             <button
               key={value || "all"}
               type="button"
-              onClick={() => setStatus(value)}
+              onClick={() => changeStatusFilter(value)}
               className={cn(
                 "h-8 rounded-lg border px-3 text-xs transition",
                 active
@@ -81,17 +95,28 @@ export default function ExceptionsPage() {
         })}
         {list.data && (
           <span className="ml-auto text-xs text-zinc-400">
-            当前筛选共 {list.data.total} 项（接口 limit=100）
+            当前筛选共 {list.data.total} 项（page/page_size 分页）
           </span>
         )}
       </div>
 
-      <ExceptionCenter
-        items={items}
-        loading={list.loading}
-        error={list.error}
-        onRefresh={list.reload}
-      />
+      <div className="space-y-4">
+        <ExceptionCenter
+          items={items}
+          loading={list.loading}
+          error={list.error}
+          onRefresh={list.reload}
+        />
+        <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={list.data?.total ?? 0}
+            onPageChange={setPage}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        </div>
+      </div>
     </div>
   );
 }

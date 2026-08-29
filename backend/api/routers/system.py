@@ -15,7 +15,7 @@ from datetime import datetime, time, timezone
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
+from sqlalchemy import String, func, or_, select
 
 from ..auth import AuthUser
 from ..deps import get_current_user, get_services, require_admin
@@ -119,11 +119,20 @@ def list_jobs(
     stage: Optional[str] = None,
     status: Optional[str] = None,
     error_code: Optional[str] = None,
+    keyword: Optional[str] = None,
+    limit: int = Query(100, ge=1, le=500),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     services: Services = Depends(get_services),
 ) -> dict:
-    """任务队列列表：过滤 stage/status/error_code + 分页（按 id 降序）。"""
+    """任务队列列表：过滤 stage/status/error_code/keyword + 分页（按 id 降序）。
+
+    - keyword：对可标识字段做 LIKE %kw% 模糊匹配（大小写不敏感）——product_id
+      （数字字符串 cast）+ error_message（任务级文字标识；workflow_jobs 无
+      title/request_id 列，D1）；
+    - limit：单次返回条数硬上限（默认 100 ≤500），生效页大小 = min(page_size, limit)；
+    - 信封 {total, page, page_size, items}。
+    """
     from foundation.tables import WorkflowJob
 
     with services.m0_db.session() as session:
@@ -134,14 +143,23 @@ def list_jobs(
             stmt = stmt.where(WorkflowJob.status == status)
         if error_code:
             stmt = stmt.where(WorkflowJob.error_code == error_code)
+        if keyword:
+            kw = f"%{keyword.lower()}%"
+            stmt = stmt.where(
+                or_(
+                    func.lower(func.cast(WorkflowJob.product_id, String)).like(kw),
+                    func.lower(WorkflowJob.error_message).like(kw),
+                )
+            )
         total = session.execute(
             select(func.count()).select_from(stmt.subquery())
         ).scalar_one()
+        effective_page_size = min(page_size, limit)
         rows = list(
             session.scalars(
                 stmt.order_by(WorkflowJob.id.desc())
-                .offset((page - 1) * page_size)
-                .limit(page_size)
+                .offset((page - 1) * effective_page_size)
+                .limit(effective_page_size)
             ).all()
         )
     return {

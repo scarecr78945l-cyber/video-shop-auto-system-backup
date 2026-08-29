@@ -8,13 +8,14 @@
  * - GET  /api/workbench/exceptions  → {total, items[]}（blocked/waiting_*，error_code/
  *                                     error_message / retry_after / lease 字段 / evidence 脱敏）
  * - POST /api/workbench/retry/{id}  → {ok, id, status, stage, error_code, operator}
+ * - POST /api/workbench/retry-batch（v1.1）→ {results:[{job_id, ok, status?, error?}]}
  * - POST /api/sourcing/gate-confirm → {ok, product_id, title, state, operator}（409 INVALID_STATE）
  *
  * 全部为纯函数，配套单测 tests/workbench.test.ts。展示口径：枚举中文一律走
  * lib/enums.ts（errorCodeLabel / JOB_STATUS_LABELS / JOB_STAGE_LABELS），本文件不重复建表。
  */
 
-import type { WorkbenchException, WorkbenchGates } from "./api";
+import type { WorkbenchException, WorkbenchGates, WorkbenchRetryBatchItem } from "./api";
 import { errorCodeLabel, JOB_STATUS_LABELS } from "./enums";
 
 // ================================================================ 闸门卡片（定义 + 计数）
@@ -179,22 +180,52 @@ export function complianceReasonsSummary(reasons: unknown, maxLen = 60): string 
 // ================================================================ 查询串构建
 
 /**
- * 选品复核列表查询：GET /api/products?state=manual_review（limit/offset 分页，
- * 对齐 m1_sourcing.py list_products；limit 上限 500）。
+ * 选品复核列表查询：GET /api/products?state=manual_review（v1.1 起与商品池页一致，
+ * page/page_size 分页——products 已从 limit/offset 迁移，对齐 m1_sourcing.py）。
  */
 export function buildReviewProductsQuery(page: number, pageSize: number): string {
   const p = Math.max(1, Math.floor(page) || 1);
-  const size = Math.min(Math.max(1, Math.floor(pageSize) || 20), 500);
-  return `?state=manual_review&limit=${size}&offset=${(p - 1) * size}`;
+  const size = Math.min(Math.max(1, Math.floor(pageSize) || 20), 100);
+  return `?state=manual_review&page=${p}&page_size=${size}`;
 }
 
 /**
- * 异常清单查询：GET /api/workbench/exceptions（status 可选 + limit 上限 500）。
+ * 异常清单查询：GET /api/workbench/exceptions（status 可选 + page/page_size 分页，
+ * 信封 {total, page, page_size, items}——v1.1 由 limit 迁移，对齐 workbench.py；
+ * page_size 夹取 1..100）。
  */
-export function buildExceptionsQuery(status: string, limit = 100): string {
-  const size = Math.min(Math.max(1, Math.floor(limit) || 100), 500);
+export function buildExceptionsQuery(status: string, page: number, pageSize = 20): string {
+  const p = Math.max(1, Math.floor(page) || 1);
+  const size = Math.min(Math.max(1, Math.floor(pageSize) || 20), 100);
   const params = new URLSearchParams();
   if (status) params.set("status", status);
-  params.set("limit", String(size));
+  params.set("page", String(p));
+  params.set("page_size", String(size));
   return params.toString() ? `?${params.toString()}` : "";
+}
+
+// ================================================================ v1.1 异常中心批量接管（retry-batch）
+
+/**
+ * 构建 POST /api/workbench/retry-batch 请求体 {job_ids: []}：
+ * 去空去重 + 过滤非法 id（非有限数/≤0）。空数组提交会触发后端 422（前端按钮已禁用兜底）。
+ */
+export function buildBatchRetryBody(jobIds: ReadonlyArray<number>): { job_ids: number[] } {
+  const ids = [...new Set(jobIds.filter((id) => Number.isFinite(id) && id > 0))];
+  return { job_ids: ids };
+}
+
+/** 批量接管结果汇总（成功/失败计数 + 失败明细，供结果横幅展示）。 */
+export function sumBatchRetryResults(
+  results: WorkbenchRetryBatchItem[],
+): { ok: number; failed: number; failedItems: Array<{ job_id: number; message: string }> } {
+  const items = results ?? [];
+  const ok = items.filter((r) => r.ok).length;
+  const failedItems = items
+    .filter((r) => !r.ok)
+    .map((r) => ({
+      job_id: r.job_id,
+      message: r.error?.message || r.error?.code || "未知错误",
+    }));
+  return { ok, failed: failedItems.length, failedItems };
 }

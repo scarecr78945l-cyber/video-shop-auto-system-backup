@@ -4,6 +4,10 @@
                                     relevance_status/upload_status/evaluation/
                                     compliance_status + 分页）
 - GET  /api/assets/{asset_id}      素材详情（规格字段 + 双去重指纹 + 评估标签）
+- GET  /api/assets/{asset_id}/preview
+                                  图片素材预览（媒体流 FileResponse，免 JSON 信封；
+                                  仅 image 可预览；file_path 白名单校验防路径穿越；
+                                  鉴权仍生效）
 - POST /api/assets/{asset_id}/relevance-confirm
                                   素材相关性人工确认（multi_style → 确认目标款，
                                   调 M2 RelevanceGateService 语义；记录操作人）
@@ -12,9 +16,12 @@
 
 from __future__ import annotations
 
+import mimetypes
+from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
+from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 
 from ..auth import AuthUser
@@ -24,6 +31,14 @@ from ..schemas import RelevanceConfirmBody
 from ..services import Services
 
 router = APIRouter(prefix="/api", tags=["m2-materials"])
+
+# 图片扩展名 → Content-Type（v1.1 预览端点）
+_IMAGE_CONTENT_TYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+}
 
 
 def _asset_to_dict(row) -> dict[str, Any]:
@@ -164,6 +179,78 @@ def asset_detail(asset_id: int, services: Services = Depends(get_services)) -> d
     out["created_at"] = iso_z(out.get("created_at"))
     out["updated_at"] = iso_z(out.get("updated_at"))
     return out
+
+
+# ---------------------------------------------------------------- 图片预览（v1.1）
+
+
+def _resolve_storage_root(services: Services) -> Path:
+    """解析 M2 素材存储根目录（配置优先：materials config.storage_dir ←
+    MATERIALS_STORAGE_DIR 环境变量；读不到配置 → 503 明确错误）。"""
+    import os
+
+    try:
+        cfg = services.materials_db.config
+        root = getattr(cfg, "storage_dir", None)
+        if root is None:
+            root = os.environ.get("MATERIALS_STORAGE_DIR") or ""
+        root = str(root).strip()
+        if not root:
+            raise ApiError(
+                status_code=503,
+                code="UNEXPECTED",
+                message="素材存储目录未配置（MATERIALS_STORAGE_DIR 或 M2 storage_dir）",
+            )
+        return Path(root)
+    except ApiError:
+        raise
+    except Exception as exc:  # noqa: BLE001 —— 配置异常统一转 503 明确错误
+        raise ApiError(
+            status_code=503,
+            code="UNEXPECTED",
+            message="素材存储配置读取失败",
+        ) from exc
+
+
+def _image_content_type(path: Path) -> str:
+    """按扩展名取图片 Content-Type（image/png|jpeg|webp；未知扩展回退 mime 探测）。"""
+    ext = path.suffix.lower()
+    if ext in _IMAGE_CONTENT_TYPES:
+        return _IMAGE_CONTENT_TYPES[ext]
+    guessed, _ = mimetypes.guess_type(str(path))
+    return guessed or "application/octet-stream"
+
+
+@router.get("/assets/{asset_id}/preview")
+def asset_preview(asset_id: int, services: Services = Depends(get_services)) -> Response:
+    """图片素材预览（v1.1，v0.6 遗留）：返回图片媒体流（免 JSON 信封，鉴权仍生效）。
+
+    - 仅 asset_type=image 可预览（video → 400 INVALID_STATE 说明）；
+    - file_path 为 M2 存储键：白名单解析（对齐 materials LocalStorage._resolve
+      语义，解析后必须位于存储根内，防路径穿越）；越界/不存在/不可读 → 404 NO_MATCH；
+    - 脱敏：不返回真实绝对路径（FileResponse 不暴露 filename/路径）。
+    """
+    from materials.storage import LocalStorage
+    from materials.tables import AssetItem
+
+    with services.materials_db.session() as session:
+        row = session.get(AssetItem, asset_id)
+    if row is None:
+        raise not_found(f"素材 {asset_id} 不存在")
+    if row.asset_type != "image":
+        raise ApiError(
+            status_code=400,
+            code="INVALID_STATE",
+            message=f"仅图片素材可预览（当前 asset_type={row.asset_type}）",
+        )
+    root = _resolve_storage_root(services)
+    try:
+        path = LocalStorage(root)._resolve(row.file_path or "")
+    except ValueError:
+        raise not_found(f"素材文件不存在或路径非法: {asset_id}")
+    if not path.is_file():
+        raise not_found(f"素材文件不存在或不可读: {asset_id}")
+    return FileResponse(path=str(path), media_type=_image_content_type(path))
 
 
 @router.post("/assets/{asset_id}/relevance-confirm")

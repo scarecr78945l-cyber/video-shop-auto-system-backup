@@ -1,9 +1,13 @@
 /**
- * 商品池（M1）· v0.4 批次1
+ * 商品池（M1）· v0.4 批次1 + v1.1（服务端关键词 / 分页迁移）
  *
- * 取数：GET /api/products（score 降序；category/compliance/min_score/max_score + limit/offset 分页）
+ * 取数：GET /api/products（score 降序；category/compliance/min_score/max_score/
+ *      keyword + page/page_size 分页）
  *      + GET /api/products/{id}（行点击 → 详情抽屉：五维打分/quotes/来源证据脱敏）。
- * 交互：类目/合规三态/关键词（客户端过滤）/分页/每页条数。
+ * v1.1：关键词改为**服务端过滤**（keyword 参数，title/sanitized_title LIKE），
+ *      输入防抖 300ms；分页从 limit/offset 迁移为 page/page_size（总控决策），
+ *      客户端过滤差异标注已移除。
+ * 交互：类目/合规三态/关键词（服务端）/分页/每页条数。
  * 展示口径：金额 formatYuan（元零换算）、时间 formatDateTime（UTC→UTC+8）、
  *          枚举一律 lib/enums.ts（compliance 三态徽章）。
  */
@@ -18,7 +22,6 @@ import {
   buildProductQuery,
   DEFAULT_PRODUCT_FILTERS,
   distinctCategories,
-  filterProductsByKeyword,
   type ProductFilters,
 } from "@/lib/products";
 import { COMPLIANCE_LABELS } from "@/lib/enums";
@@ -31,10 +34,13 @@ import { YuanText } from "@/components/YuanText";
 import { cn } from "@/lib/cn";
 
 const COMPLIANCE_OPTIONS = Object.entries(COMPLIANCE_LABELS);
+/** 关键词输入防抖（ms）：停止输入后才触发服务端过滤。 */
+const KEYWORD_DEBOUNCE_MS = 300;
 
 export default function ProductsPage() {
   const [filters, setFilters] = useState<ProductFilters>(DEFAULT_PRODUCT_FILTERS);
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useState(""); // 输入框即时值
+  const [debouncedKeyword, setDebouncedKeyword] = useState(""); // 防抖后实际生效值
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -47,7 +53,19 @@ export default function ProductsPage() {
     }
   }, []);
 
-  const query = useMemo(() => buildProductQuery(filters, page, pageSize), [filters, page, pageSize]);
+  // 关键词防抖：停止输入 300ms 后生效并重置页码（服务端过滤）
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedKeyword(keyword.trim());
+      setPage(1);
+    }, KEYWORD_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [keyword]);
+
+  const query = useMemo(
+    () => buildProductQuery(filters, page, pageSize, debouncedKeyword),
+    [filters, page, pageSize, debouncedKeyword],
+  );
   const list = useAsyncData<Paginated<ProductSummary>>(() => apiGet(`/api/products${query}`), [query]);
   const detail = useAsyncData<ProductDetail | null>(
     () => (selectedId === null ? Promise.resolve(null) : apiGet(`/api/products/${selectedId}`)),
@@ -55,7 +73,6 @@ export default function ProductsPage() {
   );
 
   const items = list.data?.items ?? [];
-  const visibleItems = useMemo(() => filterProductsByKeyword(items, keyword), [items, keyword]);
   const categories = useMemo(() => distinctCategories(items), [items]);
 
   function setFilter<K extends keyof ProductFilters>(key: K, value: ProductFilters[K]) {
@@ -148,14 +165,14 @@ export default function ProductsPage() {
             <Search size={14} className="shrink-0 text-zinc-400" />
             <input
               value={keyword}
-              onChange={(e) => {
-                setKeyword(e.target.value);
-                setPage(1);
-              }}
-              placeholder="关键词过滤（标题包含，客户端）"
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="关键词（服务端过滤，标题包含）"
               className="min-w-0 flex-1 bg-transparent py-1.5 text-xs outline-none"
             />
           </label>
+        </div>
+        <div className="mt-2 text-[11px] text-zinc-400">
+          关键词经 300ms 防抖后作为 keyword 参数提交服务端（标题/清洗后标题 LIKE 匹配）。
         </div>
       </div>
 
@@ -185,14 +202,14 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {!list.loading && visibleItems.length === 0 && (
+              {!list.loading && items.length === 0 && (
                 <tr>
                   <td colSpan={8} className="px-4 py-12 text-center text-xs text-zinc-400">
-                    {keyword.trim() ? "当前页无匹配关键词的商品" : "暂无商品"}
+                    {debouncedKeyword ? "无匹配关键词的商品" : "暂无商品"}
                   </td>
                 </tr>
               )}
-              {visibleItems.map((p) => {
+              {items.map((p) => {
                 const complianceState =
                   typeof p.compliance?.state === "string" ? p.compliance.state : p.state;
                 return (
@@ -250,12 +267,6 @@ export default function ProductsPage() {
           onPageChange={setPage}
           onPageSizeChange={handlePageSizeChange}
         />
-        {keyword.trim() && (
-          <div className="border-t border-zinc-100 px-4 py-2 text-xs text-zinc-400">
-            关键词为客户端过滤：当前页命中 {visibleItems.length} 条 / 共 {list.data?.total ?? 0} 条
-            （API 无关键词参数，见 REPORT 遗留项）
-          </div>
-        )}
       </div>
 
       {/* 详情抽屉 */}

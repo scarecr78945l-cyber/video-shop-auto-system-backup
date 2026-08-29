@@ -4,6 +4,25 @@
 
 ---
 
+### 2026-08-29 ｜ M6 子代理⑦ ｜ M6 前端控制台 · 前端 v1.1 增强 ｜ 角色：子代理
+
+- 完成任务：前端 v1.1 五项增强——①商品池服务端关键词（keyword 参数，输入防抖 300ms，去客户端过滤标注）+ 分页迁移（buildProductQuery limit/offset → page/page_size，删除 filterProductsByKeyword）；②分页统一（buildReviewProductsQuery 迁移；exceptions 按落地源码复核：后端已由 limit 迁移 page/page_size → 补 Pagination；listing/ready 改 page/page_size；op-logs limit 合法保留）；③异常中心批量接管（retry-batch：行复选框/全选/「批量接管（N）」二次确认/结果横幅成功 X 失败 Y + 明细展开，与单条并存；buildBatchRetryBody/sumBatchRetryResults 纯函数 + WorkbenchRetryBatch* 类型）；④素材选择器（AdsMaterialsDialog 升级：分页列表 + evaluation/relevance_status 筛选 + 多选 + 已选计数 + 手动输入兜底；buildAssetSelectorQuery/assetToMaterialId）；⑤preview 图片展示（AssetPreview 组件：fetch blob + objectURL + credentials include + 失败回退占位；AssetDetailPanel image 真实预览/video 占位；ImageReviewPanel 接预览）+ AdsCampaign.product_name（campaignProductLabel，#product_id 兜底）。
+- 产出文件：`lib/products.ts`、`lib/workbench.ts`、`lib/assets.ts`、`lib/ads.ts`、`lib/api.ts`、`components/AssetPreview.tsx`（新）、`components/ExceptionCenter.tsx`、`components/AdsMaterialsDialog.tsx`、`components/AssetDetailPanel.tsx`、`components/ImageReviewPanel.tsx`、`components/AdsCampaignDetailPanel.tsx`、`components/Pagination.tsx`、`components/SourcingReviewPanel.tsx`、`app/(dashboard)/products|exceptions|ads|listing/page.tsx`、`tests/list|workbench|ads.test.ts`、`frontend/REPORT.md`（追加 v1.1 小节）、`frontend/.smoke-v11/smoke_v11.py`（冒烟脚本，可复跑）。
+- 测试结果：`npm test` → **209 passed**（197 + 12）；`npx tsc --noEmit` 0 errors；`npm run build` exit 0；真实 API 冒烟（fixtures 临时后端 8123）→ **21 断言全绿**（products keyword/分页信封、exceptions 信封、retry-batch 混合失败/幂等/空数组 422、preview image/video/404、campaigns product_name join/null）；临时环境已清理（8123 已释放）。
+- 当前阻塞：无（M3 图片预览端点归属/素材选择器 id 标识语义为跨模块协调项，已记 REPORT 遗留）。
+
+---
+
+### 2026-08-29 ｜ M6 子代理⑥ ｜ M6 前端控制台 · 后端 API 层 v1.1 增强 ｜ 角色：子代理
+
+- 完成任务：后端 API 层 v1.1 五项增强（总控派发）——①products keyword 服务端过滤（title/sanitized_title LIKE %kw% 大小写不敏感 + 组合过滤）+ jobs keyword（product_id 数字字符串/error_message）+ jobs limit 硬上限（默认 100 ≤500）；②分页统一 page/page_size 信封 `{total,page,page_size,items}`（products 由 limit/offset 迁移、listing-ready 与 workbench-exceptions 由 limit 迁移、全层 9 端点一致性校验 + ads/report 例外登记）；③新增 POST /api/workbench/retry-batch（空数组/超 100 → 422，逐 job 复用单端点语义，单 job 失败不影响其他整体恒 200，幂等，成功走审计）；④新增 GET /api/assets/{id}/preview（图片媒体流 FileResponse 免 JSON 信封、仅 image 可预览、路径白名单对齐 LocalStorage._resolve 防穿越、404/503 语义）；⑤ads/campaigns 每项增 product_name（跨库 join M1 products.title，无商品/库不可用 → null）。
+- 产出文件：`backend/api/routers/m1_sourcing.py`、`system.py`、`m2_materials.py`、`m5_ads.py`、`workbench.py`、`m4_listing.py`、`backend/api/schemas.py`（RetryBatchBody）、`backend/tests/test_api_m1_sourcing.py`（+3）、新增 `backend/tests/test_api_v11.py`（32 用例）、`backend/api/REPORT_v11.md`、更新 `_management/modules/m6-frontend/context/README.md`（第一节契约 + 1.9 v1.1 变更登记 + 环境变量注册表）。
+- 测试结果：`python -X utf8 -m pytest tests/test_api_*.py -q --basetemp=".pytest-tmp-m6"` → **110 passed**（v1.0 75 → +35）；抽查 test_ads_repo.py + test_foundation_security.py → 23 passed 零回归；路径数 41 → 43。
+- 纪律：未运行任何 git 命令；未修改 M0~M5 源码；无明文密钥；UTF-8 无 BOM；独立 basetemp + -X utf8；小步落盘按 1→5 逐项推进。
+- 当前阻塞：无（差异登记与遗留项见 `backend/api/REPORT_v11.md` 三/四节）。
+
+---
+
 ### 2025 体系建立日 ｜ 总控 Agent ｜ 全局 ｜ 角色：总控
 
 - 完成任务：勘察工作区，通读 11 份方案文档与 backend 基线；建立 `_management` 管理体系；初始化 git；登记踩坑日志 P-001~P-007。
@@ -1470,3 +1489,29 @@
 - 产出文件：`decisions.md`（+4 条 v1.1 契约决策）、`progress.md`（v1.1 任务表 + 排期 + 里程碑）；子代理⑥⑦已派工。未改动任何代码。
 - 当前阻塞：无。下一回合：等子代理⑥⑦完成通知 → 分别验收（pytest/vitest/tsc/build 复跑 + 代码抽查 + 前后端联调核对契约一致性）→ 更新 progress/台账 → 汇报总控 v1.1 交付。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合未改代码。
+
+---
+
+### 2026-08-29 21:30 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v1.1 后端验收通过 · 子代理⑥）
+
+- 任务来源：子代理⑥（后端 API 层 v1.1）完成通知（110 passed），执行验收。
+- 完成任务：
+  ① **验收子代理⑥（通过）**：复跑 `python -X utf8 -m pytest tests/test_api_*.py -q --basetemp=".pytest-tmp-m6"` → **110 passed**（40.68s；v1.0 75 → +35，路径 41 → 43）；读 `backend/api/REPORT_v11.md`（5 项实现最终形态/测试矩阵/差异 V1~V5/遗留 V-L1~V-L6/纪律核验）；抽查 `m2_materials.py` preview（`LocalStorage(root)._resolve` 复用 M2 防穿越 + FileResponse + `_resolve_storage_root` 503）+ `workbench.py` retry-batch（`_retry_job_result` 共享单端点语义 + success_count）——质量合格；差异合理（jobs keyword 加 error_message、limit 硬上限 min(page_size,limit)、retry-batch 附加 ok/total/success_count、preview 503 UNEXPECTED、product_name 回退 sanitized_title）；
+  ② **文档回填**：progress.md v1.1 任务表（后端 4 项 100% ✅，前端待⑦）；decisions.md +2 条（v1.1 后端验收通过 / V-L 系列遗留登记）；
+  ③ **状态**：子代理⑦（前端 v1.1）仍在运行（[running]）；等其完成通知后验收（vitest/tsc/build + 前后端契约一致性核对，含 V-L1 exceptions 分页迁移）。
+- 产出文件：`progress.md`（v1.1 后端完成）、`decisions.md`（+2 条）；子代理⑥已验收，未改动任何代码。
+- 当前阻塞：无。下一回合：等子代理⑦完成通知 → 验收前端 v1.1 → 前后端联调核对 → 汇报总控。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合仅验收未改代码。
+
+---
+
+### 2026-08-29 21:50 ｜ M6 总工程师（首任） ｜ m6-frontend ｜ 角色：总工（v1.1 整体验收通过 · 汇报总控）
+
+- 任务来源：子代理⑦（前端 v1.1）完成通知（209 passed + 21 断言冒烟全绿），执行最终验收 + 汇报总控。
+- 完成任务：
+  ① **验收子代理⑦（通过）**：复跑 `npm test` → **209 passed**（13 文件，1.25s；197 → +12）+ `npx tsc --noEmit` → **0 errors** + `npm run build` → **exit 0**；读 `frontend/REPORT.md` v1.1 小节（5 项实现/字段映射/冒烟 21 断言/与后端衔接复核/遗留 5 项）；**前后端契约一致性核对**：products keyword+page/page_size、retry-batch 附加键兼容、preview int id（M3 字符串 id 回退占位）、product_name join、exceptions/listing-ready 分页迁移前端已同步（V-L1）——全部吻合；
+  ② **文档收尾**：progress.md v1.1 ✅ 100%（5 项 + 验收行）+ 排期表 v1.1 ✅ + 里程碑（v1.1 完成）；decisions.md +2 条（v1.1 前端/整体验收通过、v1.1 移交总控协调项）；
+  ③ **汇报总控**：report 工具提交 v1.1 交付报告（双回归 110+209、冒烟 21 断言、契约一致性、遗留协调项、申请备份标签）。
+- 产出文件：`progress.md`（v1.1 ✅）、`decisions.md`（+2 条）、本日志追加条目。未改动任何代码。
+- 当前阻塞：无。v1.1 迭代完成；等总控备份标签 + 协调遗留（M3 预览端点 v1.2 / MATERIALS_STORAGE_DIR 生产配置 / 素材 id 对齐 / v1.0 L1~L9）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合仅验收未改代码。

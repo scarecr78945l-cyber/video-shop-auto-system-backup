@@ -1,7 +1,8 @@
 /**
  * 选品复核面板（v0.7，闸门工作台内联）：
  *
- * 取数：GET /api/products?state=manual_review（limit/offset 分页，buildReviewProductsQuery）
+ * 取数：GET /api/products?state=manual_review（v1.1 起 page/page_size 分页，
+ *       buildReviewProductsQuery 与商品池页同信封）
  * 操作：POST /api/sourcing/gate-confirm {product_id} → pool（二次确认；
  *       已在池中 → 409 INVALID_STATE / 不存在 → 404，后端 message 展示在弹窗内）；
  *       行点击 → GET /api/products/{id} → ProductDetailPanel 详情抽屉。

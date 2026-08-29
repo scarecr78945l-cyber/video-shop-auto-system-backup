@@ -320,14 +320,24 @@ def task_retry(
 
 @router.get("/ready")
 def listing_ready(
-    limit: Optional[int] = Query(None, ge=1, le=50),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     services: Services = Depends(get_services),
 ) -> dict:
-    """待上架/已上架商品（候选池视图）：仅 status=listed 且链接已验证；价格 分→元。"""
+    """待上架/已上架商品（候选池视图）：仅 status=listed 且链接已验证；价格 分→元。
+
+    v1.1：分页信封统一 {total, page, page_size, items}（原 limit 参数迁移；
+    池内截断证据 evidence 保留为附加键）。
+    """
     pool = services.m4_candidate_pool
-    items = pool.get_sale_candidates(limit=limit)
+    all_items = pool.get_sale_candidates(limit=None)
+    total = len(all_items)
+    start = (page - 1) * page_size
+    page_items = all_items[start : start + page_size]
     return {
-        "total": len(items),
+        "total": total,
+        "page": page,
+        "page_size": page_size,
         "evidence": pool.last_evidence or {},
         "items": [
             {
@@ -336,6 +346,6 @@ def listing_ready(
                 "price_max_yuan": cents_to_yuan(item.pop("price_max_cents", None)),
                 "link_verified_at": iso_z(item.get("link_verified_at")),
             }
-            for item in items
+            for item in page_items
         ],
     }

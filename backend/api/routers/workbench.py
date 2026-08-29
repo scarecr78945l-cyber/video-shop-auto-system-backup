@@ -2,8 +2,12 @@
 
 - GET  /api/workbench/gates       闸门待办聚合计数（选品复核/上架确认/图片审核/
                                    素材预审/验证码接管/登录接管）
-- GET  /api/workbench/exceptions  异常中心（blocked/waiting_* 任务清单，evidence 脱敏）
-- POST /api/workbench/retry/{job_id}  人工接管后重试（waiting_* → 断点续跑；记录操作人）
+- GET  /api/workbench/exceptions  异常中心（blocked/waiting_* 任务清单，evidence 脱敏；
+                                   分页 page/page_size，信封 {total, page, page_size, items}）
+- POST /api/workbench/retry/{job_id}    人工接管后重试（waiting_* → 断点续跑；记录操作人）
+- POST /api/workbench/retry-batch       批量接管（body {job_ids:[int] 1~100} →
+                                   {results:[{job_id, ok, status?, error?}]}；逐 job 复用
+                                   单端点语义，单 job 失败不影响其他，整体恒 200）
 """
 
 from __future__ import annotations
@@ -16,7 +20,8 @@ from sqlalchemy import func, select
 
 from ..auth import AuthUser
 from ..deps import get_current_user, get_services
-from ..errors import ApiError, invalid_state, iso_z, not_found, redact_value
+from ..errors import ApiError, iso_z, redact_value
+from ..schemas import RetryBatchBody
 from ..services import Services
 
 router = APIRouter(prefix="/api/workbench", tags=["workbench"])
@@ -111,10 +116,15 @@ def gate_todo_counts(services: Services = Depends(get_services)) -> dict:
 def exceptions(
     status: Optional[str] = None,
     stage: Optional[str] = None,
-    limit: int = Query(100, ge=1, le=500),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     services: Services = Depends(get_services),
 ) -> dict:
-    """异常中心：blocked/waiting_* 任务清单（error_code/evidence 摘要/暂停截止）。"""
+    """异常中心：blocked/waiting_* 任务清单（error_code/evidence 摘要/暂停截止）。
+
+    v1.1：分页信封统一 {total, page, page_size, items}（原 limit 参数迁移为
+    page/page_size）。
+    """
     from foundation.tables import WorkflowJob
 
     filters = [WorkflowJob.status.in_(EXCEPTION_STATUSES)]
@@ -123,16 +133,23 @@ def exceptions(
     if stage:
         filters.append(WorkflowJob.stage == stage)
     with services.m0_db.session() as session:
+        total = session.execute(
+            select(func.count())
+            .select_from(select(WorkflowJob.id).where(*filters).subquery())
+        ).scalar_one()
         rows = list(
             session.scalars(
                 select(WorkflowJob)
                 .where(*filters)
                 .order_by(WorkflowJob.updated_at.desc())
-                .limit(limit)
+                .offset((page - 1) * page_size)
+                .limit(page_size)
             ).all()
         )
     return {
-        "total": len(rows),
+        "total": total,
+        "page": page,
+        "page_size": page_size,
         "items": [
             {
                 "id": j.id,
@@ -157,13 +174,13 @@ def exceptions(
 # ---------------------------------------------------------------- 人工接管重试
 
 
-@router.post("/retry/{job_id}")
-def retry_job(
-    job_id: int,
-    user: AuthUser = Depends(get_current_user),
-    services: Services = Depends(get_services),
-) -> dict:
-    """人工接管后重试：waiting_* / blocked → pending（断点续跑，立即可领取）。"""
+def _retry_job_result(services: Services, job_id: int, operator: str = "") -> dict[str, Any]:
+    """单个 job 的人工重试语义（单端点/批量端点共用；不抛错，返回结构化结果）。
+
+    - 仅 blocked/waiting_verification/waiting_login 可重试 → 其余状态 INVALID_STATE；
+    - 不存在 → NO_MATCH；
+    - 成功：status → pending、retry_after 立即到点、清租约 + 审计留痕。
+    """
     from datetime import datetime, timezone as _tz
 
     from foundation.tables import WorkflowJob
@@ -171,25 +188,88 @@ def retry_job(
     with services.m0_db.session() as session:
         job = session.get(WorkflowJob, job_id)
         if job is None:
-            raise not_found(f"任务 {job_id} 不存在")
+            return {
+                "job_id": job_id,
+                "ok": False,
+                "error": {"code": "NO_MATCH", "message": f"任务 {job_id} 不存在"},
+            }
         if job.status not in EXCEPTION_STATUSES:
-            raise invalid_state(
-                f"任务 {job_id} 状态为 {job.status}，仅 {EXCEPTION_STATUSES} 可人工重试"
-            )
+            return {
+                "job_id": job_id,
+                "ok": False,
+                "error": {
+                    "code": "INVALID_STATE",
+                    "message": (
+                        f"任务 {job_id} 状态为 {job.status}，仅 {EXCEPTION_STATUSES} 可人工重试"
+                    ),
+                },
+            }
         job.status = "pending"
         job.retry_after = datetime.now(_tz.utc)  # 立即到点可被 claim
         job.lease_owner = None
         job.lease_expires_at = None
         result = {
-            "id": job.id,
+            "job_id": job.id,
+            "ok": True,
             "status": job.status,
             "stage": job.stage,
             "error_code": job.error_code,
         }
-    services.audit(
-        event="workbench.retry",
-        message=f"人工接管后重试: job_id={job_id}",
-        evidence={"job_id": job_id, "from_status": "waiting/manual"},
-        operator=user.username,
-    )
-    return {"ok": True, **result, "operator": user.username}
+    if result["ok"]:
+        services.audit(
+            event="workbench.retry",
+            message=f"人工接管后重试: job_id={job_id}",
+            evidence={"job_id": job_id, "from_status": "waiting/manual"},
+            operator=operator,
+        )
+    return result
+
+
+@router.post("/retry/{job_id}")
+def retry_job(
+    job_id: int,
+    user: AuthUser = Depends(get_current_user),
+    services: Services = Depends(get_services),
+) -> dict:
+    """人工接管后重试：waiting_* / blocked → pending（断点续跑，立即可领取）。"""
+    result = _retry_job_result(services, job_id, operator=user.username)
+    if not result["ok"]:
+        error = result["error"]
+        raise ApiError(
+            status_code=404 if error["code"] == "NO_MATCH" else 409,
+            code=error["code"],
+            message=error["message"],
+        )
+    return {
+        "ok": True,
+        "id": result["job_id"],
+        "status": result["status"],
+        "stage": result["stage"],
+        "error_code": result["error_code"],
+        "operator": user.username,
+    }
+
+
+@router.post("/retry-batch")
+def retry_batch(
+    body: RetryBatchBody,
+    user: AuthUser = Depends(get_current_user),
+    services: Services = Depends(get_services),
+) -> dict:
+    """批量人工接管重试：逐 job 复用单端点 retry 语义（body {job_ids:[int] 1~100}）。
+
+    - 空数组 / 超 100 个 → 422 VALIDATION_ERROR（pydantic min_length/max_length）；
+    - 单 job 失败（INVALID_STATE / NO_MATCH）不影响其他 job，整体恒 200；
+    - 幂等：批量中已恢复的 job → ok:false + code:INVALID_STATE；
+    - 每个成功 job 均走既有 workbench.retry 审计留痕。
+    """
+    results = [
+        _retry_job_result(services, job_id, operator=user.username)
+        for job_id in body.job_ids
+    ]
+    return {
+        "ok": True,
+        "total": len(results),
+        "success_count": sum(1 for r in results if r["ok"]),
+        "results": results,
+    }

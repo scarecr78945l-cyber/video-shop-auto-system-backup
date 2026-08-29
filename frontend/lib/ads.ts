@@ -92,3 +92,15 @@ export function parseMaterialIds(input: string): string[] {
     ),
   ];
 }
+
+/**
+ * 托管看板「商品」列文案（v1.1）：GET /api/ads/campaigns 每项新增 product_name
+ * （跨库 join M1 products.title，缺失为 null）→ 有商品名展示名称，否则 `#product_id` 兜底。
+ */
+export function campaignProductLabel(campaign: {
+  product_name?: string | null;
+  product_id: number;
+}): string {
+  const name = campaign.product_name?.trim();
+  return name ? name : `#${campaign.product_id}`;
+}

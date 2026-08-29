@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { WorkbenchException, WorkbenchGates } from "../lib/api";
+import type { WorkbenchException, WorkbenchGates, WorkbenchRetryBatchItem } from "../lib/api";
 import {
+  buildBatchRetryBody,
   buildExceptionsQuery,
   buildReviewProductsQuery,
   complianceReasonsSummary,
@@ -9,6 +10,7 @@ import {
   GATE_DEFS,
   gateCount,
   retryConfirmText,
+  sumBatchRetryResults,
   totalGateCount,
 } from "../lib/workbench";
 
@@ -179,22 +181,82 @@ describe("complianceReasonsSummary（选品复核合规摘要）", () => {
 });
 
 describe("查询串构建", () => {
-  it("buildReviewProductsQuery：state=manual_review + limit/offset 分页", () => {
-    expect(buildReviewProductsQuery(1, 20)).toBe("?state=manual_review&limit=20&offset=0");
-    expect(buildReviewProductsQuery(2, 50)).toBe("?state=manual_review&limit=50&offset=50");
+  it("buildReviewProductsQuery：state=manual_review + page/page_size 分页（v1.1 迁移）", () => {
+    expect(buildReviewProductsQuery(1, 20)).toBe("?state=manual_review&page=1&page_size=20");
+    expect(buildReviewProductsQuery(2, 50)).toBe("?state=manual_review&page=2&page_size=50");
   });
 
-  it("buildReviewProductsQuery：page 最小 1 / pageSize 夹取 1..500", () => {
-    expect(buildReviewProductsQuery(0, 20)).toBe("?state=manual_review&limit=20&offset=0");
-    expect(buildReviewProductsQuery(1, 999)).toBe("?state=manual_review&limit=500&offset=0");
+  it("buildReviewProductsQuery：page 最小 1 / pageSize 夹取 1..100（不含 limit/offset）", () => {
+    expect(buildReviewProductsQuery(0, 20)).toBe("?state=manual_review&page=1&page_size=20");
+    expect(buildReviewProductsQuery(1, 999)).toBe("?state=manual_review&page=1&page_size=100");
+    expect(buildReviewProductsQuery(3, 20)).not.toContain("limit");
+    expect(buildReviewProductsQuery(3, 20)).not.toContain("offset");
   });
 
-  it("buildExceptionsQuery：空 status → 仅 limit", () => {
-    expect(buildExceptionsQuery("")).toBe("?limit=100");
+  it("buildExceptionsQuery：空 status → 仅分页参数（v1.1 limit 迁移为 page/page_size）", () => {
+    expect(buildExceptionsQuery("", 1)).toBe("?page=1&page_size=20");
   });
 
-  it("buildExceptionsQuery：status 过滤 + limit 夹取", () => {
-    expect(buildExceptionsQuery("blocked", 50)).toBe("?status=blocked&limit=50");
-    expect(buildExceptionsQuery("waiting_login", 999)).toBe("?status=waiting_login&limit=500");
+  it("buildExceptionsQuery：status 过滤 + page/page_size 夹取 1..100", () => {
+    expect(buildExceptionsQuery("blocked", 2, 50)).toBe("?status=blocked&page=2&page_size=50");
+    expect(buildExceptionsQuery("waiting_login", 3, 999)).toBe(
+      "?status=waiting_login&page=3&page_size=100",
+    );
+    expect(buildExceptionsQuery("", 0, 20)).toBe("?page=1&page_size=20");
+    expect(buildExceptionsQuery("blocked", 1, 20)).not.toContain("limit");
+  });
+});
+
+describe("buildBatchRetryBody（POST /api/workbench/retry-batch body）", () => {
+  it("正常 id 列表透传", () => {
+    expect(buildBatchRetryBody([1, 2, 3])).toEqual({ job_ids: [1, 2, 3] });
+  });
+
+  it("去空去重 + 过滤非法（0/负数/NaN/Infinity）", () => {
+    expect(buildBatchRetryBody([1, 1, 2, 0, -3, Number.NaN, Number.POSITIVE_INFINITY])).toEqual({
+      job_ids: [1, 2],
+    });
+  });
+
+  it("空数组 → {job_ids: []}（后端 422，前端按钮已禁用兜底）", () => {
+    expect(buildBatchRetryBody([])).toEqual({ job_ids: [] });
+  });
+});
+
+describe("sumBatchRetryResults（批量接管结果汇总）", () => {
+  function item(partial: Partial<WorkbenchRetryBatchItem>): WorkbenchRetryBatchItem {
+    return { job_id: 1, ok: true, ...partial };
+  }
+
+  it("全成功 → ok=N / failed=0", () => {
+    const results = [item({ job_id: 1 }), item({ job_id: 2 })];
+    expect(sumBatchRetryResults(results)).toEqual({ ok: 2, failed: 0, failedItems: [] });
+  });
+
+  it("部分失败 → 失败明细含 error.message（缺失回退 code/未知）", () => {
+    const results = [
+      item({ job_id: 1 }),
+      item({ job_id: 2, ok: false, error: { code: "INVALID_STATE", message: "状态冲突" } }),
+      item({ job_id: 3, ok: false, error: { code: "UNEXPECTED", message: "" } }),
+      item({ job_id: 4, ok: false }),
+    ];
+    expect(sumBatchRetryResults(results)).toEqual({
+      ok: 1,
+      failed: 3,
+      failedItems: [
+        { job_id: 2, message: "状态冲突" },
+        { job_id: 3, message: "UNEXPECTED" },
+        { job_id: 4, message: "未知错误" },
+      ],
+    });
+  });
+
+  it("空/undefined 结果 → 全 0", () => {
+    expect(sumBatchRetryResults([])).toEqual({ ok: 0, failed: 0, failedItems: [] });
+    expect(sumBatchRetryResults(undefined as unknown as WorkbenchRetryBatchItem[])).toEqual({
+      ok: 0,
+      failed: 0,
+      failedItems: [],
+    });
   });
 });

@@ -46,3 +46,48 @@ export function distinctSourcePlatforms(items: AssetSummary[]): string[] {
   }
   return [...set].sort((a, b) => a.localeCompare(b, "zh-CN"));
 }
+
+// ================================================================ v1.1 素材选择器（托管素材绑定）
+
+/** 素材选择器筛选（评估标签 + 相关性门；其余维度选择器不暴露）。 */
+export type AssetSelectorFilters = {
+  evaluation: string; // "" = 全部（exploring / efficient / potential）
+  relevanceStatus: string; // "" = 全部（pending / passed / failed / manual_review）
+};
+
+export const DEFAULT_ASSET_SELECTOR_FILTERS: AssetSelectorFilters = {
+  evaluation: "",
+  relevanceStatus: "",
+};
+
+/**
+ * 构建素材选择器列表查询（复用 GET /api/assets 的 evaluation/relevance_status 过滤 +
+ * page/page_size 分页；对齐 m2_materials.py list_assets v1.1 契约）。
+ */
+export function buildAssetSelectorQuery(
+  filters: AssetSelectorFilters,
+  page: number,
+  pageSize: number,
+): string {
+  return buildAssetQuery(
+    {
+      assetType: "",
+      sourcePlatform: "",
+      relevanceStatus: filters.relevanceStatus,
+      uploadStatus: "",
+      evaluation: filters.evaluation,
+    },
+    page,
+    pageSize,
+  );
+}
+
+/**
+ * 素材 → 后端 materials 端点接受的标识：优先 platform_material_id
+ * （M5 AdMaterial.material_id 同域标识），缺失回落 String(asset.id)。
+ * POST /api/ads/campaigns/{id}/materials body {material_ids} 按此字段提交。
+ */
+export function assetToMaterialId(asset: AssetSummary): string {
+  const pid = asset.platform_material_id?.trim();
+  return pid || String(asset.id);
+}

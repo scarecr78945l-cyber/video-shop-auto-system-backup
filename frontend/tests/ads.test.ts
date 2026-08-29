@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { AdsReportRow } from "../lib/api";
+import type { AdsCampaign, AdsReportRow } from "../lib/api";
 import {
   barMax,
   buildAdsQuery,
   buildAdsReportQuery,
+  campaignProductLabel,
   canEndCampaign,
   canPauseCampaign,
   canResumeCampaign,
@@ -171,5 +172,33 @@ describe("parseMaterialIds（素材输入解析）", () => {
   it("空输入 → []", () => {
     expect(parseMaterialIds("")).toEqual([]);
     expect(parseMaterialIds(" , ， ")).toEqual([]);
+  });
+});
+
+describe("campaignProductLabel（v1.1 托管看板商品列：product_name 优先，#product_id 兜底）", () => {
+  it("有 product_name → 展示商品名", () => {
+    expect(campaignProductLabel({ product_id: 101, product_name: "夏季防晒衣" })).toBe("夏季防晒衣");
+  });
+
+  it("product_name null/undefined/空白 → #product_id 兜底", () => {
+    expect(campaignProductLabel({ product_id: 101, product_name: null })).toBe("#101");
+    expect(campaignProductLabel({ product_id: 101, product_name: undefined })).toBe("#101");
+    expect(campaignProductLabel({ product_id: 101, product_name: "   " })).toBe("#101");
+  });
+
+  it("与 AdsCampaign 类型字段兼容（product_name?: string | null）", () => {
+    const campaign: AdsCampaign = {
+      id: 1,
+      product_id: 101,
+      product_name: "男士短袖T恤",
+      ad_mode: "auto",
+      target_type: "roi",
+      target_roi: 2.4,
+      material_ids: [],
+      status: "active",
+      diagnosis: null,
+      latest_snapshot: null,
+    };
+    expect(campaignProductLabel(campaign)).toBe("男士短袖T恤");
   });
 });

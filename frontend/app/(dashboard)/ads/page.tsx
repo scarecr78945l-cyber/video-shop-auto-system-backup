@@ -35,8 +35,8 @@ import {
   canEndCampaign,
   canPauseCampaign,
   canResumeCampaign,
+  campaignProductLabel,
   formatTargetBid,
-  parseMaterialIds,
   reportRowsAscending,
   sumReportMetrics,
 } from "@/lib/ads";
@@ -63,7 +63,6 @@ export default function AdsPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [actionDialog, setActionDialog] = useState<ActionDialog>(null);
   const [materialTarget, setMaterialTarget] = useState<AdsCampaign | null>(null);
-  const [materialInput, setMaterialInput] = useState("");
   const [materialResult, setMaterialResult] = useState<AdsMaterialsResult | null>(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -136,16 +135,14 @@ export default function AdsPage() {
 
   function openMaterials(campaign: AdsCampaign) {
     setMaterialTarget(campaign);
-    setMaterialInput("");
     setMaterialResult(null);
     setActionError(null);
   }
 
-  async function submitMaterials() {
+  async function submitMaterials(ids: string[]) {
     if (!materialTarget || actionBusy) return;
-    const ids = parseMaterialIds(materialInput);
     if (ids.length === 0) {
-      setActionError("请输入至少一个素材 ID");
+      setActionError("请选择或输入至少一个素材 ID");
       return;
     }
     setActionBusy(true);
@@ -304,7 +301,9 @@ export default function AdsPage() {
                     )}
                   >
                     <td className="px-4 py-3">
-                      <span className="font-medium text-zinc-800">#{campaign.product_id}</span>
+                      <span className="font-medium text-zinc-800">
+                        {campaignProductLabel(campaign)}
+                      </span>
                       <span className="ml-1.5 text-xs text-zinc-400">计划 {campaign.id}</span>
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-xs text-zinc-700">
@@ -574,12 +573,10 @@ export default function AdsPage() {
         }}
       />
 
-      {/* 素材绑定弹窗 */}
+      {/* 素材绑定弹窗（v1.1：素材选择器 + 手动输入兜底） */}
       <AdsMaterialsDialog
         open={materialTarget !== null}
         campaign={materialTarget}
-        input={materialInput}
-        onInputChange={setMaterialInput}
         busy={actionBusy}
         error={actionError}
         result={materialResult}

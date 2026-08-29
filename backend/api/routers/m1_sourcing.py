@@ -1,7 +1,9 @@
 """选品路由（M1 域，sourcing repo/CLI 聚合）。
 
-- GET  /api/products              商品池列表（score 降序；过滤 category/state/score 区间；
-                                   含 score_breakdown 摘要、compliance 三态）
+- GET  /api/products              商品池列表（score 降序；过滤 category/state/
+                                   compliance/score 区间/keyword（title/sanitized_title
+                                   模糊匹配）；分页 page/page_size，信封
+                                   {total, page, page_size, items}）
 - GET  /api/products/{product_id} 商品详情（五维 raw/weight/weighted/reasons + quotes
                                    + source_evidence，证据脱敏）
 - GET  /api/sourcing/status       调度状态（各源账本 next_run_at/throttle_level/
@@ -16,7 +18,8 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import func as sa_func
+from sqlalchemy import or_, select
 
 from ..auth import AuthUser
 from ..deps import get_current_user, get_services
@@ -82,20 +85,29 @@ def _product_summary(row) -> dict[str, Any]:
     }
 
 
+def _like_any(columns, keyword: str):
+    """大小写不敏感 LIKE %keyword%（SQLite/PostgreSQL 兼容：lower(列) LIKE 小写模式）。"""
+    kw = f"%{keyword.lower()}%"
+    return or_(*[sa_func.lower(c).like(kw) for c in columns])
+
+
 @router.get("/products")
 def list_products(
     category: Optional[str] = None,
     state: Optional[str] = None,
     compliance: Optional[str] = None,
+    keyword: Optional[str] = None,
     min_score: Optional[float] = Query(None, ge=0, le=100),
     max_score: Optional[float] = Query(None, ge=0, le=100),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     services: Services = Depends(get_services),
 ) -> dict:
-    """商品池列表：score 降序；过滤 category/state/compliance/score 区间。"""
-    from sqlalchemy import func as sa_func
+    """商品池列表：score 降序；过滤 category/state/compliance/score 区间 + keyword。
 
+    keyword 对 title/sanitized_title 做 LIKE %kw% 模糊匹配（大小写不敏感）；
+    分页信封 {total, page, page_size, items}（v1.1 总控决策：由 limit/offset 迁移）。
+    """
     from sourcing.tables import Product
 
     with services.sourcing_db.session() as session:
@@ -110,15 +122,21 @@ def list_products(
             filters.append(Product.score >= min_score)
         if max_score is not None:
             filters.append(Product.score <= max_score)
+        if keyword:
+            filters.append(_like_any([Product.title, Product.sanitized_title], keyword))
         total = session.execute(
             sa_func.count(Product.id).select().where(*filters)
         ).scalar_one()
         stmt = select(Product).where(*filters).order_by(Product.score.desc())
-        rows = list(session.scalars(stmt.offset(offset).limit(limit)).all())
+        rows = list(
+            session.scalars(
+                stmt.offset((page - 1) * page_size).limit(page_size)
+            ).all()
+        )
     return {
         "total": total,
-        "limit": limit,
-        "offset": offset,
+        "page": page,
+        "page_size": page_size,
         "items": [_product_summary(r) for r in rows],
     }
 

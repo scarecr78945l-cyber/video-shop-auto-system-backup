@@ -87,7 +87,7 @@ export default function ListingPage() {
     [selectedId],
   );
   const ready = useAsyncData<ListingReadyResponse | null>(
-    () => (showReady ? apiGet("/api/listing/ready?limit=20") : Promise.resolve(null)),
+    () => (showReady ? apiGet("/api/listing/ready?page=1&page_size=20") : Promise.resolve(null)),
     [showReady],
   );
 

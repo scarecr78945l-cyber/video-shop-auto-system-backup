@@ -26,6 +26,10 @@ def test_products_list_sorted_by_score(ctx):
     assert resp.status_code == 200
     body = resp.json()
     assert body["total"] == 3
+    # v1.1 分页信封统一（{total, page, page_size, items}，无 limit/offset）
+    assert set(body.keys()) >= {"total", "page", "page_size", "items"}
+    assert body["page"] == 1 and body["page_size"] == 20
+    assert "limit" not in body and "offset" not in body, "products 已迁移 page/page_size"
     scores = [item["score"] for item in body["items"]]
     assert scores == sorted(scores, reverse=True), "商品池必须按 score 降序"
     first = body["items"][0]
@@ -36,6 +40,74 @@ def test_products_list_sorted_by_score(ctx):
     assert first["compliance"]["state"] in ("candidate", "manual_review", "hard_reject")
     # score_breakdown 摘要
     assert "dimensions" in first["score_breakdown"]
+
+
+def test_products_list_pagination(ctx):
+    c, services, creds, ids = ctx
+    resp = c.get("/api/products", params={"page": 1, "page_size": 2})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 3
+    assert body["page"] == 1 and body["page_size"] == 2
+    assert len(body["items"]) == 2
+    resp2 = c.get("/api/products", params={"page": 2, "page_size": 2})
+    body2 = resp2.json()
+    assert body2["page"] == 2 and body2["page_size"] == 2
+    assert len(body2["items"]) == 1
+    # 两页内容不重叠
+    ids1 = {i["id"] for i in body["items"]}
+    ids2 = {i["id"] for i in body2["items"]}
+    assert ids1.isdisjoint(ids2)
+    # 非法分页参数 → 422
+    assert c.get("/api/products", params={"page": 0}).status_code == 422
+    assert c.get("/api/products", params={"page_size": 0}).status_code == 422
+    assert c.get("/api/products", params={"page_size": 101}).status_code == 422
+
+
+def test_products_list_keyword(ctx):
+    c, services, creds, ids = ctx
+    # 命中 title（中文）
+    resp = c.get("/api/products", params={"keyword": "喂食器"})
+    body = resp.json()
+    assert body["total"] == 1
+    assert "猫咪自动喂食器" in body["items"][0]["title"]
+    # 未命中 → 空
+    resp2 = c.get("/api/products", params={"keyword": "不存在的商品关键词xyz"})
+    assert resp2.json()["total"] == 0
+    # 与既有过滤组合：keyword + category
+    resp3 = c.get("/api/products", params={"keyword": "置物架", "category": "收纳整理"})
+    assert resp3.json()["total"] == 1
+    resp4 = c.get("/api/products", params={"keyword": "置物架", "category": "宠物用品"})
+    assert resp4.json()["total"] == 0
+    # 与 score 区间组合
+    resp5 = c.get("/api/products", params={"keyword": "喂食器", "min_score": 70, "max_score": 80})
+    assert resp5.json()["total"] == 1
+
+
+def test_products_list_keyword_case_insensitive(ctx):
+    """keyword 大小写不敏感（对英文 title 验证 lower() LIKE）。"""
+    from sourcing.tables import Product
+
+    c, services, creds, ids = ctx
+    with services.sourcing_db.session() as session:
+        session.add(
+            Product(
+                fingerprint="fp-kw-en-001",
+                image_phash="ph" + "9" * 14,
+                title="iPhone 15 Pro Case 手机壳",
+                sanitized_title="iphone 15 pro case",
+                category="数码配件",
+                state="pool",
+                compliance_state="candidate",
+                compliance_reasons=[],
+                score=60.0,
+            )
+        )
+    resp = c.get("/api/products", params={"keyword": "iphone"})
+    assert resp.json()["total"] == 1
+    assert "iPhone 15 Pro Case" in resp.json()["items"][0]["title"]
+    resp2 = c.get("/api/products", params={"keyword": "IPHONE"})
+    assert resp2.json()["total"] == 1
 
 
 def test_products_list_filters(ctx):

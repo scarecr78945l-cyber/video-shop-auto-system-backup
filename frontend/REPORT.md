@@ -628,3 +628,200 @@ frontend/
 - ✅ 无明文密钥（联调账号密码运行时随机生成，SHA-256 hex 仅进程环境变量；任何 md/脚本/日志无明文）；
 - ✅ 全部文件 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；pytest 独立 basetemp `.pytest-tmp-m6` + `-X utf8`（P-001/P-011/P-017）；
 - ✅ 未跑 M0~M5 全量 pytest（由总控执行）；冒烟临时环境（库/脚本/日志/服务/端口）已全部清理。
+
+---
+
+# M6 前端控制台 · v1.1 增强交付报告（子代理⑦：前端 v1.1 增强）
+
+> 日期：2026-08-29 ｜ 角色：M6 子代理⑦（前端 v1.1 增强） ｜ 父代理：M6 总工程师
+> 范围：v1.1 前端侧 5 项增强（总控派发）：①商品池服务端关键词 + 分页迁移 ②分页统一
+> ③异常中心批量接管 ④素材选择器 ⑤preview 图片展示 + 托管商品名。后端由并行子代理⑥按
+> 同一契约实现并**已落地**（backend/api v1.1：110 passed，见 backend/api/REPORT_v11.md）；
+> 前端**已按落地源码复核**（字段逐一吻合，差异见第六节），并完成真实 API 冒烟 **21 断言全绿**。
+
+## 一、验收结果（全部实测）
+
+| 验收项 | 命令 | 结果 |
+|---|---|---|
+| 单测 | `npm test`（vitest run） | ✅ **13 files / 209 passed / 0 failed**（v1.0 基线 197 + 新增 12） |
+| 类型检查 | `npx tsc --noEmit` | ✅ 0 errors |
+| 生产构建 | `npm run build`（next build） | ✅ 13 路由编译，`/ads`(9.48kB) `/exceptions`(5.76kB) `/products`(2.93kB)，exit 0 |
+| 联调（真实 API） | `python -X utf8 frontend/.smoke-v11/smoke_v11.py`（fixtures 临时后端 8123 + 临时种子库，P-019 单条持久连接） | ✅ **21 断言全绿**（见第五节；临时库/服务/端口已清理） |
+
+## 二、五项实现说明
+
+### 1. 商品池服务端关键词（v0.4-2）+ 分页迁移（总控决策）
+- `lib/products.ts`：`buildProductQuery(filters, page, pageSize, keyword="")` 增 `keyword`
+  参数（空白不输出）→ `?keyword=`；**分页从 limit/offset 迁移到 page/page_size**
+  （`?page=&page_size=`，信封 `{total,page,page_size,items}`）；客户端过滤函数
+  `filterProductsByKeyword` **已删除**（服务端承担，消除双逻辑——无任何页面再引用）。
+- `app/(dashboard)/products/page.tsx`：关键词输入框 **防抖 300ms**（`keyword` 即时值 →
+  `debouncedKeyword` 生效值，超时回调重置页码 1）→ 服务端 keyword 过滤；
+  **客户端过滤差异标注已移除**（原「关键词为客户端过滤…API 无关键词参数」提示条删除）；
+  分页直接传 page（无 offset 换算）；筛选后页码重置 1。
+- `tests/list.test.ts`：buildProductQuery 断言改 page/page_size（8 例）+ keyword 参数
+  （非空输出/空白不输出/与筛选共存），并断言**不含 limit/offset**。
+
+### 2. 分页统一（Pagination 组件对接）
+- 核对全部列表页：products（本批次迁移）/ assets / listing / ads / review-batches /
+  **exceptions（v1.1 后端已由 limit 迁移 page/page_size，本批次补 Pagination）** 均走
+  page/page_size 信封 + `Pagination`（props total/page/pageSize/onPageChange/onPageSizeChange）一致；
+- `lib/workbench.ts` `buildReviewProductsQuery` 迁移为 `?state=manual_review&page=&page_size=`
+  （选品复核面板同构复用，Pagination 传 page 无需换算）；`buildExceptionsQuery` 签名
+  **改为 (status, page, pageSize=20)**（page_size 夹取 1..100）——按落地源码复核：exceptions
+  端点 v1.1 已由 limit 迁移（`workbench.py` page/page_size + `{total,page,page_size,items}` 信封）；
+- **limit/offset 残留清理**（grep 全量核对）：`/api/listing/tasks/{id}/op-logs` 保留 `limit`
+  参数（端点实测仍为 limit 200 le=1000，合法保留）；`/api/listing/ready` v1.1 已迁移
+  page/page_size → listing 页 `?limit=20` 改为 `?page=1&page_size=20`；`underline-offset`
+  为 CSS 非分页。
+- `app/(dashboard)/exceptions/page.tsx`：补 page/pageSize 状态 + Pagination（此前为
+  limit=100 单页）；筛选 chips 切页重置 1；「接口 limit=100」标注移除（改「page/page_size 分页」）。
+- 单测同步：workbench.test.ts 更新 buildReviewProductsQuery / buildExceptionsQuery 断言。
+
+### 3. 异常中心批量接管（v0.7-4）
+- 后端契约（落地源码复核）：`POST /api/workbench/retry-batch` body `{job_ids:[int] 1~100}`
+  → `{ok, total, success_count, results:[{job_id, ok, status?, error?:{code,message}}]}`
+  （单 job 失败不影响其余，整体恒 200；空数组/超 100 → 422 VALIDATION_ERROR；幂等）。
+- `lib/api.ts`：新增 `WorkbenchRetryBatchItem` / `WorkbenchRetryBatchResult` 类型
+  （response 顶层附加键 ok/total/success_count 未入类型，TS 结构类型兼容忽略）。
+- `lib/workbench.ts`：`buildBatchRetryBody(jobIds)`（去空去重 + 过滤非法 id）纯函数 +
+  `sumBatchRetryResults(results)`（成功/失败计数 + 失败明细 error.message）纯函数，配单测 7 例。
+- `components/ExceptionCenter.tsx`：行复选框 + 表头全选/取消（`allVisibleSelected` 全选态，
+  选中项自动剔除已不在当前清单的失效 id）+ 顶部「批量接管（N）」按钮（N=已选数，0 隐藏）+
+  二次确认（文案同单条三类语义：验证码「确认验证码已通过，恢复执行」/登录「确认已重新登录，
+  从断点续跑」/阻塞「确认问题已解决，重试」，混合选择给汇总文案）→ retry-batch →
+  **结果横幅「批量接管完成：成功 X / 失败 Y」+ 失败明细展开（job_id + error.message）** →
+  清空选择 + 刷新列表；失败时弹窗保持打开展示后端 message（与单条接管同模式）；与单条接管并存。
+- `app/(dashboard)/exceptions/page.tsx`：取数/批量逻辑在 ExceptionCenter 内，页面 props 不变
+  （仅补分页与文案）。
+
+### 4. 素材选择器（审核工作台素材绑定增强，v0.5-5）
+- 复用 `GET /api/assets`（已有 asset_type/source_platform/relevance_status/upload_status/
+  evaluation + page/page_size 筛选）。
+- `lib/assets.ts`：`AssetSelectorFilters` + `DEFAULT_ASSET_SELECTOR_FILTERS` +
+  `buildAssetSelectorQuery(filters, page, pageSize)`（评估标签 + 相关性筛选，复用 buildAssetQuery）
+  + `assetToMaterialId(asset)`（优先 `platform_material_id`，缺失回落 `String(id)`）纯函数，配单测 4 例。
+- `components/AdsMaterialsDialog.tsx` **升级**：单行 material_ids 输入 → 素材列表选择器——
+  分页列表（素材 ID / material_id / 类型 / 评估标签 / 上传状态 / 规格）+ **评估标签筛选
+  （evaluation）+ 相关性筛选（relevance_status）** + 多选复选框（表头全选本页）+ **已选计数**
+  → 确认后 `onSubmit(selected)`（material_ids = assetToMaterialId 结果，按后端 materials
+  端点接受字段定）；**「手动输入」兜底保留**（parseMaterialIds 解析，两模式切换 tab）；
+  弹窗加宽 max-w-3xl，列表内嵌滚动 + Pagination（每页 10/20/50）。
+- `app/(dashboard)/ads/page.tsx`：`submitMaterials(ids: string[])` 签名变更（去 materialInput
+  状态 / parseMaterialIds 移入弹窗手动模式）。
+
+### 5. preview 图片展示 + 托管商品名显示（v0.6-1 / v0.5-1）
+- 后端契约：`GET /api/assets/{id}/preview` → 图片流（image/*；video 400；不存在 404；鉴权仍生效）。
+- `components/AssetPreview.tsx`（新）：通用预览组件——fetch(`${API_BASE}/api/assets/{id}/preview?ts=…`,
+  **credentials:"include"**，会话 cookie 自动携带；P-023 前后端同主机名联调）→ blob → objectURL
+  （卸载/换图 revoke 防泄漏）；`enabled=false`（video 等非图片）不发起请求；**任一失败（404/400/
+  网络）静默回退占位**（ImageOff），不打断审核/详情流程。
+- `components/AssetDetailPanel.tsx`：素材详情顶部「预览」区——`asset_type=image` 展示真实图片
+  （AssetPreview），video 保持占位（ImageOff + 说明）。
+- `components/ImageReviewPanel.tsx`：待审图卡片图片区接 AssetPreview（image_id，enabled=true），
+  端点不可用时回退占位；类型/变体徽章与已审标记 z-10 覆盖于预览之上。
+- `app/(dashboard)/ads/page.tsx`：托管看板「商品」列显示 `product_name`（`campaignProductLabel`，
+  null/空白 → `#product_id` 兜底）；`components/AdsCampaignDetailPanel.tsx` 商品 chip 同步。
+- `lib/api.ts`：`AdsCampaign` 加 `product_name?: string | null`（AdsCampaignDetail 继承）。
+- `lib/ads.ts`：`campaignProductLabel` 纯函数，配单测 3 例（含 AdsCampaign 类型字段断言）。
+
+## 三、API 字段映射（以落地 backend/api 源码为准，冒烟实测吻合）
+
+| 端点 | 页面消费字段 | 备注 |
+|---|---|---|
+| GET /api/products | **v1.1：+keyword 参数；分页 limit/offset → page/page_size**，信封 {total,page,page_size,items} | keyword 对 title/sanitized_title LIKE %kw% 大小写不敏感（_like_any）；页面防抖 300ms；冒烟：喂食器 命中 1 条/未命中 0/分页 2 条 total 3 ✅ |
+| GET /api/products?state=manual_review | 同上（buildReviewProductsQuery 同信封） | 选品复核面板与商品池页一致 |
+| GET /api/workbench/exceptions | **v1.1：limit → page/page_size**，信封 {total,page,page_size,items} | buildExceptionsQuery(status, page, pageSize)；冒烟信封键 + status 筛选 ✅ |
+| POST /api/workbench/retry-batch | body {job_ids:number[] 1~100} → {ok,total,success_count,results:[{job_id, ok, status?, error?:{code,message}}]} | 空数组/超 100 → 422；单 job 失败不影响其余；幂等；冒烟：混合 5 项（3 成功/INVALID_STATE/NO_MATCH）+ 空数组 422 + 清单 3→0 ✅ |
+| GET /api/assets（素材选择器复用） | 既有 AssetSummary + evaluation/relevance_status 筛选 + page/page_size | 选择器专用 buildAssetSelectorQuery |
+| GET /api/assets/{id}/preview | 图片流（asset_id int；image→200 图片流；video→400 INVALID_STATE；不存在/文件缺失→404 NO_MATCH；鉴权 auth_guard 仍生效） | fetch blob + objectURL + credentials include；冒烟：image/png 内容一致 / video 400 / 不存在 404 ✅ |
+| GET /api/ads/campaigns | **v1.1：每项 +product_name（跨库 join M1 products.title，title 空回退 sanitized_title；缺失/M1 库不可用 → null）** | campaignProductLabel：name 优先，#product_id 兜底；冒烟：join 命中 title / 缺失 null ✅ |
+| GET /api/listing/ready | **v1.1：limit → page/page_size**（信封 +evidence 附加键） | listing 页改 `?page=1&page_size=20` |
+| GET /api/listing/tasks/{id}/op-logs | 保持 limit 参数（默认 200 le=1000） | 前端 `?limit=100` 合法保留 |
+
+## 四、新增/变更文件清单
+
+| 文件 | 变更 |
+|---|---|
+| `lib/products.ts` | buildProductQuery 增 keyword + page/page_size；**删除 filterProductsByKeyword** |
+| `lib/workbench.ts` | buildReviewProductsQuery → page/page_size；buildExceptionsQuery → (status,page,pageSize)；新增 buildBatchRetryBody / sumBatchRetryResults |
+| `lib/assets.ts` | 新增 AssetSelectorFilters / DEFAULT_ASSET_SELECTOR_FILTERS / buildAssetSelectorQuery / assetToMaterialId |
+| `lib/ads.ts` | 新增 campaignProductLabel |
+| `lib/api.ts` | 新增 WorkbenchRetryBatchItem / WorkbenchRetryBatchResult；AdsCampaign +product_name |
+| `components/AssetPreview.tsx` | **新组件**：preview 图片流 fetch blob + objectURL + 容错回退 |
+| `components/ExceptionCenter.tsx` | 行复选框/全选/批量接管（N）/结果横幅（成功 X 失败 Y + 明细展开） |
+| `components/AdsMaterialsDialog.tsx` | 单行输入 → 素材列表选择器（分页/筛选/多选/已选计数/手动兜底） |
+| `components/AssetDetailPanel.tsx` | 详情顶部预览区（image 真实预览 / video 占位） |
+| `components/ImageReviewPanel.tsx` | 待审图卡片图片区接 AssetPreview（失败回退占位） |
+| `components/AdsCampaignDetailPanel.tsx` | 商品 chip 显示 product_name（campaignProductLabel） |
+| `components/Pagination.tsx` | 文档注释更新（v1.1 全部列表页 page/page_size 统一对接） |
+| `components/SourcingReviewPanel.tsx` | 文档注释更新（page/page_size） |
+| `app/(dashboard)/products/page.tsx` | 服务端关键词 + 防抖 300ms + 去客户端过滤标注 + 分页 page 直传 |
+| `app/(dashboard)/exceptions/page.tsx` | **补 Pagination（page/page_size）+ 批量接管文案** |
+| `app/(dashboard)/listing/page.tsx` | ready 查询 limit=20 → page=1&page_size=20（v1.1 迁移） |
+| `app/(dashboard)/ads/page.tsx` | 商品列 product_name + submitMaterials(ids) 签名 + 弹窗 props 更新 |
+| `tests/list.test.ts` | buildProductQuery 改 page/page_size + keyword（9 例）；新增选择器/assetToMaterialId 4 例 |
+| `tests/workbench.test.ts` | buildReviewProductsQuery / buildExceptionsQuery 迁移断言；新增批量接管 6 例 |
+| `tests/ads.test.ts` | 新增 campaignProductLabel 3 例（含类型字段断言） |
+| `.smoke-v11/smoke_v11.py` | **冒烟脚本（可复跑）**：seed + 起服务 + 21 断言 + 自动清理（无密钥落文件） |
+
+## 五、测试覆盖（209 passed = v1.0 197 + 新增 12）
+
+| 文件 | 用例 | 变更 |
+|---|---|---|
+| tests/list.test.ts | 20（原 17） | +3：buildProductQuery 重写 9 例（page/page_size/keyword/无 limit-offset）+ buildAssetSelectorQuery 3 例 + assetToMaterialId 1 例 |
+| tests/workbench.test.ts | 28（原 22） | +6：buildReviewProductsQuery / buildExceptionsQuery 迁移断言 + buildBatchRetryBody 3 例 + sumBatchRetryResults 3 例 |
+| tests/ads.test.ts | 27（原 24） | +3：campaignProductLabel（name 优先/null·空白兜底/AdsCampaign 类型兼容） |
+| 既有 format/enums/api/dashboard/env/listing/review/format-extra/enums-extra/workflow | 134 | 未修改，全绿 |
+
+## 六、真实 API 冒烟（fixtures 临时后端，21 断言全绿）
+
+- 方式：`python -X utf8 frontend/.smoke-v11/smoke_v11.py`——单脚本内 seed（临时 6 库 +
+  MATERIALS_STORAGE_DIR 真实 PNG 文件）→ 子进程起 `python -X utf8 -m api --host 127.0.0.1
+  --port 8123`（临时账号，**明文密码仅脚本内存**，sha256 hex 仅子进程环境变量）→
+  **单条 http.client 持久连接**（P-019 防复发）→ 21 断言 → 杀进程 + 删临时目录。
+- **21/21 断言全绿**：login 200；products keyword 命中 1 条（标题=猫咪自动喂食器…）/未命中 0/
+  分页 page_size=2 → items=2 total=3/信封 `{total,page,page_size,items}` 无 limit-offset 键；
+  exceptions 信封 + status 筛选；retry-batch 混合 5 项（verify/blocked/login 3 成功 +
+  success 项 INVALID_STATE + 不存在 NO_MATCH，整体 200）/附加键 success_count=3/幂等
+  （二次批量 INVALID_STATE）/空数组 422/批量后异常清单 3→0；preview image 200 + image/png +
+  内容与落盘字节一致/video 400 INVALID_STATE/不存在 404；campaigns 每项含 product_name/
+  join 命中 M1 title/商品缺失 null。
+- 冒烟脚本保留于 `frontend/.smoke-v11/smoke_v11.py`（可复跑，无密钥落文件）；临时
+  库/存储/服务/端口已清理（8123 netstat 验证释放）。
+
+## 七、与后端并行子代理⑥的衔接（按落地源码复核结论）
+
+- 后端 v1.1 已落地（backend/api/REPORT_v11.md，110 passed）。前端**逐项按源码复核**：
+  ①products `keyword`（`_like_any` lower LIKE）+ page/page_size 信封 ✅ 与前端一致；
+  ②retry-batch 逐 job 复用 `_retry_job_result`，响应附加顶层 `ok/total/success_count`
+  （V3 只增不改）——前端类型 `{results}` 结构兼容忽略附加键 ✅；
+  ③preview `asset_id:int` + 路径白名单（LocalStorage._resolve）+ auth_guard 中间件鉴权
+  ✅ AssetPreview 按 int id 请求；**M3 OptImage（image_id 字符串）无法经该端点预览**——
+  前端已按同端点接入并失败自动回退占位（不会白图/报错），见遗留 2；
+  ④campaigns `product_name`（join M1 products.title，title 空回退 sanitized_title，缺失
+  → null）✅ 与 campaignProductLabel 语义一致。
+- **后端契约超集（前端受益项）**：exceptions/listing-ready 由 limit 迁移 page/page_size
+  （V-L1）——前端已同步（exceptions 补 Pagination、ready 改 page/page_size），无需兼容旧参。
+- 素材选择器 material_ids 取 `assetToMaterialId`（platform_material_id 优先、String(id)
+  兜底）：后端 materials 端点按 M5 AdMaterial.material_id 匹配；若后续契约要求改用其他标识，
+  只需调整 `lib/assets.ts` 的 `assetToMaterialId` 一处并同步单测。
+
+## 八、遗留项 / 需父代理决策
+
+1. **M3 图片预览端点归属**：ImageReviewPanel 展示 M3 生图（OptImage，image_id 为字符串），
+   v1.1 preview 端点仅覆盖 M2 素材（int id）。当前按同端点接入并**失败自动回退占位**
+   （不会白图/报错）；若需 M3 真实预览，需后端提供独立端点（如 /api/optimization/media），
+   届时微调 AssetPreview 的 URL 构造（一处）。
+2. **preview 跨域 cookie**：fetch credentials:"include" 依赖后端 CORS allow_credentials +
+   源白名单（联调按 P-023 前后端同主机名 127.0.0.1:PORT 即可避免跨站 SameSite 问题）；
+   生产部署若跨域受限，需后端将预览并入同源或调整 CORS。
+3. **素材选择器 material_ids 标识语义**：当前取 M2 platform_material_id（缺失回落
+   String(id)）；后端 materials 端点以 M5 AdMaterial.material_id 匹配优选顺序（不命中则
+   preferred 回落原 ids，不影响绑定成功）。若产品要求 M5 域严格一致，需 M2/M5 素材 id
+   对齐（跨模块数据联动，属后端协调项）。
+4. **next build 后 dev 需删 .next**（F5 已知坑，README 已备注）：本批次执行了 build，
+   父代理如需浏览器冒烟请先删除 `frontend/.next` 再 `npm run dev`。
+5. **冒烟账号/密码不落文件**（临时账号运行时随机生成，明文仅脚本内存，hash 仅子进程
+   环境变量）；宪法第 7 节：全程未运行 git；第 11 节：全部 write/edit 工具 UTF-8 无 BOM；
+   backend/ 未做任何修改（只读，仅经 HTTP 调用）。

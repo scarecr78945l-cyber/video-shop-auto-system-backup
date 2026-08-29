@@ -1,8 +1,12 @@
 /**
- * 商品池（M1）列表纯逻辑辅助（v0.4 批次1）
+ * 商品池（M1）列表纯逻辑辅助（v0.4 批次1 + v1.1 服务端关键词/分页迁移）
  *
- * GET /api/products 使用 limit/offset 分页（非 page/page_size），
- * 筛选参数对齐 backend/api/routers/m1_sourcing.py（category/compliance/min_score/max_score）。
+ * v1.1 总控决策：GET /api/products 从 limit/offset 迁移为 page/page_size
+ * 信封 {total, page, page_size, items}（与 assets/listing/ads/workbench 一致），
+ * 并新增服务端关键词参数 `keyword`（title/sanitized_title LIKE %kw%，
+ * 对齐 m1_sourcing.py list_products v1.1 契约）。
+ * 客户端关键词过滤 filterProductsByKeyword 已删除（服务端承担，消除双逻辑）。
+ * 筛选参数对齐 backend/api/routers/m1_sourcing.py（category/compliance/min_score/max_score/keyword）。
  * 全部为纯函数，配套单测 tests/list.test.ts。
  */
 
@@ -23,21 +27,15 @@ export const DEFAULT_PRODUCT_FILTERS: ProductFilters = {
 };
 
 /**
- * 客户端关键词过滤：标题 / 清洗后标题包含（大小写不敏感）。
- * API 无关键词参数（REPORT 遗留项登记），本函数作用于已取回的分页条目。
+ * 构建 GET /api/products 查询串（page/page_size 分页 + 可选服务端关键词）。
+ * keyword 为空/空白时不输出参数；page 最小 1。
  */
-export function filterProductsByKeyword(items: ProductSummary[], keyword: string): ProductSummary[] {
-  const kw = keyword.trim().toLowerCase();
-  if (!kw) return items;
-  return items.filter((p) => {
-    const title = (p.title ?? "").toLowerCase();
-    const sanitized = (p.sanitized_title ?? "").toLowerCase();
-    return title.includes(kw) || sanitized.includes(kw);
-  });
-}
-
-/** 构建 GET /api/products 查询串（limit/offset 分页）。 */
-export function buildProductQuery(filters: ProductFilters, page: number, pageSize: number): string {
+export function buildProductQuery(
+  filters: ProductFilters,
+  page: number,
+  pageSize: number,
+  keyword = "",
+): string {
   const params = new URLSearchParams();
   if (filters.category) params.set("category", filters.category);
   if (filters.compliance) params.set("compliance", filters.compliance);
@@ -47,8 +45,10 @@ export function buildProductQuery(filters: ProductFilters, page: number, pageSiz
   if (filters.maxScore !== null && Number.isFinite(filters.maxScore)) {
     params.set("max_score", String(filters.maxScore));
   }
-  params.set("limit", String(pageSize));
-  params.set("offset", String(Math.max(0, (page - 1) * pageSize)));
+  const kw = keyword.trim();
+  if (kw) params.set("keyword", kw);
+  params.set("page", String(Math.max(1, page)));
+  params.set("page_size", String(pageSize));
   return params.toString() ? `?${params.toString()}` : "";
 }
 

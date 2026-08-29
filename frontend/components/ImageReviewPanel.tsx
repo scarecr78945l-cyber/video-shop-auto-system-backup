@@ -6,8 +6,10 @@
  * - 逐图 approve/reject：驳回必填理由（下拉预置 REJECTION_REASONS + 自定义）；
  * - 整批通过（二次确认，后端幂等 already_approved=true 视为成功）；
  * - D6：decision 触发 P0-2 规则草稿闭环（learning_rule_drafts），成功提示；
- * - 图片预览：API 仅返回本地 file_path（backend/api 无媒体服务端点），占位展示
- *   （REPORT 遗留项登记），规格/质检/审核流水（audit）完整展示。
+ * - 图片预览（v1.1）：待审图卡片图片区接 GET /api/assets/{id}/preview（fetch blob +
+ *   objectURL，credentials include 带会话 cookie；AssetPreview 组件）；端点不可用
+ *   （404/400/网络）时静默回退占位（ImageOff + 规格/质检/路径），不打断审核流程；
+ *   视频类型（后端 video → 400）同样回退占位。
  */
 "use client";
 
@@ -25,6 +27,7 @@ import {
 } from "@/lib/enums";
 import { formatDateTime } from "@/lib/format";
 import { canApproveBatch, countReviewStatus, filterAssetsByType, formatImageSpec, REJECTION_REASONS, reviewProgress } from "@/lib/review";
+import { AssetPreview } from "@/components/AssetPreview";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { cn } from "@/lib/cn";
@@ -287,23 +290,32 @@ function ImageCard({
   const isDecided = status === "approved" || status === "rejected";
   return (
     <article className={cn("overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50", busy && "opacity-60")}>
-      {/* 预览占位（API 仅返回本地 file_path，无媒体服务端点 → REPORT 遗留项） */}
+      {/* 预览（v1.1）：接 GET /api/assets/{id}/preview 真实图片流；端点不可用时回退占位 */}
       <div
         className={cn(
           "relative flex items-center justify-center bg-white",
           image.image_type === "main" ? "aspect-square" : "aspect-[4/5]",
         )}
       >
-        <div className="grid place-items-center text-zinc-300">
-          <ImageOff size={36} />
-        </div>
-        <span className="absolute left-2 top-2 rounded bg-black/70 px-2 py-0.5 text-xs text-white">
+        <AssetPreview
+          assetId={image.image_id}
+          enabled
+          aspectClass=""
+          className="absolute inset-0"
+          alt={`${OPT_IMAGE_TYPE_LABELS[image.image_type] ?? image.image_type} ${image.variant_no} 预览`}
+          placeholder={
+            <div className="grid place-items-center text-zinc-300">
+              <ImageOff size={36} />
+            </div>
+          }
+        />
+        <span className="absolute left-2 top-2 z-10 rounded bg-black/70 px-2 py-0.5 text-xs text-white">
           {OPT_IMAGE_TYPE_LABELS[image.image_type] ?? image.image_type} {image.variant_no}
         </span>
         {isDecided && (
           <span
             className={cn(
-              "absolute right-2 top-2 grid size-7 place-items-center rounded-full text-white",
+              "absolute right-2 top-2 z-10 grid size-7 place-items-center rounded-full text-white",
               status === "approved" ? "bg-emerald-600" : "bg-red-600",
             )}
           >
