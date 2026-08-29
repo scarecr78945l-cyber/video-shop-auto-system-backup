@@ -68,6 +68,24 @@ class ReviewSpec(BaseModel):
     high_risk_categories: tuple[str, ...] = ()  # 高风险类目强制人工（默认空，配置化）
 
 
+class RelevanceSpec(BaseModel):
+    """素材相关性门（REC-迁移-03 C3：Qwen-VL 前 15 秒抽帧判定 + 款式聚类）。
+
+    同 ffmpeg 策略（接口抽象 + fixtures mock，环境就绪自动启用真实模式）：
+    - mode=auto（默认）：QWEN_VL_API_KEY 就绪自动用真实 Qwen-VL 判定器，
+      否则自动降级 MockRelevanceJudge（零 Key 零外网可测）；
+    - mode=mock：强制 fixtures mock（测试/离线环境，即使有 Key 也走 mock）；
+    - mode=qwen：强制真实模式，无 Key/无 ffmpeg 时显式抛错（不静默降级）。
+    密钥纪律（P-004）：只存环境变量名 api_key_env，绝不写明文 Key。
+    """
+
+    mode: str = "auto"                     # auto / mock / qwen
+    api_key_env: str = "QWEN_VL_API_KEY"   # 环境变量名（不存值）
+    timeout_seconds: int = 60              # 单次 Qwen-VL 判定超时
+    frame_window_seconds: int = 15         # 前 15 秒抽帧窗口
+    frame_count: int = 3                   # 抽帧数量（窗口内等距：0/中/尾）
+
+
 class UploadSpec(BaseModel):
     """小店素材库上传（REC-002：双轨 UploadService，api|ui|semi）。"""
 
@@ -97,6 +115,7 @@ class M3Config(BaseSettings):
     copywriting: CopywritingSpec = Field(default_factory=CopywritingSpec)
     llm: LlmSpec = Field(default_factory=LlmSpec)
     review: ReviewSpec = Field(default_factory=ReviewSpec)
+    relevance: RelevanceSpec = Field(default_factory=RelevanceSpec)
     upload: UploadSpec = Field(default_factory=UploadSpec)
 
 

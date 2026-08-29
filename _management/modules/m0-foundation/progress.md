@@ -54,3 +54,12 @@
 | A5 | SQLite→PostgreSQL 迁移脚本（方言兼容 + 回滚快照） | ✅ 可拆 | A1 | v0.5 | 迁移演练通过；校验脚本核对行数/约束 |
 | A6 | 数据字典定稿 + 跨模块契约会签（与 M1~M5 总工，经 `data-audit.md`） | 总工亲自（跨模块不可拆） | 各模块 brief/context 完成 | v0.6 | `data-audit` 核对记录齐全；`data-exchange/` 载体签字 |
 | A7 | 与 M1~M5 集成联调（队列/错误码/风控/配置） | 总工亲自 | A1~A6 | v1.0 | 端到端模拟流程跑通（不提交真实商品） |
+
+## 总工恢复记录（2026-08-29）
+
+- **日期**：2026-08-29
+- **新任总工**：M0 总工程师（新任，接管原 M0 总工代理；原代理运行环境损坏无法恢复，代码/测试/文档备份完好：git v0.1~v0.38 + GitHub）
+- **模块状态确认**：A1~A7 已 **100% 完成**；foundation 测试基线 **82 passed**（表/队列 30 + 调度器 12 + 风控 26 + 脱敏 11 + 集成冒烟 3）；里程碑 **v1.0 达成（模块级收官）**；进度看板完成度 100%。
+- **交接核验**：模块六件套齐全且一致——brief.md（含 v1.0 实现快照）/risks.md（R01~R21）/progress.md/decisions.md（28 条决策）/context/README.md（数据字典/共享表归属/调度/风控/工程基座/环境变量注册表）/database/README.md（五表 DDL + PG 迁移脚本 0001+回滚）；BLOCKERS.md 为空；`backend/foundation/` 代码已实现并验收（tables/db/config/repo/scheduler/risk/security/__main__ + .env.example）；`data-audit.md` 契约 DA-001~DA-009 + REC-001~REC-011 + REC-迁移-01~04 已登记（六方会签 DA-008 销项、M4 DA-009 修复闭环）。
+- **纪律确认**：不运行 git（总控唯一执行）；不写明文密钥；文件一律 UTF-8 无 BOM；pytest 一律 `--basetemp=".pytest-tmp-m0"`（P-001/P-011，宪法第 12 节）。
+- **待办（等总控派发）**：体系级全量回归配合（总控 `.pytest-tmp-verify`）、迁移验收配合（迁移包 `app.sanitized.db` → `backend/app.db` 落地后 M0 核对 `tasks`/`workflow_jobs` DDL）、A 系列后续迭代。

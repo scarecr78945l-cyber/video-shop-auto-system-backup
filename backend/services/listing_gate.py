@@ -3,7 +3,7 @@
 流水线第一道关卡（07-自动上架模块设计.md 第三节）：六项硬门禁，任一不通过
 → 商品不入队（结构化拒绝，GateResult.rejected_reason_codes）。
 
-六项硬门禁：
+七项硬门禁：
   1. title             — 15–35 字符 + 非虚构承诺（品牌侵权词/供应链词/功效资质缺失词）
   2. category          — 类目在配置白名单 + 资质完整（资质字段非空）
   3. images            — 主图 ≥5 张、全部 1:1（Pillow 宽高比，容差可配）、
@@ -11,12 +11,16 @@
   4. sku_cost          — 逐 SKU 真实成本 > 0（整数「分」）+ 差异化售价已生成且 price > cost
   5. purchase_settings — 必填购买设置完整（限购/物流/售后，缺字段按未提供拒绝）
   6. compliance        — 合规预审通过（品牌/功效/供应链词，复用 sourcing/compliance.py）
+  7. attrs_complete    — 必填商品参数完整（REC-迁移-02，C2 客服补参闭环 M4 侧）：
+                         消费 M1 侧 missing_attrs 契约字段（对照
+                         listing-requirements.json missing_field_labels），缺任一
+                         必填参数 → 拒绝并列出缺项；字段缺失（None）视为完整（向后兼容）
 
 门禁是前置校验，不套 WorkflowJob 执行期错误码（那是流水线运行期用，见
 context/README.md 第四节）；拒绝返回结构化原因：
   title_length / title_compliance / category / qualification / images_count /
   images_ratio / images_duplicate / detail_images / sku_cost / sku_price /
-  purchase_settings / compliance_preview
+  purchase_settings / compliance_preview / attrs_complete
 
 阈值全部可配置：环境变量前缀 `LISTING_`（pydantic-settings，参考
 sourcing/config.py）或构造函数注入 `ListingGateConfig`。
@@ -47,6 +51,24 @@ from sourcing.compliance import (
 )
 from sourcing.config import DEFAULT_CATEGORY_WHITELIST, SourcingConfig
 from sourcing.models import ComplianceState, SourceItem
+
+
+# --------------------------------------------------------------------------
+# 必填商品参数（REC-迁移-02，C2 客服补参闭环 M4 侧）
+# --------------------------------------------------------------------------
+# 权威清单来源：_management/data-exchange/old-system-assets/listing-requirements.json
+#   customer_service_backfill.missing_field_labels（旧系统 1688 询价缺参字段）。
+# M1 侧对照本清单产出 missing_attrs 契约字段；本门禁消费该字段，
+# 字段缺失（None）视为参数完整（向后兼容旧数据）。
+REQUIRED_ATTR_LABELS: tuple[str, ...] = (
+    "适用年龄",
+    "包装清单",
+    "重量",
+    "容量",
+    "适用场景",
+    "类别",
+    "功能",
+)
 
 
 # --------------------------------------------------------------------------
@@ -92,6 +114,12 @@ class ListingCandidate(BaseModel):
     detail_images: list[str] = Field(default_factory=list)  # M3 详情图
     skus: list[SkuInput] = Field(default_factory=list)
     purchase_settings: PurchaseSettings | None = None
+    # REC-迁移-02：M1 1688 客服补参缺项清单（对照 REQUIRED_ATTR_LABELS）；
+    # None = 字段未提供 → 视为参数完整（向后兼容旧数据）。
+    missing_attrs: list[str] | None = None
+    # REC-迁移-03：素材相关性状态（M2 入库质量门 / M3 relevance 审核标记，
+    # 枚举 pending/passed/failed/manual_review）；None = 未接入 → 放行（向后兼容）。
+    material_relevance: str | None = None
 
 
 # --------------------------------------------------------------------------

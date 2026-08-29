@@ -1165,3 +1165,27 @@
 - 里程碑：**v1.0 达成：M0 模块级收官**——A1~A7 全部验收（共享基座/队列/调度进程化/风控引擎/工程基座/迁移脚本/六方会签/集成闭环），foundation 82 passed；M5 风控基座引用、M4 DA-009 修复均已完成闭环。
 - 当前阻塞：无。**请总控执行体系级全量回归（`.pytest-tmp-verify`）并提交最终备份**；外部跟进项：M1 app_config 键对齐已由 M1 执行（REC-010，M1 v1.0 收官）。
 - 备注：未运行任何 git 命令；未读写其他模块库（M4 代码仅冒烟测试 import 调用）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m0`（P-001/P-011）；foundation 现有 **82 测试**（表/队列 30 + 调度 12 + 风控 26 + 脱敏 11 + 集成 3）。
+
+---
+
+### 2026-08-29 13:52 | M0 总工程师（新任） | m0-foundation | 角色：总工（恢复交接 · 首轮）
+
+- 任务来源：原 M0 总工代理运行环境损坏无法恢复，全部代码/测试/文档备份完好（git v0.1~v0.38 + GitHub），总控指派新任总工接管 M0 模块后续开发全流程管理。
+- 完成任务：通读宪法（AGENT_CONSTITUTION.md）/踩坑日志（P-001~P-016）/M0 模块六件套（brief/risks/progress/decisions/context/README.md/database/README.md）/`backend/foundation/` 代码/data-audit.md（DA-001~009 + REC-001~011 + REC-迁移），**确认模块现状：A1~A7 已 100% 完成，foundation 82 passed，里程碑 v1.0 达成（模块级收官），BLOCKERS 无阻塞**；progress.md 追加「总工恢复记录」；本日志追加台账。
+- 产出文件：`_management/modules/m0-foundation/progress.md`（+总工恢复记录）；本日志追加条目。
+- 当前阻塞：无。等总控派发后续任务（迁移验收配合、A 系列迭代、体系级全量回归配合等）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；未跑 pytest（本轮无代码变更，测试基线以既有 82 passed 为准）。
+
+---
+
+### 2026-08-29 ｜ M1 总工程师（新任） ｜ M1 自动选品（m1-sourcing） ｜ 角色：总工（原总工环境损坏，新任恢复接管）
+
+- 任务来源：总控派发 M1 模块接管任务——原总工代理运行环境损坏无法恢复，代码/测试/文档已备份（git v0.1~v0.38 + GitHub），新任总工负责后续开发全流程管理。
+- 完成任务：
+  ① **恢复上下文通读**：AGENT_CONSTITUTION.md（角色/交付物/数据隔离/UTF-8 第 11 节/pytest 独立 basetemp 第 12 节/子代理管理第 9 节）；全局踩坑日志 P-001~P-016（含 P-016 9223 僵尸页面，S3c 遗留项）；M1 模块交付物全量（brief/risks/progress/decisions/context/README/database/README）；`backend/sourcing/` 26 个 py 文件（三源采集/合规/打分/回写/调度/CLI 齐备）；old-system-assets 目录（C1 迁移由独立子代理执行，无冲突）；
+  ② **模块状态确认**：**v1.0 已 95%**——S1~S3c 全部验收通过（三源真实采集 101 条入库、s3c.db 留证、无风控事件）、REC-010 键名对齐已执行、sourcing 域 **108 passed**（`.pytest-tmp-m1`）、C-2 M5 回写契约已会签、M0 A7 集成冒烟闭环跑通；
+  ③ **progress.md 追加「总工恢复记录」**（日期/新任总工/模块状态确认 6 项/当前迭代 v1.0/后续动作）；
+  ④ **本日志追加台账**（本条目）。
+- 产出文件：`_management/modules/m1-sourcing/progress.md`（+总工恢复记录小节）；本日志追加条目。未改动任何代码。
+- 当前阻塞：无。等总控派发下一批任务（v1.1+ 迭代：A3 飙升榜 URL 回填、A6 图片/宽泛选择器收敛、商机中心多筛选、9223 僵尸页前置清理；或 S4 联调排期）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；本回合仅文档操作，未跑 pytest（无代码改动）。
