@@ -186,6 +186,18 @@ class ListingPipeline:
             spu_id = create_spu_result["spu_id"]
             task = self.repo.update_status(task_id, "creating", platform_spu_id=spu_id)
 
+            # DA-009 集成修复：SPU 落库（listing_spus，幂等 upsert）——M5 候选池依赖
+            self.repo.upsert_spu(
+                spu_id=spu_id,
+                task_id=task_id,
+                title=candidate.title,
+                category_id=candidate.category_id,
+                qualification=candidate.qualification,
+                freight_template_id=create_spu_payload["freight_template_id"],
+                purchase_limit=pl,
+                status="draft",
+            )
+
             skus_payload = [
                 {
                     "code": s.code,
@@ -197,6 +209,22 @@ class ListingPipeline:
             create_skus_result = self.adapter.create_skus(spu_id, skus_payload, task_id=task_id)
             self._log_api(task_id, "create_skus", "request", payload={"spu_id": spu_id, "skus": skus_payload})
             self._log_api(task_id, "create_skus", "response", result=create_skus_result)
+
+            # DA-009 集成修复：SKU 落库（listing_skus，批量幂等 upsert）——M5 候选池价格依赖
+            platform_sku_ids = create_skus_result.get("sku_ids") or []
+            self.repo.upsert_skus(
+                spu_id,
+                [
+                    {
+                        "sku_id": platform_sku_ids[i] if i < len(platform_sku_ids) else f"mock_sku_{i}",
+                        "product_sku_code": s.code,
+                        "price_cents": s.price_cents,
+                        "cost_cents": s.cost_cents,
+                        "stock": 10000,
+                    }
+                    for i, s in enumerate(candidate.skus)
+                ],
+            )
 
             media_ids: list[str] = []
             for path in candidate.main_images:
@@ -227,6 +255,18 @@ class ListingPipeline:
             )
             self._log_api(task_id, "submit_audit", "response", result=submit_result)
             audit_id = submit_result["audit_id"]
+            # DA-009：提交审核后回填 SPU audit_id/status（listing_spus 幂等更新）
+            self.repo.upsert_spu(
+                spu_id=spu_id,
+                task_id=task_id,
+                title=candidate.title,
+                category_id=candidate.category_id,
+                qualification=candidate.qualification,
+                freight_template_id=create_spu_payload["freight_template_id"],
+                purchase_limit=pl,
+                status="platform_auditing",
+                audit_id=audit_id,
+            )
             task = self.state_machine.transition(
                 task, "platform_auditing", evidence={"audit_id": audit_id}
             )

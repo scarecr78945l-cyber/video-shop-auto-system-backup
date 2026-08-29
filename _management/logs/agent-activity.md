@@ -1123,3 +1123,17 @@
 - 里程碑：**v0.7 达成：六方会签销项 + 跨模块集成冒烟跑通**（M1→M0→M4→M5→回写闭环全绿，M0 基座可编排全链）。
 - 当前阻塞：无（外部依赖 1 项：DA-009 M4 候选池价格缺口，提请总控转达 M4 修复）。**请总控提交备份（v0.7 里程碑）并做体系级全量回归**（建议 `.pytest-tmp-verify`）；M4 修复后 M0 可收紧冒烟断言并模块收官（100%）。
 - 备注：未运行任何 git 命令；未读写其他模块库（M1/M4/M5 代码仅 import 调用于冒烟测试，未写其库文件）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m0`（P-001/P-011）；foundation 现有 82 测试（30 表/队列 + 12 调度 + 26 风控 + 11 脱敏 + 3 集成）。
+
+---
+
+### 2026-08-29 ｜ M1 总工程师 ｜ M1 自动选品（m1-sourcing） ｜ 角色：总工（S3c 验收通过 · REC-010 执行 · v1.0 收官）
+
+- 完成任务：
+  ① **S3c 验收通过**（子代理 c73de00e，第 2 次尝试完成）——独立查证 `backend/.pytest-tmp-m1/s3c.db`：source_runs=3（youmi 商品榜 50 / opportunities 机会品 1 / doudian 商品榜 50，全部 ok=1）、source_collection_events=101、source_board_states=3；脱敏检查敏感键（cookie/token/session/password/secret/authorization）**零命中**；doudian「价格带 ¥XX」解析命中（price 99/479/108/99 元、sales 件）；opportunities price 恒 0 确认（R-25 漂移点真实存在）；**三源真实采集全部成功、无验证码/风控事件**；
+  ② **REC-010 键名对齐执行**（总控批准）：`pipeline.py` `_load_category_whitelist` 读 app_config 键 `"category_whitelist"` → **`"category.whitelist"`**（含 docstring/log 同步）；`test_compliance_appconfig.py` 键名 4 处 + docstring 同步（`cfg.category_whitelist` config 字段名保留不改）；`context/README.md` C-1 追加键名约定说明（REC-010/DA-008 定稿、与 config 字段语义区分、scoring.weights 后续迭代）；**回归 108 passed 无回归**（`.pytest-tmp-m1`）；
+  ③ **v1.0 模块级收官**：progress.md 完成度 30%→**95%**（v1.0 核心链路全部验收通过；S4/S5 转 v1.1+ 迭代）；brief.md +实现快照（第七节：全链路可测可跑双通道、108 passed、能力表、v1.1+ 迭代项）；里程碑达成：配置化（category.whitelist 接线 REC-010）/库切换/m1 表/投放转化回写闭环（C-2 M5 侧已会签）/五维打分 e2e/真实采集打通（101 条）/选择器校准基线（selector-log v1.1 含三源实测）；
+  ④ M0 A7 集成冒烟确认：M1 商品池 → M0 队列 → M4 上架 → M5 回写 → M1 ad_backfill 导入全闭环跑通（M0 台账 v0.7）。
+- 产出文件：`backend/sourcing/pipeline.py`（键名）、`backend/tests/test_compliance_appconfig.py`（键名）、`_management/modules/m1-sourcing/context/README.md`（C-1 键名约定）、`progress.md`（v1.0 收官 95%）、`brief.md`（+实现快照）；S3c 产出已验收（selector-log v1.1 实测小节、context/README S3c 小节、s3c.db 留证）。
+- 跨模块确认：DA-008 M1 会签意见已登记（4 项：2 确认 + 键名对齐承诺已兑现 REC-010 + 错误码确认含 PAGE_CHANGED）；P-016（9223 僵尸页面）已登记全局踩坑日志。
+- 当前阻塞：无。**v1.0 收官，请总控提交备份**；v1.1+ 迭代项：A3 飙升榜 URL 回填、A6 有米云图片/宽泛选择器收敛、商机中心多筛选、9223 僵尸页前置清理、S4 联调（日有效候选≥200 度量）、S5（闸门放松/LLM 复核/PostgreSQL）。
+- 备注：未运行任何 git 命令；未读写其他模块库；临时验证全部走 .pytest-tmp-m1（s3c.db 保留供总控查验，不入 git）；全部文件经 write/edit 工具 UTF-8 无 BOM；无明文密钥。

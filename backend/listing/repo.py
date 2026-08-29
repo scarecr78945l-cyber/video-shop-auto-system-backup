@@ -18,7 +18,13 @@ from sqlalchemy.exc import IntegrityError
 
 from .db import ListingDatabase
 from .models import ListingOpLog, ListingTask, utcnow_iso
-from .tables import ListingOpLogRow, ListingQuotaStateRow, ListingTaskRow
+from .tables import (
+    ListingOpLogRow,
+    ListingQuotaStateRow,
+    ListingSkuRow,
+    ListingSpuRow,
+    ListingTaskRow,
+)
 
 # 可被 worker 自动领取的非终态（断点续跑）：rejected/manual 需人工/拒审决策，不自动领取
 CLAIMABLE_STATUSES = (
@@ -216,6 +222,143 @@ class ListingRepo:
                     evidence_json=r.evidence_json,
                     created_at=r.created_at,
                 )
+                for r in rows
+            ]
+
+    # ------------------------------------------------------------ SPU/SKU 落库（DA-009 集成修复）
+
+    def upsert_spu(
+        self,
+        spu_id: str,
+        task_id: str,
+        title: str,
+        category_id: int,
+        qualification: Optional[dict] = None,
+        freight_template_id: Optional[str] = None,
+        purchase_limit: Optional[dict] = None,
+        status: str = "draft",
+        audit_id: Optional[str] = None,
+    ) -> None:
+        """listing_spus 幂等 upsert（ON CONFLICT(spu_id) DO UPDATE，DA-009）。
+
+        由 pipeline 在 create_spu / submit_audit 后调用；JSON 字段（qualification/
+        purchase_limit）以 TEXT 存储（对齐 DDL，不含凭证原文/敏感值）。
+        """
+        now_iso = utcnow_iso()
+        values: dict[str, Any] = {
+            "spu_id": spu_id,
+            "task_id": task_id,
+            "title": title,
+            "category_id": category_id,
+            "qualification": (
+                json.dumps(qualification, ensure_ascii=False)
+                if qualification is not None
+                else None
+            ),
+            "freight_template_id": (
+                str(freight_template_id) if freight_template_id is not None else None
+            ),
+            "purchase_limit": (
+                json.dumps(purchase_limit, ensure_ascii=False)
+                if purchase_limit is not None
+                else None
+            ),
+            "status": status,
+            "audit_id": audit_id,
+            "created_at": now_iso,
+            "updated_at": now_iso,
+        }
+        stmt = sqlite_insert(ListingSpuRow).values(**values)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=[ListingSpuRow.spu_id],
+            set_={k: v for k, v in values.items() if k != "spu_id"},
+        )
+        with self.database.session() as session:
+            session.execute(stmt)
+
+    def upsert_skus(self, spu_id: str, skus: list[dict]) -> None:
+        """listing_skus 批量幂等 upsert（ON CONFLICT(sku_id) DO UPDATE，DA-009）。
+
+        skus 元素：{sku_id, product_sku_code, price_cents, cost_cents, stock=10000,
+        purchase_limit=None, status="active"}；金额一律整数「分」（DA-001）。
+        """
+        stmt = sqlite_insert(ListingSkuRow)
+        rows: list[dict[str, Any]] = []
+        for s in skus:
+            rows.append(
+                {
+                    "sku_id": s["sku_id"],
+                    "spu_id": spu_id,
+                    "product_sku_code": s["product_sku_code"],
+                    "price_cents": int(s["price_cents"]),
+                    "cost_cents": int(s["cost_cents"]),
+                    "stock": int(s.get("stock", 10000)),
+                    "purchase_limit": (
+                        json.dumps(s["purchase_limit"], ensure_ascii=False)
+                        if s.get("purchase_limit") is not None
+                        else None
+                    ),
+                    "status": s.get("status", "active"),
+                }
+            )
+        if not rows:
+            return
+        stmt = stmt.on_conflict_do_update(
+            index_elements=[ListingSkuRow.sku_id],
+            set_={
+                "spu_id": stmt.excluded.spu_id,
+                "product_sku_code": stmt.excluded.product_sku_code,
+                "price_cents": stmt.excluded.price_cents,
+                "cost_cents": stmt.excluded.cost_cents,
+                "stock": stmt.excluded.stock,
+                "purchase_limit": stmt.excluded.purchase_limit,
+                "status": stmt.excluded.status,
+            },
+        )
+        with self.database.session() as session:
+            session.execute(stmt, rows)
+
+    def get_spu(self, spu_id: str) -> Optional[dict]:
+        """只读查询 SPU 映射（供候选池/联调；无则 None）。"""
+        with self.database.session() as session:
+            row = session.get(ListingSpuRow, spu_id)
+            if row is None:
+                return None
+            return {
+                "spu_id": row.spu_id,
+                "task_id": row.task_id,
+                "title": row.title,
+                "category_id": row.category_id,
+                "qualification": json.loads(row.qualification) if row.qualification else None,
+                "freight_template_id": row.freight_template_id,
+                "purchase_limit": json.loads(row.purchase_limit) if row.purchase_limit else None,
+                "status": row.status,
+                "audit_id": row.audit_id,
+            }
+
+    def get_skus(self, spu_id: str) -> list[dict]:
+        """只读查询 SPU 下全部 SKU 映射（供候选池/联调）。"""
+        with self.database.session() as session:
+            rows = (
+                session.execute(
+                    select(ListingSkuRow)
+                    .where(ListingSkuRow.spu_id == spu_id)
+                    .order_by(ListingSkuRow.product_sku_code.asc())
+                )
+                .scalars()
+                .all()
+            )
+            return [
+                {
+                    "sku_id": r.sku_id,
+                    "spu_id": r.spu_id,
+                    "product_sku_code": r.product_sku_code,
+                    "price_cents": r.price_cents,
+                    "cost_cents": r.cost_cents,
+                    "stock": r.stock,
+                    "purchase_limit": json.loads(r.purchase_limit) if r.purchase_limit else None,
+                    "status": r.status,
+                }
                 for r in rows
             ]
 

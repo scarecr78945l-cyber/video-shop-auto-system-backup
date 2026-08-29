@@ -99,5 +99,23 @@
 1. 禁止 git 命令；备份由总控执行。
 2. 只操作本模块库 `backend/data/db/m1-sourcing.db`；共享表（`app_config`）只读。
 3. 任何 md/代码/日志禁止明文密钥/Token/Cookie；日志走 `_redact_text` 脱敏。
-4. pytest 一律 `--basetemp=".pytest-tmp"`（P-001）。
+4. pytest 一律 `--basetemp=".pytest-tmp-m1"`（P-001 + P-011/宪法第 12 节：独立 basetemp；全量回归由总控统一执行）。
 5. 新增表一律 `m1_` 前缀；跨模块数据走 `data-audit.md` 审计 + `_management/data-exchange/` 交换文件。
+
+## 七、实现快照（v1.0 收官 · 体系建立日）
+
+**选品全链路可测可跑（fixtures + 真实采集双通道）**，sourcing 域 **108 passed**（`.pytest-tmp-m1`）。
+
+| 能力 | 实现位置 | 状态 |
+|---|---|---|
+| 三源采集 | `collectors/{opportunities,youmi,doudian}.py`（CDP 9223 共享/9555 有米云） | ✅ 真实采集打通（101 条入库，s3c.db 留证） |
+| 去重 | `dedup.py`（sha256 指纹 + phash + 多源合并） | ✅ 既有+回归 |
+| 合规三态 | `compliance.py` + app_config `category.whitelist` 运行时接线（REC-010） | ✅ 测试覆盖 |
+| 数据补全 | `collectors/{alibaba,taobao}.py`（1688 询价/淘宝素材） | ✅ fixtures 可测；真实待实测（A6） |
+| 五维打分 | `scoring.py`（投放转化维度无数据权重折入四维） | ✅ e2e 生效验证 |
+| 投放转化回写 | `ad_backfill.py` + `m1_ad_conversion_cache/ingests` + CLI `ad-sync` | ✅ C-2 会签（M5 侧互认） |
+| 调度器 | `scheduler.py`（账本/节流/熔断/降频/断点） | ✅ 既有+回归 |
+| 选择器校准 | `context/selector-log.md` v1.1（5 来源 + A1~A6 + 三源实测） | ✅ A1/A2/A4 落地，A5 实测确认，A3/A6 待 v1.1+ |
+| 库 | `backend/data/db/m1-sourcing.db`（REC-007）+ 幂等迁移脚本 | ✅ |
+
+**v1.1+ 迭代项**：A3 飙升榜 URL、A6 图片/宽泛选择器收敛、商机中心多筛选、9223 僵尸页清理（P-016）、S4 联调（日有效候选≥200 度量）、S5（闸门放松/LLM 复核/PostgreSQL）。
