@@ -33,6 +33,17 @@
   4. 行内 `<img>` 是否可提取真实图片 URL（src 或 data-src 是否为 http）；
   5. 弹窗 `_dismiss_modals` 的 modal/dialog 类名是否仍覆盖真实升级公告。
 
+### 实测结果（S3c · 真实采集，子代理 S3c）
+> 前置：CDP 9223 曾因僵尸页面（商机中心 home / 罗盘核心数据页）导致 playwright connect_over_cdp 挂起（见 pitfall-log P-016），关闭多余页面后恢复；登录态有效。
+> 采集：`collect_board(机会品, limit=50)`，**成功入库 1 条**（当前类目筛选下机会品仅 1 条），状态 active，无 AUTH_REQUIRED/验证码。
+1. `table tbody tr` **命中**（count=1，非零）✓；
+2. 列索引 title=0 / source=1 / status=2 **命中**（title 正确、商机来源列文本写入 raw）✓；
+3. `login_gate`/`verify_gate` **未触发**（登录态有效）✓；
+4. 行内 `<img>` 提取 **命中**（imgs=2，真实 http 图片 URL）✓；
+5. `_dismiss_modals` **工作正常**（无弹窗遮挡导致空采）✓；
+6. **R-25 漂移点确认**：真实样本 price=0.0 / sales=0 / category='' 恒空（表格列仍为 商品(0)/商机来源(1)/状态(2)/操作(3)，无价格/销量/类目列）——与 fixtures 中带 price/sales/category 的样本口径不一致。**A5 建议维持成立**（该源对 trend 只贡献 rank/board_count，设计如此；若商机来源列含价格区间信息可后续扩展 columns，本次未改代码）。
+7. 观察：机会品条数取决于页面当前类目筛选（本次仅 1 条）；如需多量采集需人工切换筛选或扩展多筛选遍历（后续建议，本次未改）。
+
 ---
 
 ## 2. 有米云（youmi）
@@ -49,6 +60,17 @@
   3. `next_page` 翻页按钮选择器是否可点；
   4. 标题 el-popover textContent 提取是否仍成立；
   5. `login_gate`/`verify_gate` 触发行为。
+
+### 实测结果（S3c · 真实采集，子代理 S3c）
+> 前置：CDP 9555 独立浏览器连接正常；页面 URL 显示 `startDate=2026-08-23&endDate=2026-08-29`（**A2 动态日期已生效**，lookback_days=7：end=当天、start=当天-7）。
+> 采集：`collect_board(商品榜, limit=50)`，**成功入库 50 条**，状态 active，throttle 0/连续失败 0，无 AUTH_REQUIRED/验证码。
+1. `.el-table__body-wrapper tr` **命中**（50 条真实行）✓；
+2. **动态列定位 `_locate_columns` 命中**（A4 生效：config.selectors 无 columns → 按表头动态定位，title/price/sales 取值正确）✓——price 范围 0.01~69.9（元）、sales 范围 10万~162万（件），口径与 fixtures 一致；
+3. `next_page` 翻页 **可点且生效**（50 条跨越 rank 1~52 多页，到达 limit 后停止）✓；
+4. 标题 textContent 提取 **成立**（el-popover 隐藏标题正常取到完整真实标题）✓；
+5. `login_gate`/`verify_gate` **未触发** ✓；
+6. **新观察（需收敛）**：`_extract_images` **imgs=0**——行内 `<img>` 未提取到 http 开头的图片 URL（真实页面商品图可能 lazy 加载、data-src 非 http 或使用 blob/相对路径），与 fixtures 中带 image_urls 的样本不同。建议后续用 `inspect-page --source youmi` 检查商品图 DOM 结构（图片选择器收敛，本次未改代码）；
+7. 观察：youmi rank 列取值跳号（本次 rank=21/46 缺失，共 50 条 max rank=52）——因页面存在重复标题行被 `seen` 去重跳过，属正常去重行为，非缺陷。
 
 ---
 
@@ -67,6 +89,17 @@
   4. `next_page` 选择器可点性；
   5. **飙升榜 URL 模板补全**（登录态就绪后从页面地址栏取真实 URL 回填 config.boards[1].url_template）；
   6. `login_gate`/`verify_gate` 触发行为。
+
+### 实测结果（S3c · 真实采集，子代理 S3c）
+> 前置：与商机中心同享 CDP 9223（僵尸页面清理后 playwright 连接恢复）；登录态有效。
+> 采集：`collect_board(商品榜, limit=50)`，**成功入库 50 条**，状态 active，throttle 0/连续失败 0，无 AUTH_REQUIRED/验证码。
+1. `.aurora-table-tbody tr` **命中**（50 条真实行，含隐藏表头行处理正常）✓；
+2. **动态列定位 `_locate_columns` 命中**（config 无 columns → 表头动态定位；title=商品列、sales=成交件数列正确，shop=店铺列写入 raw）✓；
+3. 「价格带 ¥XX」解析 **50/50 命中、0 失败**（price_from_title 完全生效：price 范围 15.0~1580.0 元，均来自标题价格带）✓；
+4. `next_page` 翻页 **可点且生效**（50 条跨多页，到达 limit 后停止）✓；
+5. **飙升榜 URL 模板未验证**（本次仅采商品榜；config.boards[1].url_template 仍为空，**A3 待总工安排**：登录态就绪后从页面地址栏取真实 URL 回填）；
+6. `login_gate`/`verify_gate` **未触发** ✓；
+7. 观察：真实样本 category 恒空（罗盘页面无类目列）；imgs=2（行内图片提取命中）；rank 1~50 连续（无跳号）。
 
 ---
 
