@@ -56,9 +56,11 @@
   - P1 文档核对 `context/external-contracts.md`（待核对项 T1~T7 标注来源）
 - 模块级验收门：
   - [x] 端到端模拟流程跑通（不提交真实商品）；真实链接才标「已上架」（R22 铁律，代码断言固化）
-  - [x] 模块单测独立 basetemp 全绿：`--basetemp=".pytest-tmp-m4"`（**131 passed**：6+25+31+36+23+10；全量回归由总控统一执行）
+  - [x] 模块单测独立 basetemp 全绿：`--basetemp=".pytest-tmp-m4"`（**132 passed**：6+25+31+36+23+11；全量回归由总控统一执行）
   - [x] 无明文密钥；错误码复用 WorkflowJob 码表；幂等/断点续跑验证
   - [x] 数据审计登记完成（data-audit.md DA-005）；与 M1/M3/M5 口径核对一致（金额分/时间 UTC/状态枚举）
+- 修复记录：
+  - [x] **DA-009（M0 A7 集成冒烟缺口）**：pipeline 创建 SPU/SKU 后落库 `listing_spus`/`listing_skus`（幂等 upsert + audit_id 回填），repo 新增 upsert_spu/upsert_skus/get_spu/get_skus；候选池 title/category/价格不再恒 None；新增端到端回归用例（test_listing_candidate_pool +1）；目标测试 22 passed、M4 全量 **132 passed** 无回退（decisions D13）
 - 待外部条件（不阻塞 mock 模式）：官方 channels OpenAPI 文档核对（T1~T7 需 web 额度恢复后销项，live 模式实现依赖 T1/T2）；企业主体/类目资质开通状态（REC-004，用户确认后切 live）
 
 ## 四、验收门（模块级）

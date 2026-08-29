@@ -1137,3 +1137,17 @@
 - 跨模块确认：DA-008 M1 会签意见已登记（4 项：2 确认 + 键名对齐承诺已兑现 REC-010 + 错误码确认含 PAGE_CHANGED）；P-016（9223 僵尸页面）已登记全局踩坑日志。
 - 当前阻塞：无。**v1.0 收官，请总控提交备份**；v1.1+ 迭代项：A3 飙升榜 URL 回填、A6 有米云图片/宽泛选择器收敛、商机中心多筛选、9223 僵尸页前置清理、S4 联调（日有效候选≥200 度量）、S5（闸门放松/LLM 复核/PostgreSQL）。
 - 备注：未运行任何 git 命令；未读写其他模块库；临时验证全部走 .pytest-tmp-m1（s3c.db 保留供总控查验，不入 git）；全部文件经 write/edit 工具 UTF-8 无 BOM；无明文密钥。
+
+---
+
+### 2025 体系建立日（第 9 轮）｜ M4 总工程师 ｜ M4 自动上架（m4-listing） ｜ 角色：总工（DA-009 集成缺口修复完成）
+
+- 任务来源：M0 A7 集成冒烟发现集成缺口（DA-009）——`listing/pipeline.py` 端到端流程未将 SPU/SKU 写入本库（listing_spus/listing_skus），导致 M5 候选池查询 title/category/价格恒为 None（商品级字段正常）。
+- 完成任务：
+  ① **repo.py 新增 SPU/SKU 落库与只读方法**：`upsert_spu`（SQLite ON CONFLICT(spu_id) DO UPDATE 幂等；qualification/purchase_limit JSON TEXT 存储，不含凭证原文）、`upsert_skus`（批量幂等 upsert，金额整数「分」DA-001，stock 默认 10000）、`get_spu`/`get_skus`（只读查询，供候选池/联调）；
+  ② **pipeline.py `_upload_and_audit` 落库接线**：create_spu 后 upsert_spu（title/category_id/qualification/freight/purchase_limit，status=draft）→ create_skus 后 upsert_skus（平台 sku_ids 与 candidate.skus 对齐，price_cents/cost_cents）→ submit_audit 后回填 SPU audit_id + status=platform_auditing（幂等更新）；断点续跑重跑不重复插入（ON CONFLICT）；
+  ③ **补测试断言**：test_listing_pipeline.py happy path 新增 SPU/SKU 落库断言（title/category_id/audit_id/price_cents/cost_cents）；test_listing_candidate_pool.py 新增端到端回归用例 `test_end_to_end_pipeline_feeds_candidate_pool`（pipeline submit→listed 后候选池 title/category_id/价格非 None 且正确——直接回归 DA-009 缺口）；
+  ④ **验收**：目标 `pytest tests/test_listing_pipeline.py tests/test_listing_candidate_pool.py -q --basetemp=".pytest-tmp-m4"` → **22 passed**；M4 全量（8 文件）→ **132 passed**（131+1 新用例）无回退。
+- 产出文件：`backend/listing/repo.py`（+upsert_spu/upsert_skus/get_spu/get_skus）、`backend/listing/pipeline.py`（+落库接线）、`backend/tests/test_listing_pipeline.py`（+断言）、`backend/tests/test_listing_candidate_pool.py`（+1 端到端用例）；`progress.md`（+DA-009 修复记录、测试数 132）、`decisions.md`（+D13）；本日志追加条目。
+- 当前阻塞：无。**M4 侧 DA-009 修复完成，可通知 M0 收紧集成冒烟断言**（候选池 title/category/价格断言可从「恒 None」改为「非 None 且正确」）并完成模块收官；M4 全量 132 passed。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m4`（P-001/P-011）。

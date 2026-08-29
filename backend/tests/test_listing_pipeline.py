@@ -109,6 +109,18 @@ def test_submit_happy_path_end_to_end(pipeline, repo_listing, tmp_path):
     assert task.product_link == result["product_link"]
     assert task.link_verified_at  # R22：链接验证通过时间落库
 
+    # DA-009：SPU/SKU 已落库（listing_spus/listing_skus）——M5 候选池数据源
+    spu = repo_listing.get_spu(task.platform_spu_id)
+    assert spu is not None
+    assert spu["title"] == TITLE_OK
+    assert spu["category_id"] == 2001
+    assert spu["audit_id"]  # 提交审核后回填 audit_id
+    skus = repo_listing.get_skus(task.platform_spu_id)
+    assert len(skus) == 1
+    assert skus[0]["product_sku_code"] == "SKU-001"
+    assert skus[0]["price_cents"] == 2990
+    assert skus[0]["cost_cents"] == 1500
+
     # op_log 证据齐全：状态机迁移 4 条 + adapter 调用留痕
     logs = repo_listing.list_op_logs(result["task_id"])
     transitions = [l for l in logs if l.api == "state_machine"]

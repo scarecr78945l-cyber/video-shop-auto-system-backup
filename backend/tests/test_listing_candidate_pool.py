@@ -306,3 +306,65 @@ def test_in_peak_avoid_window_config_error(repo_listing):
                 peak_avoid_window={"start": "25:00", "end": "12:00"}
             ),
         )
+
+
+def test_end_to_end_pipeline_feeds_candidate_pool(repo_listing, machine_listing, tmp_path):
+    """DA-009 集成修复：pipeline 上架成功后 SPU/SKU 自动落库 → 候选池返回完整字段。
+
+    回归保护：title/category_id/价格不再恒为 None（M0 A7 集成冒烟发现的缺口）。
+    """
+    from adapters.wechat_openapi import WechatOpenApiAdapter, WechatOpenApiConfig
+    from listing.pipeline import ListingPipeline
+    from listing.platform_rejection import RejectionHandler
+    from services.listing_gate import (
+        ListingCandidate,
+        ListingGate,
+        PurchaseSettings,
+        SkuInput,
+    )
+
+    def _images(n: int, prefix: str) -> list[str]:
+        from PIL import Image
+
+        paths = []
+        for i in range(n):
+            p = tmp_path / f"{prefix}_{i}.png"
+            Image.new("RGB", (100, 100), (10 + i * 40, 20, 30)).save(p)
+            paths.append(str(p))
+        return paths
+
+    gate = ListingGate()
+    adapter = WechatOpenApiAdapter(WechatOpenApiConfig(mode="mock"))
+    rejection = RejectionHandler(repo_listing, machine_listing, gate=gate)
+    pipeline = ListingPipeline(
+        gate=gate,
+        adapter=adapter,
+        repo=repo_listing,
+        state_machine=machine_listing,
+        rejection=rejection,
+    )
+    candidate = ListingCandidate(
+        product_id=9001,
+        title="纯棉加厚家用擦手巾厨房清洁抹布吸水速干",
+        category_id=2001,
+        category_name="厨房用品",
+        qualification={"qualification_id": "QL-001", "expires_at": "2026-12-31"},
+        main_images=_images(5, "main"),
+        detail_images=_images(1, "detail"),
+        skus=[SkuInput(code="SKU-9001", cost_cents=1500, price_cents=2990)],
+        purchase_settings=PurchaseSettings(
+            purchase_limit={"per_user": 2, "period": "month"},
+            freight_template_id="1",
+            after_sale="支持7天无理由退换货",
+        ),
+    )
+    result = pipeline.submit(candidate, generation_version="v1")
+    assert result["ok"] is True and result["stage"] == "listed"
+
+    rows = CandidatePool(repo_listing).get_sale_candidates()
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["title"] == candidate.title          # DA-009：不再为 None
+    assert row["category_id"] == 2001
+    assert row["price_min_cents"] == 2990
+    assert row["price_max_cents"] == 2990
