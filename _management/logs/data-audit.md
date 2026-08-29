@@ -259,3 +259,20 @@
 | C3 | M2+M3+M4 | 入库质量门 + relevance 审核类型 + 候选池前置校验 | fixtures 3 场景（相关放行/不相关拒/多款式人工） |
 
 > 迁移完成后：新系统全量 1093 passed 不回归；新增 C1/C2/C3 fixtures 用例；旧系统 534 用例门禁断言作为规则覆盖率参照。
+
+---
+
+## DA-010 ｜ 素材相关性门契约（M2↔M3↔M4，REC-迁移-03 C3 落地）
+
+- **申请方**：旧系统门禁迁移子代理（REC-迁移-03 派工）｜ **涉及模块**：M2（素材收集）+ M3（素材优化）+ M4（上架）。
+- **背景**：迁移清单 C3「素材相关性门」——旧系统 `material_gate`（Qwen-VL 前 15 秒抽帧相关性判定 + `material_clustering` 款式聚类，多款式必须人工确认目标款，禁止自动创建衍生商品）。总控裁决 REC-迁移-03：**不做独立 stage worker**，作为 **M2 入库质量门 + M4 候选池前置校验**；M3 复用 `optimization/review/gate.py` 框架新增 `relevance` 审核类型。
+- **字段口径（relevance_status 唯一权威）**：
+  - 字段：`asset_items.relevance_status`（M2 库，TEXT，CHECK 枚举，默认 `pending`）；
+  - 枚举：`pending`（未判定，入库默认）/ `passed`（相关→放行，可进入询价/上架链）/ `failed`（不相关→淘汰，不进入询价/上架链，状态可查询）/ `manual_review`（多款式→人工确认目标款，禁止自动创建衍生商品）；
+  - 枚举唯一源：`backend/materials/config.py` `RELEVANCE_STATUS_VALUES`；映射 `RELEVANCE_RESULT_TO_STATUS`（pass→passed / reject→failed / manual_review→manual_review）。
+- **M3 侧判定三态**（`opt_review_records` gate_type=relevance，result=pass/reject/manual_review）：`related`（相关→放行）/ `unrelated`（不相关→reject）/ `multi_style`（多款式→manual_review，`reasons_json.manual_note` 留证 08-17 收敛规则）；Qwen-VL 无 API Key 时 fixtures mock 判定器（同 ffmpeg 策略：接口抽象 + mock，环境就绪自动启用真实模式，`relevance.mode=auto/mock/qwen`）。
+- **M2 侧预检接口**：`backend/materials/integration.py` `RelevanceGateService`——`receive_relevance(asset_id, result, evidence, source_agent="M3")` 幂等回写（非法→PLATFORM_REJECT、素材不存在→NO_MATCH、合法→changed 语义）；`is_ready_for_chain(asset_id)` **仅 relevance_status=passed 放行**进入询价/上架链（pending/failed/manual_review 均不放行）。
+- **M4 侧消费（待 M4 派工）**：M4 候选池/上架前置校验读取 M2 `asset_items.relevance_status`，仅 `passed` 素材可进入询价/上架；`failed` 淘汰、`manual_review` 人工确认目标款后置 passed 再放行。
+- **正式载体**：`_management/data-exchange/m2-m3-m4-relevance-gate.json`（字段契约 + 三态映射 + 判定输入样例，文件头待 M2/M3/M4 总工会签）。
+- **校验结果**：M3 侧 `RelevanceGate`（relevance.py + gate.py）22 用例全绿；M2 侧表结构/repo/service 11 用例全绿；验收命令 `pytest tests/test_optimization_review.py tests/test_materials_tables.py --basetemp=".pytest-tmp-migrate"` → **91 passed**；M3 全量 327 passed/1 skipped、M2 全量 329 passed/1 skipped（独立 basetemp，零回归）。
+- **总控核对结论**：（待总控核对字段/枚举/映射后填写；建议转达 M4 总工消费端接线）

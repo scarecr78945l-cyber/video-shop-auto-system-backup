@@ -120,9 +120,9 @@ CREATE TABLE IF NOT EXISTS opt_copywrites (
 ```sql
 CREATE TABLE IF NOT EXISTS opt_review_records (
     review_id     TEXT PRIMARY KEY,
-    target_type   TEXT NOT NULL,                    -- video/image/copywrite
-    target_id     TEXT NOT NULL,                    -- variant_id/image_id/copywrite_id
-    gate_type     TEXT NOT NULL,                    -- rule/evaluate/manual
+    target_type   TEXT NOT NULL,                    -- video/image/copywrite/material
+    target_id     TEXT NOT NULL,                    -- variant_id/image_id/copywrite_id/asset_id
+    gate_type     TEXT NOT NULL,                    -- rule/evaluate/manual/relevance
     result        TEXT NOT NULL,                    -- pass/reject/manual_review
     reasons_json  TEXT,
     reviewer      TEXT,                             -- system/human/<agent-id>
@@ -130,6 +130,13 @@ CREATE TABLE IF NOT EXISTS opt_review_records (
 );
 CREATE INDEX IF NOT EXISTS idx_opt_review_target ON opt_review_records(target_type, target_id);
 ```
+
+> v1.1 增量（REC-迁移-03 C3 素材相关性门）：`gate_type=relevance`（target_type=material、
+> target_id=M2 asset_id，reasons_json 留判定证据：verdict/confidence/frames/clustering/
+> manual_note「多款式需人工确认目标款，禁止自动创建衍生商品」）；判定三态
+> related（result=pass 放行）/ unrelated（result=reject 淘汰）/ multi_style
+> （result=manual_review 人工确认）。契约见 data-audit DA-010 与
+> `_management/data-exchange/m2-m3-m4-relevance-gate.json`。
 
 ### opt_category_memory —— 类目记忆（生图/模板策略经验）
 

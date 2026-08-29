@@ -9,7 +9,9 @@ candidate 进池；manual_review 人工确认（类目不在白名单、疑似�
 
 from __future__ import annotations
 
+import json
 import re
+from pathlib import Path
 
 from .config import SourcingConfig
 from .models import ComplianceResult, ComplianceState, SourceItem
@@ -64,6 +66,52 @@ def _match_any(words: list[str], title_lower: str) -> list[str]:
     return [w for w in words if w.lower() in title_lower]
 
 
+# ===== REC-迁移-01（C1）：鞋服/包类硬拦词表（旧系统 SOURCING_HARD_BLOCK_POLICY）=====
+# 语义：命中 apparel_terms / bag_terms（且不在 safe_*_context_terms 豁免）
+# → 鞋服/包类必淘汰（hard_reject）；豁免如 衣架/洗衣机/收纳/垃圾袋/保鲜袋/快递袋 等。
+_DEFAULT_HARD_BLOCK_PATH = Path(__file__).parent / "data" / "hard_block_policy.json"
+
+
+class HardBlockPolicy:
+    """旧系统硬拦策略的配置化载体（REC-迁移-01：词表进 JSON 配置，不硬编码）。"""
+
+    def __init__(self, path: Path | str = _DEFAULT_HARD_BLOCK_PATH) -> None:
+        self.path = Path(path)
+        self.apparel_terms: list[str] = []
+        self.safe_apparel_terms: list[str] = []
+        self.bag_terms: list[str] = []
+        self.safe_bag_terms: list[str] = []
+        self._load()
+
+    def _load(self) -> None:
+        if not self.path.exists():
+            return
+        raw = json.loads(self.path.read_text(encoding="utf-8"))
+        self.apparel_terms = list(raw.get("apparel_terms", []) or [])
+        self.safe_apparel_terms = list(raw.get("safe_apparel_context_terms", []) or [])
+        self.bag_terms = list(raw.get("bag_terms", []) or [])
+        self.safe_bag_terms = list(raw.get("safe_bag_context_terms", []) or [])
+
+    def apparel_hit(self, title_lower: str) -> list[str]:
+        hits = _match_any(self.apparel_terms, title_lower)
+        if hits:
+            safe = _match_any(self.safe_apparel_terms, title_lower)
+            if safe:
+                return []  # 安全上下文豁免（衣架/洗衣机/收纳/客服等）
+        return hits
+
+    def bag_hit(self, title_lower: str) -> list[str]:
+        hits = _match_any(self.bag_terms, title_lower)
+        if hits:
+            safe = _match_any(self.safe_bag_terms, title_lower)
+            if safe:
+                return []  # 安全上下文豁免（垃圾袋/收纳袋/保鲜袋等）
+        return hits
+
+    def blocked_terms(self, title_lower: str) -> list[str]:
+        return self.apparel_hit(title_lower) + self.bag_hit(title_lower)
+
+
 class ComplianceEngine:
     def __init__(self, config: SourcingConfig, category_whitelist: list[str] | None = None):
         self.config = config
@@ -72,12 +120,29 @@ class ComplianceEngine:
             category_whitelist if category_whitelist is not None
             else config.category_whitelist
         )
+        # REC-迁移-01：硬拦词表（C1），配置化可关
+        self.hard_block = (
+            HardBlockPolicy(config.hard_block_policy_path)
+            if config.hard_block_policy_enabled
+            else None
+        )
 
     def evaluate(self, item: SourceItem) -> ComplianceResult:
         title = item.title or ""
         lower = title.lower()
         reasons: list[str] = []
         matched: list[str] = []
+
+        # REC-迁移-01（C1）：鞋服/包类硬拦（命中 + 非安全上下文 → hard_reject）
+        if self.hard_block is not None:
+            blocked = self.hard_block.blocked_terms(lower)
+            if blocked:
+                matched += blocked
+                return ComplianceResult(
+                    state=ComplianceState.HARD_REJECT,
+                    reasons=[f"鞋服/包类硬拦词: {'/'.join(blocked[:5])}"],
+                    matched_rules=matched,
+                )
 
         hits = _match_any(PROHIBITED_WORDS, lower)
         if hits:

@@ -1,6 +1,7 @@
-"""M2 自动收集素材模块 · 数据联动服务层（子代理 B4-2）。
+"""M2 自动收集素材模块 · 数据联动服务层（子代理 B4-2 + 相关性门 C3 v1.1）。
 
-两部分交付（对齐 context/README.md 3.3「与 M5 投放联动（双向）」契约）：
+三部分交付（对齐 context/README.md 3.3「与 M5 投放联动（双向）」契约 +
+迁移清单 REC-迁移-03 C3 相关性门）：
 
 1. **evaluation 评估标签回流协议对接**（M5→M2）：
    `EvaluationFeedbackService.receive_evaluation` —— 校验枚举（非法→PLATFORM_REJECT）、
@@ -16,6 +17,14 @@
    - `MaterialUploadService`：幂等编排（已上传直接返回 → provider.upload →
      `repo.mark_uploaded` 回填 + asset_uploads 记录；失败按全局码表分类返回，不抛出）。
 
+3. **相关性门预检接口**（M3→M2，REC-迁移-03 C3）：
+   `RelevanceGateService.receive_relevance` —— 消费 M3 relevance 判定结果
+   （result: pass/reject/manual_review）落 `asset_items.relevance_status`
+   （passed/failed/manual_review，枚举唯一口径见 config.RELEVANCE_STATUS_VALUES）；
+   非法枚举→PLATFORM_REJECT、素材不存在→NO_MATCH、合法→幂等回写；
+   `get_relevance_status` 读当前状态、`is_ready_for_chain` 判定是否可进入询价/上架链
+   （仅 relevance_status=passed 放行；failed 淘汰、manual_review 待人工确认目标款）。
+
 错误分类复用全局码表（VERIFICATION_REQUIRED/AUTH_REQUIRED/RATE_LIMIT/TIMEOUT/
 NO_MATCH/PLATFORM_REJECT/UNEXPECTED）；服务层任何异常不向上抛出（对齐 R-M2-09
 「本类任何异常不抛出」纪律）。
@@ -29,7 +38,11 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .config import EVALUATION_VALUES  # 与 config.py 同口径（唯一枚举源）
+from .config import (
+    EVALUATION_VALUES,  # 与 config.py 同口径（唯一枚举源）
+    RELEVANCE_RESULT_TO_STATUS,
+    RELEVANCE_STATUS_VALUES,
+)
 from .repo import AssetNotFoundError, AssetRepo, DuplicateUploadError
 
 logger = logging.getLogger(__name__)
@@ -45,6 +58,10 @@ __all__ = [
     "ShopMaterialUploadProvider",
     "MaterialUploadService",
     "build_upload_provider",
+    # 相关性门（REC-迁移-03 C3）
+    "RELEVANCE_STATUS_VALUES",
+    "RELEVANCE_RESULT_TO_STATUS",
+    "RelevanceGateService",
 ]
 
 
@@ -120,6 +137,99 @@ class EvaluationFeedbackService:
         if asset is None:
             return None
         return asset.get("evaluation")
+
+
+# ===========================================================================
+# 一·B、相关性门预检接口（M3→M2，REC-迁移-03 C3；契约见 data-audit DA-010）
+# ===========================================================================
+class RelevanceGateService:
+    """M2 相关性门预检接口：消费 M3 relevance 判定结果（幂等，结构化返回）。
+
+    协议（对齐迁移清单 C3 + data-exchange/m2-m3-m4-relevance-gate.json）：
+    - `receive_relevance(asset_id, result)`：result 为 M3 RelevanceGate 落库口径
+      **pass / reject / manual_review**（opt_review_records.result），映射到
+      asset_items.relevance_status：passed / failed / manual_review
+      （枚举唯一口径 config.RELEVANCE_STATUS_VALUES，映射 RELEVANCE_RESULT_TO_STATUS）；
+    - 非法 result → `{ok: False, code: "PLATFORM_REJECT", ...}`（拒绝，不落库）；
+    - 素材不存在 → `{ok: False, code: "NO_MATCH", ...}`；
+    - 合法 → `repo.update_relevance_status`（幂等收敛，不抛异常）
+      → `{ok, asset_id, relevance_status, changed}`（changed=本次是否发生状态变化）；
+    - `is_ready_for_chain(asset_id)`：**仅 relevance_status=passed 放行**进入询价/上架链
+      （failed 淘汰、manual_review 待人工确认目标款、pending 未判定——均不放行）；
+    - `get_relevance_status(asset_id)`：读当前状态，素材不存在返回 None。
+    """
+
+    def __init__(self, repo: AssetRepo):
+        self.repo = repo
+
+    def receive_relevance(
+        self,
+        asset_id: int,
+        result: str,
+        evidence: Any = None,
+        source_agent: str = "M3",
+    ) -> dict[str, Any]:
+        """接收 M3 relevance 判定结果（幂等回写 relevance_status）。
+
+        evidence 为 M3 判定证据摘要（verdict/style_count/review_id 等，脱敏后）。
+        """
+        if result not in RELEVANCE_RESULT_TO_STATUS:
+            return {
+                "ok": False,
+                "code": "PLATFORM_REJECT",
+                "reason": (
+                    f"invalid relevance result {result!r}; allowed values: "
+                    f"{', '.join(sorted(RELEVANCE_RESULT_TO_STATUS))}"
+                    "（M3 gate.result 口径：pass/reject/manual_review）"
+                ),
+                "asset_id": asset_id,
+            }
+        asset = self.repo.get_asset(asset_id)
+        if asset is None:
+            return {
+                "ok": False,
+                "code": "NO_MATCH",
+                "reason": f"asset {asset_id} not found",
+                "asset_id": asset_id,
+            }
+        status = RELEVANCE_RESULT_TO_STATUS[result]
+        old = asset.get("relevance_status")
+        try:
+            self.repo.update_relevance_status(asset_id, status)
+        except AssetNotFoundError:
+            # 校验与写入之间的并发删除兜底：仍按 NO_MATCH 结构化返回（不抛出）
+            return {
+                "ok": False,
+                "code": "NO_MATCH",
+                "reason": f"asset {asset_id} not found",
+                "asset_id": asset_id,
+            }
+        if evidence is not None:
+            logger.info(
+                "relevance updated asset_id=%s result=%s status=%s source=%s",
+                asset_id, result, status, source_agent,
+            )
+        return {
+            "ok": True,
+            "asset_id": asset_id,
+            "relevance_status": status,
+            "changed": old != status,  # 幂等：同值重复回写 changed=False
+        }
+
+    def get_relevance_status(self, asset_id: int) -> str | None:
+        """读当前相关性门状态；素材不存在返回 None。"""
+        asset = self.repo.get_asset(asset_id)
+        if asset is None:
+            return None
+        return asset.get("relevance_status")
+
+    def is_ready_for_chain(self, asset_id: int) -> bool:
+        """是否可进入询价/上架链：仅 relevance_status=passed 放行（REC-迁移-03 C3）。
+
+        failed（不相关淘汰）/ manual_review（多款式待人工确认目标款）/
+        pending（未判定）均不放行；素材不存在返回 False。
+        """
+        return self.get_relevance_status(asset_id) == "passed"
 
 
 # ===========================================================================

@@ -29,6 +29,15 @@ from ..db import Database
 from ..repo import new_id
 from .evaluate import MaterialEvaluator
 from .manual import ManualSampler
+from .relevance import (
+    MULTI_STYLE_MANUAL_NOTE,
+    VERDICT_TO_RESULT,
+    RelevanceJudge,
+    RelevanceJudgeError,
+    StyleClusterer,
+    build_frame_sampler,
+    build_relevance_judge,
+)
 from .rules import MaterialRules
 
 MAX_BATCH_SIZE = 50          # ≤50/批（P-006：批量错峰防风控）
@@ -37,6 +46,10 @@ MAX_BATCH_SIZE = 50          # ≤50/批（P-006：批量错峰防风控）
 FINAL_PASSED = "passed"
 FINAL_REJECTED = "rejected"
 FINAL_MANUAL_REVIEW = "manual_review"
+
+# relevance 相关性门（REC-迁移-03 C3）专用常量
+GATE_TYPE_RELEVANCE = "relevance"       # opt_review_records.gate_type
+RELEVANCE_TARGET_TYPE = "material"      # 相关性门 target_type（M2 素材）
 
 
 class ReviewRecordRepo:
@@ -253,3 +266,145 @@ class ReviewGate:
             "manual": manual,
             "final": {"result": result, "stage": stage, "review_id": review_id},
         }
+
+
+# ===========================================================================
+# 素材相关性门（REC-迁移-03 C3：Qwen-VL 前 15 秒抽帧判定 + 款式聚类）
+# ===========================================================================
+class RelevanceGate:
+    """素材相关性门编排器（复用本文件框架：ReviewRecordRepo / MAX_BATCH_SIZE / FINAL_*）。
+
+    对齐迁移清单 C3：M2 采集入库后、进入询价/上架链前，判定素材与目标商品相关性——
+    ① 前 15 秒抽帧（FrameSampler，mock 为 fixtures 描述 / 真实为 ffmpeg 抽帧图）
+    → ② Qwen-VL 相关性判定（RelevanceJudge，无 Key 自动降级 mock 判定器）
+    → ③ 款式聚类（StyleClusterer，material_clustering 语义：多款式必须人工确认目标款，
+    禁止自动创建衍生商品）→ ④ 落 opt_review_records（gate_type=relevance）。
+
+    判定三态 → 最终结论（与 M2 relevance_status / M4 候选池前置校验口径一致）：
+    - related    → passed（放行，可进入询价/上架链）；
+    - unrelated  → rejected（淘汰，不进入询价/上架链）；
+    - multi_style→ manual_review（人工确认目标款，禁止自动创建衍生商品）。
+
+    任一环节失败（抽帧/判定抛 RelevanceJudgeError）→ 结构化返回
+    {"ok": False, "code": <error_code>, ...}，不向上抛出（R-M2-09 纪律）；
+    db 缺省 → 内存库（不触碰本模块真实 m3-optimization.db）。
+    """
+
+    def __init__(
+        self,
+        config: Optional[M3Config] = None,
+        db: Optional[Database] = None,
+        judge: Optional[RelevanceJudge] = None,
+        frame_sampler: Any = None,
+        clusterer: Optional[StyleClusterer] = None,
+    ):
+        self.config = config or load_config()
+        if db is None:
+            db = Database(load_config(db_url="sqlite:///:memory:"))
+            db.create_all()
+        self.db = db
+        # mode=auto 无 Key → build_* 自动返回 mock 组件（环境就绪自动启用真实模式）
+        self.judge = judge or build_relevance_judge(self.config)
+        self.frame_sampler = frame_sampler or build_frame_sampler(self.config)
+        self.clusterer = clusterer or StyleClusterer()
+        self.repo = ReviewRecordRepo(db)
+
+    # ------------------------------------------------------------ 单素材判定
+
+    def run(
+        self,
+        target_id: str,
+        material: dict[str, Any],
+        category: str = "",
+    ) -> dict[str, Any]:
+        """单素材过相关性门。
+
+        target_id: M2 asset_id（字符串）；material: M2 素材 + 目标商品上下文
+        （title/file_path/duration/target_product_title/style_hints/mock_verdict 等，
+        契约见 _management/data-exchange/m2-m3-m4-relevance-gate.json）。
+        返回 {"ok","target_id","category","verdict","style_count","styles","frames",
+        "mode","final"}；final={"result","stage","review_id"}。
+        """
+        target_id = str(target_id)
+        category = str(category or "")
+        try:
+            frames = self.frame_sampler.extract_frames(material)
+            judgement = self.judge.judge(material, frames)
+            clustering = self.clusterer.cluster(material, judgement)
+        except RelevanceJudgeError as exc:
+            # 抽帧/判定失败：结构化返回（不抛出），供 M2 门禁按错误码分类
+            return {
+                "ok": False,
+                "code": exc.error_code,
+                "reason": exc.message,
+                "target_id": target_id,
+                "category": category,
+            }
+
+        verdict = clustering["verdict"]
+        result = VERDICT_TO_RESULT[verdict]
+        final_result = {
+            "pass": FINAL_PASSED,
+            "reject": FINAL_REJECTED,
+            "manual_review": FINAL_MANUAL_REVIEW,
+        }[result]
+
+        reasons: dict[str, Any] = {
+            "verdict": verdict,
+            "label": clustering.get("label", verdict),
+            "judge_verdict": clustering.get("judge_verdict"),
+            "confidence": float(judgement.get("confidence") or 1.0),
+            "reason": str(judgement.get("reason") or ""),
+            "mode": getattr(self.judge, "mode", "unknown"),
+            "clustering": {
+                "style_count": clustering["style_count"],
+                "styles": clustering["styles"],
+            },
+            "frames": [
+                {"at_seconds": f.get("at_seconds"), "description": f.get("description")}
+                for f in frames
+            ],
+            "judge_evidence": judgement.get("evidence") or {},
+            "category": category,
+        }
+        if verdict == "multi_style":
+            reasons["manual_note"] = MULTI_STYLE_MANUAL_NOTE  # 08-17 收敛规则
+
+        review_id = self.repo.add({
+            "target_type": RELEVANCE_TARGET_TYPE,
+            "target_id": target_id,
+            "gate_type": GATE_TYPE_RELEVANCE,
+            "result": result,
+            "reasons_json": reasons,
+            "reviewer": "system",
+        })
+
+        return {
+            "ok": True,
+            "target_id": target_id,
+            "category": category,
+            "verdict": verdict,
+            "style_count": clustering["style_count"],
+            "styles": clustering["styles"],
+            "frames": reasons["frames"],
+            "mode": reasons["mode"],
+            "final": {"result": final_result, "stage": GATE_TYPE_RELEVANCE, "review_id": review_id},
+        }
+
+    # ------------------------------------------------------------ 批量入口
+
+    def run_batch(self, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """批量过相关性门（≤50/批，P-006 防风控；超限抛 ValueError 由调用方分批）。
+
+        items: [{"target_id","material","category"}]。
+        """
+        items = list(items)
+        if len(items) > MAX_BATCH_SIZE:
+            raise ValueError(
+                f"RelevanceGate.run_batch 单批最多 {MAX_BATCH_SIZE} 条，收到 {len(items)} 条"
+                "（P-006 批量错峰）"
+            )
+        return [
+            self.run(it["target_id"], it["material"], it.get("category", ""))
+            for it in items
+        ]

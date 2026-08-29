@@ -151,3 +151,4 @@
 2. 多代理并行跑 pytest 共用同一 basetemp 会导致间歇性 PermissionError/WinError 5（P-011），串行复跑可能掩盖真实失败——必须以独立 basetemp 下全绿为准。
 3. 总工分派子代理任务书时，必须写明本模块专属 basetemp 名。
 4. 全量回归由总控执行（独立目录），任何模块不得独占 tests 目录。
+5. **Windows 编码（P-017）**：运行 Python/pytest 统一加 `-X utf8`（`python -X utf8 -m pytest ...`）或设 `PYTHONUTF8=1`——否则含中文的测试/源文件被 GBK 误读导致乱码。

@@ -314,3 +314,28 @@ def test_compliance_check_syncs_status(db_materials):
         assert checks[1].result == "reject"
     with pytest.raises(AssetNotFoundError):
         repo.record_compliance_check(99999, "brand_word", "reject")
+
+
+# ---------------------------------------------------------------- 相关性门（REC-迁移-03 C3）
+def test_create_asset_relevance_status_default_and_custom(db_materials):
+    """入库默认 relevance_status=pending；可显式传入（如断点续跑重放 M3 结果）。"""
+    repo = make_repo(db_materials)
+    a1 = repo.create_asset(**base_video())
+    assert repo.get_asset(a1)["relevance_status"] == "pending"
+    a2 = repo.create_asset(**base_image(relevance_status="passed"))
+    assert repo.get_asset(a2)["relevance_status"] == "passed"
+
+
+def test_update_relevance_status_idempotent_and_readable(db_materials):
+    """M3 判定结果回写幂等；failed 状态可查询（不进入询价/上架链的凭据）。"""
+    repo = make_repo(db_materials)
+    aid = repo.create_asset(**base_video())
+    repo.update_relevance_status(aid, "passed")
+    assert repo.get_asset(aid)["relevance_status"] == "passed"
+    repo.update_relevance_status(aid, "passed")      # 幂等：同值重复回写不报错
+    repo.update_relevance_status(aid, "failed")      # M3 重新判定 → 状态更新
+    assert repo.get_asset(aid)["relevance_status"] == "failed"
+    assert [a["id"] for a in repo.list_assets(relevance_status="failed")] == [aid]
+    assert repo.list_assets(relevance_status="passed") == []
+    with pytest.raises(AssetNotFoundError):
+        repo.update_relevance_status(99999, "failed")

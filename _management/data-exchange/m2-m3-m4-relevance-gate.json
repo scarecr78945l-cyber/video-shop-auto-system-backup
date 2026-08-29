@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "exchange_name": "m2-m3-m4-relevance-gate",
+  "purpose": "素材相关性门跨模块契约（旧系统门禁迁移 REC-迁移-03 C3）：M3 relevance 判定结果 -> M2 relevance_status 落库 -> M4 候选池/上架前置校验",
+  "source": "_management/data-exchange/旧系统门禁迁移清单.md C3",
+  "created_by": "旧系统门禁迁移子代理（M2+M3 侧实现，REC-迁移-03 派工）",
+  "signatures": {
+    "m2_engineer": "待会签",
+    "m3_engineer": "待会签",
+    "m4_engineer": "待会签",
+    "master_control": "待核对（data-audit DA-010）"
+  },
+  "contract": {
+    "field": "asset_items.relevance_status",
+    "owner_db": "M2 m2-materials.db (asset_items)",
+    "enum": ["pending", "passed", "failed", "manual_review"],
+    "default": "pending",
+    "enum_source": "backend/materials/config.py RELEVANCE_STATUS_VALUES",
+    "result_to_status": {
+      "pass": "passed",
+      "reject": "failed",
+      "manual_review": "manual_review"
+    },
+    "chain_rule": "仅 relevance_status=passed 可进入询价/上架链；failed 淘汰；manual_review 人工确认目标款后置 passed 再放行（多款式禁止自动创建衍生商品）"
+  },
+  "m3_judgement": {
+    "module": "backend/optimization/review/relevance.py + gate.py RelevanceGate",
+    "gate_type": "relevance",
+    "record_table": "opt_review_records (M3 库, target_type=material, target_id=asset_id)",
+    "verdicts": {
+      "related": { "result": "pass", "relevance_status": "passed", "meaning": "相关 -> 放行" },
+      "unrelated": { "result": "reject", "relevance_status": "failed", "meaning": "不相关 -> 淘汰，不进入询价/上架链" },
+      "multi_style": { "result": "manual_review", "relevance_status": "manual_review", "meaning": "多款式 -> 人工确认目标款，禁止自动创建衍生商品" }
+    },
+    "mode": "auto/mock/qwen（Qwen-VL 无 API Key 时 fixtures mock 判定器，环境就绪自动启用真实模式；api_key_env=QWEN_VL_API_KEY 仅环境变量名）",
+    "frame_extraction": "前 15 秒等距抽帧（frame_count=3，0/中/尾；mock=fixtures 帧描述，真实=ffmpeg -ss）"
+  },
+  "m2_precheck": {
+    "module": "backend/materials/integration.py RelevanceGateService",
+    "methods": {
+      "receive_relevance": "receive_relevance(asset_id, result: pass|reject|manual_review, evidence, source_agent='M3') -> {ok, asset_id, relevance_status, changed}；非法->PLATFORM_REJECT；素材不存在->NO_MATCH",
+      "get_relevance_status": "读当前状态；素材不存在返回 None",
+      "is_ready_for_chain": "仅 relevance_status=passed 返回 True（进入询价/上架链前置判定）"
+    }
+  },
+  "m4_consumer": {
+    "status": "待 M4 派工（消费 M2 asset_items.relevance_status，仅 passed 素材进入候选池/上架）",
+    "rule": "多款式 manual_review 素材禁止自动创建衍生商品（08-17 收敛规则）"
+  },
+  "input_example": {
+    "asset_id": 101,
+    "asset_type": "video",
+    "title": "陶瓷马克杯开箱",
+    "file_path": "videos/2025/101.mp4",
+    "duration": 30,
+    "resolution": "720x1280",
+    "target_product_title": "简约陶瓷马克杯 350ml",
+    "target_category": "家居日用",
+    "frame_descriptions": ["白色陶瓷杯特写", "杯身展示", "手持倒水"],
+    "style_hints": ["简约白"],
+    "mock_verdict": "related"
+  }
+}

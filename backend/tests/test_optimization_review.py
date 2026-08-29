@@ -1,4 +1,4 @@
-"""M3 自动素材优化模块 · 审核闸门（子代理-D · v1.0）测试。
+"""M3 自动素材优化模块 · 审核闸门（子代理-D · v1.0 + 相关性门 C3 v1.1）测试。
 
 覆盖（全部 fixtures 离线模式，零网络零 API Key）：
 1. 规则预审（rules.py）：供应链词/品牌词/广告禁用词 → rejected 且命中词列表正确；
@@ -10,7 +10,14 @@
 4. ReviewGate 编排 + 落库（gate.py）：clean 素材 3 条记录全 pass、
    规则拒绝短路 1 条、评估拒绝短路 2 条、抽中 manual_review、reviewer=system、
    reasons_json 完整、run_batch ≤50/批；
-5. 无明文密钥；包级重导出完整。
+5. 相关性门（relevance.py + gate.py RelevanceGate，REC-迁移-03 C3）：
+   Qwen-VL 无 Key → mock 判定器（fixtures 注入 mock_verdict/帧描述关键词启发式）；
+   三态用例 ①相关→放行 ②不相关→reject ③多款式→manual_review（人工确认目标款）；
+   不相关优先淘汰（多款式提示也不放行）、款式聚类留 evidence、抽帧失败结构化返回、
+   FFmpegFrameSampler（Mock runner 注入抽 3 帧 / 缺 file_path→NO_MATCH）、
+   build_relevance_judge 三模式（mock 强制 / qwen 无 Key 抛错 / auto 自动降级）、
+   run_batch ≤50/批、RelevanceGate 缺省内存库；
+6. 无明文密钥；包级重导出完整。
 
 运行：cd backend && python -m pytest tests/test_optimization_review.py -q --basetemp=".pytest-tmp-m3"
 （P-011：独立 basetemp，禁止共用 .pytest-tmp）
@@ -22,19 +29,32 @@ from pathlib import Path
 
 import pytest
 
-from optimization.config import ReviewSpec, load_config
+from optimization.config import RelevanceSpec, ReviewSpec, load_config
 from optimization.db import Database
 from optimization.review import (
     FINAL_MANUAL_REVIEW,
     FINAL_PASSED,
     FINAL_REJECTED,
+    GATE_TYPE_RELEVANCE,
     MAX_BATCH_SIZE,
+    FFmpegFrameSampler,
     ManualSampler,
     MaterialEvaluator,
     MaterialRules,
+    MockRelevanceJudge,
+    RelevanceGate,
+    RelevanceJudgeError,
     ReviewGate,
     ReviewRecordRepo,
+    StyleClusterer,
+    VERDICT_MULTI_STYLE,
+    VERDICT_RELATED,
+    VERDICT_UNRELATED,
+    build_frame_sampler,
+    build_relevance_judge,
+    detect_qwen_vl,
     evaluate_material,
+    judge_relevance,
     run_rule_precheck,
     should_manual_review,
 )
@@ -92,12 +112,14 @@ def _clean_image(target_id: str = "img_001", **overrides) -> dict:
 
 @pytest.fixture
 def cfg(tmp_path):
-    """内存库 + 临时 data_dir；sample_rate=0 默认不抽检（单测按需覆盖）。"""
+    """内存库 + 临时 data_dir；sample_rate=0 默认不抽检（单测按需覆盖）；
+    relevance.mode=mock 强制 fixtures 判定器（不受环境 QWEN_VL_API_KEY 影响）。"""
     return load_config(
         db_url="sqlite:///:memory:",
         fixtures_dir=tmp_path / "fixtures",
         data_dir=tmp_path / "data",
         review=ReviewSpec(sample_rate=0.0, high_risk_categories=()),
+        relevance=RelevanceSpec(mode="mock"),
     )
 
 
@@ -487,6 +509,245 @@ class TestGate:
         assert any("画面抖动" in it for it in ev["reasons_json"]["optimization_items"])
 
 
+# ---------------------------------------------------------------- 相关性门（REC-迁移-03 C3）
+
+def _relevance_material(asset_id: str = "101", **overrides) -> dict:
+    """相关性门素材用例（fixtures 注入 mock_verdict/style_hints，零 Key 零外网）。
+
+    契约对齐 _management/data-exchange/m2-m3-m4-relevance-gate.json：
+    asset_id/title/file_path/duration/target_product_title/target_category/
+    frame_descriptions/style_hints/mock_verdict。
+    """
+    material = {
+        "asset_id": asset_id,
+        "asset_type": "video",
+        "title": "陶瓷马克杯开箱",
+        "file_path": f"videos/2025/{asset_id}.mp4",
+        "duration": 30,
+        "resolution": "720x1280",
+        "target_product_title": "简约陶瓷马克杯 350ml",
+        "target_category": "家居日用",
+        "style_hints": ["简约白"],
+        "frame_descriptions": ["白色陶瓷杯特写", "杯身展示", "手持倒水"],
+        "mock_verdict": "related",
+    }
+    material.update(overrides)
+    return material
+
+
+class TestRelevance:
+    def _gate(self, cfg, db) -> RelevanceGate:
+        return RelevanceGate(config=cfg, db=db)
+
+    # ---------------------------------------------------------- 三态用例
+
+    def test_related_passed(self, cfg, db):
+        """① 相关 → 放行（passed），落 opt_review_records gate_type=relevance。"""
+        gate = self._gate(cfg, db)
+        out = gate.run("101", _relevance_material("101"), "家居日用")
+        assert out["ok"] is True
+        assert out["verdict"] == VERDICT_RELATED
+        assert out["style_count"] == 1
+        assert out["final"]["result"] == FINAL_PASSED
+        assert out["final"]["stage"] == GATE_TYPE_RELEVANCE
+        records = ReviewRecordRepo(db).list_by_target("material", "101")
+        assert len(records) == 1
+        rec = records[0]
+        assert rec["gate_type"] == "relevance"
+        assert rec["result"] == "pass"
+        assert rec["reviewer"] == "system"
+        assert rec["reasons_json"]["verdict"] == "related"
+        assert rec["reasons_json"]["clustering"]["style_count"] == 1
+        assert rec["reasons_json"]["mode"] == "mock"
+
+    def test_unrelated_rejected(self, cfg, db):
+        """② 不相关 → reject（淘汰，不进入询价/上架链）。"""
+        gate = self._gate(cfg, db)
+        out = gate.run("102", _relevance_material("102", mock_verdict="unrelated"), "家居日用")
+        assert out["verdict"] == VERDICT_UNRELATED
+        assert out["final"]["result"] == FINAL_REJECTED
+        records = ReviewRecordRepo(db).list_by_target("material", "102")
+        assert records[0]["result"] == "reject"
+        assert records[0]["reasons_json"]["verdict"] == "unrelated"
+
+    def test_multi_style_manual_review(self, cfg, db):
+        """③ 多款式 → manual_review（人工确认目标款，禁止自动创建衍生商品）。"""
+        gate = self._gate(cfg, db)
+        material = _relevance_material("103", style_hints=["白色款", "黑色款", "蓝色款"])
+        out = gate.run("103", material, "家居日用")
+        assert out["verdict"] == VERDICT_MULTI_STYLE
+        assert out["style_count"] == 3
+        assert out["final"]["result"] == FINAL_MANUAL_REVIEW
+        records = ReviewRecordRepo(db).list_by_target("material", "103")
+        rec = records[0]
+        assert rec["result"] == "manual_review"
+        assert "人工确认目标款" in rec["reasons_json"]["manual_note"]  # 08-17 收敛规则留证
+        assert rec["reasons_json"]["clustering"]["styles"] == ["白色款", "黑色款", "蓝色款"]
+
+    def test_multi_style_direct_verdict(self, cfg, db):
+        gate = self._gate(cfg, db)
+        out = gate.run("104", _relevance_material("104", mock_verdict="multi_style"), "家居日用")
+        assert out["final"]["result"] == FINAL_MANUAL_REVIEW
+
+    def test_unrelated_wins_over_multi_style(self, cfg, db):
+        """不相关优先淘汰：即使带多款式提示也不放行（淘汰优先级最高）。"""
+        gate = self._gate(cfg, db)
+        material = _relevance_material("105", mock_verdict="unrelated", style_hints=["白", "黑", "蓝"])
+        out = gate.run("105", material, "家居日用")
+        assert out["verdict"] == VERDICT_UNRELATED
+        assert out["final"]["result"] == FINAL_REJECTED
+        assert out["style_count"] == 3  # 聚类仍留 3 款证据，但最终不相关淘汰
+
+    # ---------------------------------------------------------- mock 判定细节
+
+    def test_keyword_heuristic_unrelated(self, cfg, db):
+        material = _relevance_material("106", mock_verdict=None, frame_descriptions=["画面与目标商品不相关"])
+        gate = self._gate(cfg, db)
+        out = gate.run("106", material, "家居日用")
+        assert out["verdict"] == VERDICT_UNRELATED
+
+    def test_keyword_heuristic_multi_style(self, cfg, db):
+        material = _relevance_material("107", mock_verdict=None, frame_descriptions=["包含多个款式展示"])
+        gate = self._gate(cfg, db)
+        out = gate.run("107", material, "家居日用")
+        assert out["verdict"] == VERDICT_MULTI_STYLE
+        assert out["final"]["result"] == FINAL_MANUAL_REVIEW
+
+    def test_default_related_when_no_signals(self, cfg, db):
+        gate = self._gate(cfg, db)
+        out = gate.run("108", _relevance_material("108", mock_verdict=None, frame_descriptions=None), "家居日用")
+        assert out["verdict"] == VERDICT_RELATED
+        assert out["final"]["result"] == FINAL_PASSED
+
+    def test_mock_frame_sampler_synthesizes_title(self, cfg, db):
+        gate = self._gate(cfg, db)
+        out = gate.run("109", _relevance_material("109", mock_verdict=None, frame_descriptions=None), "家居日用")
+        assert len(out["frames"]) == 1
+        assert "陶瓷马克杯开箱" in out["frames"][0]["description"]
+
+    # ---------------------------------------------------------- 失败与框架
+
+    def test_gate_failure_structured(self, cfg, db):
+        """抽帧失败 → 结构化 ok=False + 错误码，不向上抛出（R-M2-09 纪律）。"""
+
+        class BoomSampler:
+            def extract_frames(self, material):
+                raise RelevanceJudgeError("NO_MATCH", "素材无输入无法抽帧")
+
+        gate = RelevanceGate(config=cfg, db=db, frame_sampler=BoomSampler())
+        out = gate.run("110", {"asset_id": 110}, "家居日用")
+        assert out["ok"] is False
+        assert out["code"] == "NO_MATCH"
+
+    def test_ffmpeg_frame_sampler_mock_runner(self, cfg, tmp_path):
+        """真实抽帧器可注入 Mock runner（前 15 秒窗口等距 3 帧：0/7.5/15）。"""
+        from optimization.video.ffmpeg import MockFFmpegRunner
+
+        sampler = FFmpegFrameSampler(
+            cfg, runner=MockFFmpegRunner(), work_dir=str(tmp_path / "frames")
+        )
+        frames = sampler.extract_frames({"file_path": "data/v.mp4", "duration": 30})
+        assert [f["at_seconds"] for f in frames] == [0.0, 7.5, 15.0]
+        assert all(f["path"].startswith(str(tmp_path / "frames")) for f in frames)
+
+    def test_ffmpeg_frame_sampler_missing_input_no_match(self, cfg, tmp_path):
+        from optimization.video.ffmpeg import MockFFmpegRunner
+
+        sampler = FFmpegFrameSampler(
+            cfg, runner=MockFFmpegRunner(), work_dir=str(tmp_path / "frames")
+        )
+        with pytest.raises(RelevanceJudgeError) as ei:
+            sampler.extract_frames({"asset_id": 1})
+        assert ei.value.error_code == "NO_MATCH"
+
+    def test_ffmpeg_sampler_constructor_raises_without_ffmpeg(self, cfg):
+        from optimization.video.ffmpeg import detect_ffmpeg
+
+        if detect_ffmpeg() is not None:
+            pytest.skip("环境已安装 ffmpeg，跳过缺失分支")
+        with pytest.raises(RelevanceJudgeError):
+            FFmpegFrameSampler(cfg)  # ffmpeg 缺失构造即抛错（不静默）
+
+    def test_build_judge_mode_mock_forced(self, cfg):
+        judge = build_relevance_judge(cfg)
+        assert isinstance(judge, MockRelevanceJudge)
+        assert judge.mode == "mock"
+
+    def test_build_judge_auto_falls_back_without_key(self, cfg):
+        cfg_auto = load_config(
+            db_url=cfg.db_url, data_dir=cfg.data_dir, fixtures_dir=cfg.fixtures_dir,
+            relevance=RelevanceSpec(mode="auto"),
+        )
+        if detect_qwen_vl(cfg_auto):
+            pytest.skip("环境已配置 QWEN_VL_API_KEY，auto 走真实骨架")
+        assert build_relevance_judge(cfg_auto).mode == "mock"
+
+    def test_build_judge_qwen_without_key_raises(self, cfg):
+        cfg_qwen = load_config(
+            db_url=cfg.db_url, data_dir=cfg.data_dir, fixtures_dir=cfg.fixtures_dir,
+            relevance=RelevanceSpec(mode="qwen"),
+        )
+        if detect_qwen_vl(cfg_qwen):
+            pytest.skip("环境已配置 QWEN_VL_API_KEY，无 Key 分支不适用")
+        with pytest.raises(RelevanceJudgeError):
+            build_relevance_judge(cfg_qwen)  # 配置错误显式暴露，不静默降级
+
+    def test_build_judge_unknown_mode_raises(self, cfg):
+        cfg_bad = load_config(
+            db_url=cfg.db_url, data_dir=cfg.data_dir, fixtures_dir=cfg.fixtures_dir,
+            relevance=RelevanceSpec(mode="nope"),
+        )
+        with pytest.raises(RelevanceJudgeError):
+            build_relevance_judge(cfg_bad)
+
+    def test_judge_relevance_module_entry(self, cfg):
+        """模块级便捷入口：抽帧 → 判定 → 聚类 → result 落库口径。"""
+        out = judge_relevance(_relevance_material("201"), config=cfg)
+        assert out["verdict"] == VERDICT_RELATED
+        assert out["result"] == "pass"
+        assert out["styles"] == ["简约白"]
+        assert out["mode"] == "mock"
+        assert out["evidence"]["clustering"]["clustered_verdict"] == "related"
+
+    def test_run_batch_relevance(self, cfg, db):
+        gate = self._gate(cfg, db)
+        items = [
+            {"target_id": "b1", "material": _relevance_material("b1"), "category": "家居日用"},
+            {"target_id": "b2", "material": _relevance_material("b2", mock_verdict="unrelated"), "category": "家居日用"},
+            {"target_id": "b3", "material": _relevance_material("b3", style_hints=["红", "蓝"]), "category": "家居日用"},
+        ]
+        outs = gate.run_batch(items)
+        assert [o["final"]["result"] for o in outs] == [
+            FINAL_PASSED, FINAL_REJECTED, FINAL_MANUAL_REVIEW,
+        ]
+
+    def test_run_batch_over_50_raises(self, cfg, db):
+        gate = self._gate(cfg, db)
+        items = [
+            {"target_id": f"i{i}", "material": _relevance_material(f"i{i}")}
+            for i in range(MAX_BATCH_SIZE + 1)
+        ]
+        with pytest.raises(ValueError):
+            gate.run_batch(items)
+
+    def test_default_db_in_memory(self):
+        """RelevanceGate 缺省 db → 内存库（不触碰真实 m3-optimization.db）。"""
+        gate = RelevanceGate(
+            config=load_config(db_url="sqlite:///:memory:", relevance=RelevanceSpec(mode="mock"))
+        )
+        out = gate.run("mem1", _relevance_material("mem1"), "家居日用")
+        assert out["final"]["result"] == FINAL_PASSED
+        assert len(ReviewRecordRepo(gate.db).list_by_target("material", "mem1")) == 1
+
+    def test_style_clusterer_standalone(self):
+        cl = StyleClusterer()
+        r = cl.cluster({"style_hints": ["白", "黑"]}, {"verdict": VERDICT_RELATED})
+        assert r["verdict"] == VERDICT_MULTI_STYLE
+        assert r["style_count"] == 2
+        r2 = cl.cluster({"style_hints": ["白", "黑"]}, {"verdict": VERDICT_UNRELATED})
+        assert r2["verdict"] == VERDICT_UNRELATED  # 不相关优先
+
+
 # ---------------------------------------------------------------- 无明文密钥 / 包级重导出
 
 class TestHygiene:
@@ -507,6 +768,15 @@ class TestHygiene:
             "ManualSampler", "should_manual_review",
             "ReviewGate", "ReviewRecordRepo", "MAX_BATCH_SIZE",
             "FINAL_PASSED", "FINAL_REJECTED", "FINAL_MANUAL_REVIEW",
+            # relevance（REC-迁移-03 C3）
+            "RelevanceGate", "GATE_TYPE_RELEVANCE", "RELEVANCE_TARGET_TYPE",
+            "RelevanceJudge", "MockRelevanceJudge", "QwenVLRelevanceJudge",
+            "FrameSampler", "MockFrameSampler", "FFmpegFrameSampler",
+            "StyleClusterer", "RelevanceJudgeError",
+            "build_relevance_judge", "build_frame_sampler", "detect_qwen_vl",
+            "judge_relevance",
+            "VERDICT_RELATED", "VERDICT_UNRELATED", "VERDICT_MULTI_STYLE",
+            "VERDICT_TO_RESULT",
         ):
             assert hasattr(review_pkg, name), f"包级缺少重导出: {name}"
         assert review_pkg.ReviewGate is ReviewGate

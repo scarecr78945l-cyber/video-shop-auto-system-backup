@@ -70,6 +70,8 @@ class AlibabaQuoteCollector(QuoteCollector):
                     # 进商品页 → 选规格 → 订单确认页读价（不下单）
                     page.goto(link, timeout=45000)
                     page.wait_for_timeout(2000)
+                    # REC-迁移-02（C2）：探测必填上架参数缺失（M4 attrs_complete 门禁消费）
+                    missing = self._detect_missing_attrs(page)
                     confirm = page.locator(self.selectors["confirm_btn"])
                     if confirm.count() > 0:
                         confirm.first.click(timeout=5000)
@@ -83,6 +85,7 @@ class AlibabaQuoteCollector(QuoteCollector):
                                 sku_name=title[:120],
                                 unit_cost=round(unit_cost, 2),
                                 raw_url=page.url,
+                                missing_attrs=missing,
                             )
                         )
                 except Exception:
@@ -111,3 +114,28 @@ class AlibabaQuoteCollector(QuoteCollector):
 
         m = re.search(r"[\d.]+", (text or "").replace(",", ""))
         return float(m.group()) if m else 0.0
+
+    # REC-迁移-02（C2）：上架必填参数清单（对照 old-system-assets/listing-requirements.json missing_field_labels）
+    REQUIRED_ATTR_LABELS = [
+        "适用年龄", "包装清单", "重量", "容量", "适用场景", "类别", "功能",
+    ]
+
+    @classmethod
+    def _detect_missing_attrs(cls, page) -> list[str]:
+        """从商品页属性区探测缺失的必填参数；探测失败返回空列表（不阻断）。"""
+        missing: list[str] = []
+        try:
+            body_text = ""
+            # 常见属性容器：class 含 attr/param/spec 的区块；宽松取整页文本（兜底）
+            for sel in (".attr-list", ".parameters", "[class*='attr']", "[class*='param']", "[class*='spec']"):
+                loc = page.locator(sel).first
+                if loc.count() > 0:
+                    body_text += " " + loc.inner_text(timeout=1500)
+            if not body_text.strip():
+                body_text = page.locator("body").first.inner_text(timeout=3000)
+            for label in cls.REQUIRED_ATTR_LABELS:
+                if label not in body_text:
+                    missing.append(label)
+        except Exception:
+            return []  # 探测失败不阻断询价（保持向后兼容）
+        return missing

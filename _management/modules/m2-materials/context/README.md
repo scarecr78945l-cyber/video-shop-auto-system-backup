@@ -31,6 +31,7 @@
 | `upload_status` | TEXT | 是 | 上传小店素材库状态 | `local`（默认）/ `uploading` / `uploaded` / `failed` / `disabled`（拒审下架） |
 | `platform_material_id` | TEXT | 否 | 小店素材库 ID | M3 上传后回填；投放绑定用；唯一约束防重复上传 |
 | `compliance_status` | TEXT | 是 | 内容预审状态 | `pending` / `passed` / `rejected`；入库前必须非 pending |
+| `relevance_status` | TEXT | 是 | 相关性门状态（REC-迁移-03 C3） | `pending`（未判定，入库默认）/ `passed`（相关→放行，可进入询价/上架链）/ `failed`（不相关→淘汰，不进入询价/上架链）/ `manual_review`（多款式→人工确认目标款）；M3 relevance 判定结果回写，枚举唯一源 config.RELEVANCE_STATUS_VALUES（DA-010 会签） |
 | `derivation_note` | TEXT | 否 | 二创义务标记 | 如 `去水印/混剪/换文案`；搬运素材必填 |
 | `created_at` / `updated_at` | TEXT | 是 | 时间戳 | ISO8601 UTC（跨模块统一） |
 
@@ -174,6 +175,13 @@
 |---|---|
 | `asset_type=image` 的素材 | 同款图/榜单图，作为上架主图/详情参考（正式主图由 M3 生图链路产出） |
 | `compliance_status` | 必须 `passed` 才能对外提供 |
+| `relevance_status` | 必须 `passed` 才能进入询价/上架链（REC-迁移-03 C3 相关性门；`failed` 淘汰、`manual_review` 人工确认目标款后置 passed 再放行；M4 消费端见 DA-010） |
+
+### 3.2·B 相关性门契约（M3→M2→M4，REC-迁移-03 C3 / DA-010）
+
+- **M3 判定**：`optimization/review/relevance.py` + `gate.py` `RelevanceGate`（gate_type=relevance）——Qwen-VL 前 15 秒抽帧相关性判定（无 API Key 时 fixtures mock 判定器，环境就绪自动启用真实模式）+ 款式聚类（material_clustering 语义，多款式必须人工确认目标款，禁止自动创建衍生商品）；三态 `related`（pass→passed 放行）/ `unrelated`（reject→failed 淘汰）/ `multi_style`（manual_review→manual_review 人工确认）。
+- **M2 落库**：`integration.RelevanceGateService.receive_relevance(asset_id, result, evidence, source_agent="M3")` 幂等回写 `asset_items.relevance_status`；`is_ready_for_chain(asset_id)` **仅 passed 放行**（pending/failed/manual_review 不放行）。
+- **正式载体**：`_management/data-exchange/m2-m3-m4-relevance-gate.json`（字段契约 + 三态映射 + 判定输入样例，待 M2/M3/M4 总工会签）。
 
 ### 3.3 与 M5 投放联动（双向）
 

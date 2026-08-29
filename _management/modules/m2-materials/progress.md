@@ -28,13 +28,14 @@
 | [x] 素材流水线编排 pipeline.py（v1.0 集成支撑） | 子代理 B4-3 | 100% | ✅已验收：总工复跑 19 passed + 全 M2 套件 318 passed/1 skipped；run_source 八步编排 + daily_stats |
 | [x] 修复任务：test_daily_stats_aggregation（总控全量回归报告） | 总工 | 100% | ✅判定 P-015 并行写文件中间状态误报（非代码缺陷），单独/文件级/全 M2 复跑全绿，无需改代码 |
 | [x] 集成验收（素材库可入库/去重/预览，日采集量可观测） | 总工 | 100% | ✅v1.0 验收通过：CLI 端到端（FixtureDownloader+MockNormalizer）RUN1 passed=2 入库、RUN2 同批重跑 deduped=2、daily-stats 聚合正确、pool 预览 2 条（compliance=passed+tags 自动生成） |
+| [x] **相关性门入库质量门（REC-迁移-03 C3，M2 侧 · v1.1）** | 门禁迁移子代理（验收待总工） | 100% | 无（asset_items.relevance_status pending/passed/failed/manual_review 默认 pending + CHECK + 索引；repo create/list/update_relevance_status 幂等；integration.RelevanceGateService 消费 M3 判定（pass→passed/reject→failed/manual_review→manual_review），is_ready_for_chain 仅 passed 放行进入询价/上架链；表/repo/service 11 用例全绿；全 M2 套件 **329 passed, 1 skipped** 零回归；契约 DA-010 + data-exchange JSON） |
 
 ## 里程碑进度
 
-- 本模块当前完成度：**100%**（筹备 15% + 批次 1~4 各 15% + 集成验收 25%：全部组件 + 流水线编排 + 集成验收完成）
-- 里程碑达成：`asset_* 表可建` ✅、`下载中台可跑` ✅、`双去重可用` ✅、`ffmpeg 标准化器（mock）` ✅、`TikTokDownloader 封装（fixtures）` ✅、`视频号采集器（fixtures+signer 接口化）` ✅、`淘宝/1688 采集（fixtures+降级）` ✅、`榜单图缓存` ✅、`标签化+合规预审` ✅、`M3/M5 数据联动（evaluation 回流+上传抽象）` ✅、**`v1.0 集成验收：素材库可入库/去重/预览、日采集量可观测` ✅**
-- 环境待确认（不影响 v1.0，就绪后自动启用）：**ffmpeg 未安装**（标准化器/视频关键帧抽帧 mock→真实，就绪自动切）、**TikTokDownloader 未安装**（就绪装 4.1.x）、**共享浏览器登录态**（三采集器 auto 模式待登录态+选择器/签名抓包校准）、**小店素材库上传 API/登录态**（MATERIALS_UPLOAD_MODE=shop 切换）
-- 全 M2 套件基线：**318 passed / 1 skipped**（`.pytest-tmp-m2`，宪法第 12 节）
+- 本模块当前完成度：**100%**（筹备 15% + 批次 1~4 各 15% + 集成验收 25%：全部组件 + 流水线编排 + 集成验收完成；+C3 相关性门入库质量门 v1.1）
+- 里程碑达成：`asset_* 表可建` ✅、`下载中台可跑` ✅、`双去重可用` ✅、`ffmpeg 标准化器（mock）` ✅、`TikTokDownloader 封装（fixtures）` ✅、`视频号采集器（fixtures+signer 接口化）` ✅、`淘宝/1688 采集（fixtures+降级）` ✅、`榜单图缓存` ✅、`标签化+合规预审` ✅、`M3/M5 数据联动（evaluation 回流+上传抽象）` ✅、**`v1.0 集成验收：素材库可入库/去重/预览、日采集量可观测` ✅**、**`C3 相关性门入库质量门（relevance_status 四态 + 预检接口）` ✅**
+- 环境待确认（不影响 v1.0，就绪后自动启用）：**ffmpeg 未安装**（标准化器/视频关键帧抽帧 mock→真实，就绪自动切）、**TikTokDownloader 未安装**（就绪装 4.1.x）、**共享浏览器登录态**（三采集器 auto 模式待登录态+选择器/签名抓包校准）、**小店素材库上传 API/登录态**（MATERIALS_UPLOAD_MODE=shop 切换）、**Qwen-VL 相关性判定真实模式**（relevance.mode=auto，API Key 就绪自动启用，M2 侧仅消费结果不受影响）
+- 全 M2 套件基线：**329 passed / 1 skipped**（`.pytest-tmp-m2`，宪法第 12 节；v1.0 基线 318 + C3 新增 11）
 
 > 测试纪律（宪法第 12 节）：pytest 一律 `--basetemp=".pytest-tmp-m2"`；全量回归由总控统一执行。
 

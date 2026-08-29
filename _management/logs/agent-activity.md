@@ -1189,3 +1189,34 @@
 - 产出文件：`_management/modules/m1-sourcing/progress.md`（+总工恢复记录小节）；本日志追加条目。未改动任何代码。
 - 当前阻塞：无。等总控派发下一批任务（v1.1+ 迭代：A3 飙升榜 URL 回填、A6 图片/宽泛选择器收敛、商机中心多筛选、9223 僵尸页前置清理；或 S4 联调排期）。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；本回合仅文档操作，未跑 pytest（无代码改动）。
+
+---
+
+### 2026-08-29 13:56 | M3 总工程师（新任） | M3 自动素材优化（m3-optimization） | 角色：总工（原总工环境损坏，新任恢复接管）
+
+- 任务来源：总控派发 M3 模块接管任务——原 M3 总工代理运行环境损坏无法恢复，全部代码/测试/文档已备份（git v0.1~v0.38 + GitHub），新任总工负责 M3 模块后续开发全流程管理。
+- 完成任务：
+  ① **恢复上下文通读**：AGENT_CONSTITUTION.md（角色/交付物/数据隔离/UTF-8 第 11 节/pytest 独立 basetemp 第 12 节/子代理管理第 9 节）；全局踩坑日志 P-001~P-016；M3 模块交付物全量（brief/risks/progress/decisions/context/README.md/data-requests.md/database/README.md，BLOCKERS 无阻塞）；`backend/optimization/` 代码（骨架 + copywriting/images/video/review/ab/upload 六子包）；`_management/data-exchange/old-system-assets/`（C3 迁移由独立子代理执行，M3 侧为 review/gate.py 新增 relevance 审核类型）；
+  ② **模块状态确认**：**v1.1 已 95%**——v1.0 全链路闭环 + v1.1-① M5 回写联调（ingest 摄取）+ v1.1-② 模板重训练数据驱动全部验收通过；本轮复跑 M3 全范围 **305 passed, 1 skipped**（`--basetemp=".pytest-tmp-m3"`，P-001/P-011）与既有记录一致，无回归；剩余 ③④ 均依赖用户侧环境（上传真实化待小店账号 / 真实 ffmpeg 待安装）；
+  ③ **发现项登记**：C3 相关性门代码已落地（`review/relevance.py` 462 行 + `gate.py` 内 `RelevanceGate`），但 `review/__init__.py` 未导出、无 relevance 专项测试、`data-exchange/m2-m3-m4-relevance-gate.json` 契约文件缺失——已列入 progress.md 后续排期第 5 项，待与 C3 迁移子代理对表收尾；
+  ④ **progress.md 追加「总工恢复记录」**（日期/新任总工/模块状态确认 5 项/发现项/后续动作）；
+  ⑤ **本日志追加台账**（本条目）。
+- 产出文件：`_management/modules/m3-optimization/progress.md`（+总工恢复记录 + 后续排期第 5 项）；本日志追加条目。未改动任何代码。
+- 当前阻塞：无。等总控派发下一批任务（C3 迁移验收配合、上传真实化/ffmpeg 验证、v1.2 迭代包等）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；pytest 仅复跑 M3 范围（305 passed, 1 skipped，`.pytest-tmp-m3`），未触碰其他模块测试。
+
+---
+
+### 2026-08-29 ｜ 旧系统门禁迁移子代理 ｜ M2+M3（REC-迁移-03 C3 素材相关性门） ｜ 角色：子代理
+
+- 任务来源：总控 REC-迁移-03 派工（迁移清单 C3「素材相关性门 material_gate」M2 侧 + M3 侧实现），验收命令 `pytest tests/test_optimization_review.py tests/test_materials_tables.py -q --basetemp=".pytest-tmp-migrate"`。
+- 完成任务：
+  ① **M3 侧**：`optimization/config.py` 新增 `RelevanceSpec`（mode=auto/mock/qwen，api_key_env=QWEN_VL_API_KEY 仅变量名）；`review/relevance.py`（Qwen-VL 前 15 秒抽帧相关性判定接口抽象 + `MockRelevanceJudge` fixtures 确定性判定 + `QwenVLRelevanceJudge` 真实骨架 + `MockFrameSampler`/`FFmpegFrameSampler`（Mock runner 可注入，前 15 秒等距 3 帧）+ `StyleClusterer` 款式聚类（material_clustering 语义）+ `build_relevance_judge`/`build_frame_sampler`/`judge_relevance`）；`review/gate.py` 新增 `RelevanceGate` 编排（gate_type=relevance，target_type=material，related→passed / unrelated→rejected / multi_style→manual_review，`reasons_json.manual_note` 留证 08-17 收敛规则，抽帧/判定失败结构化返回不抛出）；`review/__init__.py` 补全导出（销项 M3 总工恢复记录发现项 a）；
+  ② **M2 侧**：`materials/config.py` 新增 `RELEVANCE_STATUS_VALUES`（pending/passed/failed/manual_review 唯一枚举源）+ `RELEVANCE_RESULT_TO_STATUS` 映射；`materials/tables.py` `asset_items` 新增 `relevance_status`（默认 pending）+ CHECK `ck_asset_items_relevance_status` + `idx_asset_items_relevance` 索引；`materials/repo.py`（create_asset 参数 / list_assets 过滤 / `update_relevance_status` 幂等）；`materials/integration.py` 新增 `RelevanceGateService`（receive_relevance：非法→PLATFORM_REJECT、不存在→NO_MATCH、合法→幂等回写 changed 语义；get_relevance_status / `is_ready_for_chain` 仅 passed 放行进入询价/上架链，failed 淘汰、manual_review 待人工确认）；
+  ③ **测试**：test_optimization_review.py +22（三态相关放行/不相关拒/多款式人工、不相关优先淘汰、mock 关键词启发式、FFmpegFrameSampler Mock 注入、mode 三模式、run_batch ≤50、缺省内存库、包级重导出）；test_materials_tables.py +3（列/默认/CHECK/索引）；test_materials_repo.py +2（入库默认与自定义、幂等回写/过滤）；test_materials_integration.py +6（枚举对齐、三态映射、幂等、非法/缺失、is_ready_for_chain）；
+  ④ **验收**：验收命令 **91 passed**（`.pytest-tmp-migrate`）；M3 全量 **327 passed, 1 skipped**（`.pytest-tmp-m3`，305→327）；M2 全量 **329 passed, 1 skipped**（`.pytest-tmp-m2`，318→329）；零回归；
+  ⑤ **契约与文档**：`_management/logs/data-audit.md` +DA-010（M2↔M3↔M4 relevance_status 字段口径）；`_management/data-exchange/m2-m3-m4-relevance-gate.json`（正式载体，文件头待三总工会签）；m3-optimization/m2-materials progress.md（任务行 + 完成度/基线更新）；两模块 context/README.md（数据字典 + 契约）；m2 database/README.md（DDL v1.1 + 门禁说明 + 迁移记录）；m3 database/README.md（opt_review_records gate_type=relevance 注释）。
+- 销项：M3 总工恢复记录（13:56）发现项 a/b/c 全部关闭（导出✅/专项测试✅/契约 JSON✅）。
+- 产出文件：`backend/optimization/review/relevance.py`（新）、`review/gate.py`（+RelevanceGate）、`review/__init__.py`、`optimization/config.py`（+RelevanceSpec）；`backend/materials/config.py`、`tables.py`、`repo.py`、`integration.py`（+相关性门）；`backend/tests/test_optimization_review.py`、`test_materials_tables.py`、`test_materials_repo.py`、`test_materials_integration.py`（+用例）；`_management/logs/data-audit.md`（DA-010）、`_management/data-exchange/m2-m3-m4-relevance-gate.json`（新）、两模块 progress.md / context/README.md / database/README.md；本日志追加条目。
+- 当前阻塞：无。Qwen-VL 真实判定器待 API 契约确认（环境就绪 mode=auto 自动启用，不阻塞）；M4 侧消费端（候选池/上架前置校验读 relevance_status）待总控转达 M4 派工。
+- 备注：未运行任何 git 命令；未读写其他模块库（测试全内存/临时库）；未写明文密钥（QWEN_VL_API_KEY 仅环境变量名）；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；pytest 全程独立 basetemp（`.pytest-tmp-migrate`/`.pytest-tmp-m3`/`.pytest-tmp-m2`，P-001/P-011）。

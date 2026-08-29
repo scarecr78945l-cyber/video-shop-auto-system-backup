@@ -17,12 +17,12 @@ def test_pipeline_end_to_end(cfg, db):
     assert result.collected >= 20
     # 去重后小于原始（多源同款合并：置物架/保温杯/榨汁杯/晾衣架/瑜伽垫/饮水机跨源出现）
     assert result.after_dedup < result.collected
-    # 硬拒：古驰品牌（ym-006）+ 电子烟（dd-006）
-    assert result.hard_rejected >= 2
-    # 人工复核：防脱发功效词（dd-007）+ 美妆类目（dd-008）
-    assert result.manual_review >= 2
-    # 询价：有 quotes 数据的候选
-    assert result.quoted >= 5
+    # 硬拒：古驰品牌（ym-006）+ 电子烟（dd-006）+ 防尘化妆包（dd-008，REC-迁移-01 C1 包类硬拦）
+    assert result.hard_rejected >= 3
+    # 人工复核：防脱发功效词（dd-007）+ 美妆类目（dd-008 已被 C1 硬拦，剩余 1 项）
+    assert result.manual_review >= 1
+    # 询价：有 quotes 数据的候选（dd-008 被 C1 硬拦后少一个询价来源）
+    assert result.quoted >= 4
     # 入池
     assert 0 < result.pool_entered <= 50
 

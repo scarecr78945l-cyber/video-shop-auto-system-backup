@@ -48,6 +48,10 @@ class AssetItem(Base):
             "compliance_status IN ('pending','passed','rejected')",
             name="ck_asset_items_compliance_status",
         ),
+        CheckConstraint(
+            "relevance_status IN ('pending','passed','failed','manual_review')",
+            name="ck_asset_items_relevance_status",
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -67,6 +71,7 @@ class AssetItem(Base):
     upload_status: Mapped[str] = mapped_column(String(20), default="local")
     platform_material_id: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
     compliance_status: Mapped[str] = mapped_column(String(20), default="pending")
+    relevance_status: Mapped[str] = mapped_column(String(20), default="pending")  # M3 相关性门回写
     derivation_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[str] = mapped_column(String(40), default=iso_now)
     updated_at: Mapped[str] = mapped_column(String(40), default=iso_now, onupdate=iso_now)
@@ -76,6 +81,7 @@ Index("idx_asset_items_platform", AssetItem.source_platform)
 Index("idx_asset_items_type_status", AssetItem.asset_type, AssetItem.upload_status)
 Index("idx_asset_items_evaluation", AssetItem.evaluation)
 Index("idx_asset_items_compliance", AssetItem.compliance_status)
+Index("idx_asset_items_relevance", AssetItem.relevance_status)
 Index("idx_asset_items_md5", AssetItem.md5)
 
 

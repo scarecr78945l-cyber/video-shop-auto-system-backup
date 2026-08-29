@@ -1,10 +1,15 @@
-"""M2 数据联动服务层测试（子代理 B4-2）：evaluation 回流协议 + 上传小店素材库抽象。
+"""M2 数据联动服务层测试（子代理 B4-2 + 相关性门 C3 v1.1）：evaluation 回流协议 +
+上传小店素材库抽象 + 相关性门预检接口。
 
 - evaluation 回流：合法三值 / 非法枚举→PLATFORM_REJECT / 素材不存在→NO_MATCH /
   幂等（重复回写同值，repo 台账语义）/ get_evaluation 读当前值；
 - 上传抽象：mock provider 成功→mark_uploaded+asset_uploads 记录 / 失败分类
   （TIMEOUT/PLATFORM_REJECT/UNEXPECTED）/ 已上传幂等 / 冲突 / 素材不存在 /
   真实骨架 NotImplementedError / provider 工厂与配置；
+- 相关性门（REC-迁移-03 C3）：receive_relevance 三态映射（pass→passed/
+  reject→failed/manual_review→manual_review）/ 非法→PLATFORM_REJECT /
+  素材不存在→NO_MATCH / 幂等收敛（changed 语义）/ is_ready_for_chain
+  （仅 passed 放行，failed 淘汰、manual_review 待人工、pending 未判定）；
 - 全零外网零登录态（R-M2-17）：上传走 MockUploadProvider fixtures，不触碰真实 API。
 """
 
@@ -13,12 +18,17 @@ from sqlalchemy import select
 
 from materials import tables as T
 from materials.config import EVALUATION_VALUES as CFG_EVALUATION_VALUES
+from materials.config import RELEVANCE_RESULT_TO_STATUS as CFG_RESULT_TO_STATUS
+from materials.config import RELEVANCE_STATUS_VALUES as CFG_RELEVANCE_STATUS_VALUES
 from materials.config import load_config
 from materials.integration import (
     EVALUATION_VALUES,
+    RELEVANCE_RESULT_TO_STATUS,
+    RELEVANCE_STATUS_VALUES,
     EvaluationFeedbackService,
     MaterialUploadService,
     MockUploadProvider,
+    RelevanceGateService,
     ShopMaterialUploadProvider,
     UploadProvider,
     build_upload_provider,
@@ -282,3 +292,86 @@ def test_upload_config_and_factory(monkeypatch):
     assert isinstance(build_upload_provider(load_config()), ShopMaterialUploadProvider)
     # 按字段名覆盖（populate_by_name，测试/CLI 常用）
     assert load_config(upload={"mode": "shop"}).upload.mode == "shop"
+
+
+# ================================================================ 相关性门（REC-迁移-03 C3）
+def make_relevance_service(db_materials) -> RelevanceGateService:
+    return RelevanceGateService(make_repo(db_materials))
+
+
+def test_relevance_status_values_aligned_with_config():
+    """integration 枚举/映射与 config.py 同口径（唯一枚举源）。"""
+    assert RELEVANCE_STATUS_VALUES == CFG_RELEVANCE_STATUS_VALUES == (
+        "pending", "passed", "failed", "manual_review",
+    )
+    assert RELEVANCE_RESULT_TO_STATUS == CFG_RESULT_TO_STATUS == {
+        "pass": "passed",
+        "reject": "failed",
+        "manual_review": "manual_review",
+    }
+
+
+def test_receive_relevance_three_states(db_materials):
+    """M3 三态结果消费：pass→passed / reject→failed / manual_review→manual_review。"""
+    svc = make_relevance_service(db_materials)
+    repo = make_repo(db_materials)
+    aid = repo.create_asset(**base_video())
+    assert svc.get_relevance_status(aid) == "pending"   # 入库默认 pending
+    for result, status in (
+        ("pass", "passed"),
+        ("reject", "failed"),
+        ("manual_review", "manual_review"),
+    ):
+        out = svc.receive_relevance(aid, result, {"verdict": result}, "M3")
+        assert out["ok"] is True
+        assert out["relevance_status"] == status
+        assert out["changed"] is True
+        assert repo.get_asset(aid)["relevance_status"] == status   # 只存当前值
+
+
+def test_receive_relevance_idempotent(db_materials):
+    """幂等：同值重复回写 changed=False，不报错（断点续跑可重放）。"""
+    svc = make_relevance_service(db_materials)
+    repo = make_repo(db_materials)
+    aid = repo.create_asset(**base_video())
+    first = svc.receive_relevance(aid, "pass")
+    second = svc.receive_relevance(aid, "pass")
+    assert first["changed"] is True
+    assert second["changed"] is False
+    assert repo.get_asset(aid)["relevance_status"] == "passed"
+
+
+def test_receive_relevance_invalid_result_rejected(db_materials):
+    """非法 result → PLATFORM_REJECT（拒绝，不落库）。"""
+    svc = make_relevance_service(db_materials)
+    repo = make_repo(db_materials)
+    aid = repo.create_asset(**base_video())
+    out = svc.receive_relevance(aid, "related")   # M3 verdict 而非 gate.result 口径
+    assert out["ok"] is False
+    assert out["code"] == "PLATFORM_REJECT"
+    assert repo.get_asset(aid)["relevance_status"] == "pending"
+
+
+def test_receive_relevance_asset_missing_no_match(db_materials):
+    """素材不存在 → NO_MATCH（结构化返回，不抛出）。"""
+    svc = make_relevance_service(db_materials)
+    out = svc.receive_relevance(99999, "pass")
+    assert out["ok"] is False
+    assert out["code"] == "NO_MATCH"
+
+
+def test_is_ready_for_chain_only_passed(db_materials):
+    """仅 relevance_status=passed 放行进入询价/上架链；其余（pending/failed/
+    manual_review）均不放行；素材不存在返回 False。"""
+    svc = make_relevance_service(db_materials)
+    repo = make_repo(db_materials)
+    aid = repo.create_asset(**base_video())
+    assert svc.is_ready_for_chain(aid) is False            # pending 未判定
+    svc.receive_relevance(aid, "reject")
+    assert svc.is_ready_for_chain(aid) is False            # failed 淘汰
+    svc.receive_relevance(aid, "manual_review")
+    assert svc.is_ready_for_chain(aid) is False            # manual_review 待人工确认
+    svc.receive_relevance(aid, "pass")
+    assert svc.is_ready_for_chain(aid) is True             # passed 放行
+    assert svc.is_ready_for_chain(99999) is False          # 素材不存在
+    assert svc.get_relevance_status(99999) is None

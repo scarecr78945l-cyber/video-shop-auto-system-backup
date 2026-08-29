@@ -133,6 +133,9 @@ class MockRelevanceJudge(RelevanceJudge):
 
     mode = "mock"
 
+    def __init__(self, config: Optional[M3Config] = None):
+        self.config: M3Config = config or load_config()
+
     def judge(self, material: dict[str, Any], frames: list[dict[str, Any]]) -> dict[str, Any]:
         explicit = str(material.get("mock_verdict") or "").strip()
         if explicit in (VERDICT_RELATED, VERDICT_UNRELATED, VERDICT_MULTI_STYLE):

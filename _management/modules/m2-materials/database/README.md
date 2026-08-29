@@ -53,6 +53,10 @@ CREATE TABLE IF NOT EXISTS asset_items (
     platform_material_id  TEXT UNIQUE,                     -- 小店素材库 ID（投放绑定用）
     compliance_status     TEXT    NOT NULL DEFAULT 'pending'
                           CHECK (compliance_status IN ('pending','passed','rejected')),
+    relevance_status      TEXT    NOT NULL DEFAULT 'pending'
+                          CHECK (relevance_status IN ('pending','passed','failed','manual_review')),
+                          -- 相关性门状态（REC-迁移-03 C3 / DA-010）：M3 relevance 判定结果回写；
+                          -- pending 未判定 / passed 相关放行 / failed 不相关淘汰 / manual_review 多款式人工确认
     derivation_note       TEXT,                            -- 二创义务标记（去水印/混剪/换文案）
     created_at            TEXT    NOT NULL,
     updated_at            TEXT    NOT NULL
@@ -62,6 +66,7 @@ CREATE INDEX IF NOT EXISTS idx_asset_items_platform ON asset_items (source_platf
 CREATE INDEX IF NOT EXISTS idx_asset_items_type_status ON asset_items (asset_type, upload_status);
 CREATE INDEX IF NOT EXISTS idx_asset_items_evaluation ON asset_items (evaluation);
 CREATE INDEX IF NOT EXISTS idx_asset_items_compliance ON asset_items (compliance_status);
+CREATE INDEX IF NOT EXISTS idx_asset_items_relevance ON asset_items (relevance_status);
 CREATE INDEX IF NOT EXISTS idx_asset_items_md5 ON asset_items (md5);
 
 -- 2. 下载任务账本（对齐 WorkflowJob 错误码体系：VERIFICATION_REQUIRED/AUTH_REQUIRED/
@@ -171,6 +176,7 @@ CREATE INDEX IF NOT EXISTS idx_asset_up_asset ON asset_uploads (asset_id, status
 3. **错误码**：`asset_download_jobs.error_code` 复用全局码表（`VERIFICATION_REQUIRED/AUTH_REQUIRED/RATE_LIMIT/TIMEOUT/NO_MATCH/PLATFORM_REJECT/UNEXPECTED`），重试/退避策略对齐 09 文档第二节。
 4. **断点续跑**：`asset_sources`（游标/账本）+ `asset_download_jobs`（next_run_at/租约）支撑进程重启自愈（`recover_after_process_restart`）。
 5. **合规门禁**：入库前 `asset_compliance_checks` 必须存在 `pass` 记录且 `asset_items.compliance_status='passed'`；否则不允许对外提供（M3/M4/M5 契约）。
+6. **相关性门禁**（REC-迁移-03 C3 / DA-010）：`asset_items.relevance_status` 默认 `pending`；M3 `RelevanceGate` 判定结果经 `integration.RelevanceGateService.receive_relevance` 幂等回写（pass→passed / reject→failed / manual_review→manual_review）；**仅 `passed` 素材可进入询价/上架链**（`is_ready_for_chain`；failed 淘汰、manual_review 人工确认目标款后置 passed 再放行，禁止自动创建衍生商品）。
 
 ---
 
@@ -180,6 +186,7 @@ CREATE INDEX IF NOT EXISTS idx_asset_up_asset ON asset_uploads (asset_id, status
 |---|---|---|
 | v0 | 初始 Schema 规划（7 表，SQLite 语法，暂未建库） | 2025 体系建立日 |
 | v1 | 基座实现（子代理 D）：`backend/materials/` 包 7 表 ORM + `AssetRepo` + `init-db`/`pool` CLI + 单元测试；表/列/CHECK/唯一约束与 DDL 完全一致（无表结构差异） | 2025 体系建立日 |
+| v1.1 | 相关性门（REC-迁移-03 C3）：`asset_items` 新增 `relevance_status`（pending/passed/failed/manual_review，默认 pending）+ `idx_asset_items_relevance` 索引；`AssetRepo.update_relevance_status`（幂等）+ `RelevanceGateService`（预检接口） | 2026-08-29 |
 
 ### v1 实现说明（与 DDL 的口径对齐与实现细节）
 
@@ -189,6 +196,7 @@ CREATE INDEX IF NOT EXISTS idx_asset_up_asset ON asset_uploads (asset_id, status
 4. **合规门禁**：`record_compliance_check` 落审计的同时同步 `asset_items.compliance_status`（`pass`→`passed`、`reject`→`rejected`），满足「入库前必须存在 pass 记录且 compliance_status='passed'」的对外提供门禁。
 5. **上传幂等**：`mark_uploaded` 同素材同 `platform_material_id` 重复调用直接返回（不重复插上传记录）；该 ID 被其他素材占用 → 抛 `DuplicateUploadError`。
 6. **硬规格**：集中在 `backend/materials/config.py`（`MIN_WIDTH=720`、`MIN_HEIGHT=1280`、`MIN_RATIO=9/16`、`MAX_SIZE_BYTES=524288000`、`MIN_DURATION=5`、`MAX_DURATION=300`、`ALLOWED_FORMATS=["mp4","mov"]`），供标准化器（子代理 C）/入库/投放绑定复用；DDL 层不做跨表校验（R-M2-12 代码层强制）。
+7. **相关性门（v1.1）**：`update_relevance_status` 幂等回写（同值收敛不报错，对齐 `update_evaluation` 语义）；枚举校验在服务层（`RelevanceGateService`：非法 result→PLATFORM_REJECT、素材不存在→NO_MATCH），`list_assets(relevance_status=...)` 提供 failed 淘汰清单查询；枚举唯一源 `config.RELEVANCE_STATUS_VALUES` + 映射 `RELEVANCE_RESULT_TO_STATUS`。
 
 > 迁移纪律：任何表结构变更必须：①更新本文件 DDL；②写迁移脚本放本目录；③记入 `decisions.md` 与 `progress.md`。
 > 生产切 PostgreSQL 时：迁移脚本放本目录；`claim_next_download_job` 可改为 `FOR UPDATE SKIP LOCKED`（SQLite 开发环境无行锁）。

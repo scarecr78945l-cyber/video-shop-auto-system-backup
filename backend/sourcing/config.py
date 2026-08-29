@@ -168,6 +168,15 @@ class SourcingConfig(BaseSettings):
     category_whitelist: list[str] = Field(default_factory=lambda: list(DEFAULT_CATEGORY_WHITELIST))
     category_whitelist_enabled: bool = True  # 关掉=放开全类目（人工闸门把关）
 
+    # REC-迁移-01（C1 鞋服/包类硬拦）：旧系统 SOURCING_HARD_BLOCK_POLICY 词表
+    # （apparel_terms 245 + safe_apparel_context_terms 豁免 / bag_terms 80 + safe_bag_context_terms 豁免）
+    # 以 JSON 配置挂载（sourcing/data/hard_block_policy.json），compliance.py 读取；
+    # 命中鞋服/包词且不在安全上下文 → hard_reject（旧系统「鞋服/包类必淘汰」语义）。
+    hard_block_policy_path: Path = Field(
+        default_factory=lambda: Path(__file__).parent / "data" / "hard_block_policy.json"
+    )
+    hard_block_policy_enabled: bool = True  # 总开关（可配置化放松）
+
     # 选品采集三源：
     #   除有米云外，全部走「新的共享浏览器」（launch-browsers 启动，CDP 9223），
     #   商机中心/抖店罗盘/1688/淘宝 均登录在同一个共享浏览器。

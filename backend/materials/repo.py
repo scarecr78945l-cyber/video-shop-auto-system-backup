@@ -144,12 +144,14 @@ class AssetRepo:
         tags_json: Optional[str] = None,
         heat_score: Optional[float] = None,
         compliance_status: str = "pending",
+        relevance_status: str = "pending",
         derivation_note: Optional[str] = None,
     ) -> int:
         """素材入库（先认领后入库）。
 
         认领 md5 + {asset_type}_phash 两组指纹；任一冲突 → DuplicateAssetError
         （事务整体回滚，asset 与已认领指纹不残留），冲突指纹 hits+1 留证据。
+        relevance_status 默认 pending（未过相关性门，REC-迁移-03 C3）。
         """
         fingerprints: list[tuple[str, str]] = [
             ("md5", md5),
@@ -171,6 +173,7 @@ class AssetRepo:
                     tags_json=tags_json,
                     heat_score=heat_score,
                     compliance_status=compliance_status,
+                    relevance_status=relevance_status,
                     derivation_note=derivation_note,
                 )
                 s.add(row)
@@ -218,6 +221,7 @@ class AssetRepo:
         upload_status: Optional[str] = None,
         evaluation: Optional[str] = None,
         compliance_status: Optional[str] = None,
+        relevance_status: Optional[str] = None,
         limit: int = 100,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
@@ -233,6 +237,8 @@ class AssetRepo:
                 stmt = stmt.where(T.AssetItem.evaluation == evaluation)
             if compliance_status is not None:
                 stmt = stmt.where(T.AssetItem.compliance_status == compliance_status)
+            if relevance_status is not None:
+                stmt = stmt.where(T.AssetItem.relevance_status == relevance_status)
             stmt = stmt.order_by(T.AssetItem.id.desc()).limit(limit).offset(offset)
             rows = s.execute(stmt).scalars().all()
             return [self._asset_to_dict(r) for r in rows]
@@ -539,6 +545,21 @@ class AssetRepo:
                 asset.compliance_status = "passed"
             elif result == "reject":
                 asset.compliance_status = "rejected"
+
+    # ---------------------------------------------------------- 相关性门（REC-迁移-03 C3）
+    def update_relevance_status(self, asset_id: int, status: str) -> None:
+        """M3 relevance 判定结果回写 asset_items.relevance_status（幂等）。
+
+        status ∈ pending/passed/failed/manual_review（枚举由 service 层校验，
+        本层只落库）；重复回写同值收敛不报错（幂等，对齐 update_evaluation）。
+        素材不存在 → AssetNotFoundError。
+        """
+        with self.db.session() as s:
+            asset = s.get(T.AssetItem, asset_id)
+            if asset is None:
+                raise AssetNotFoundError(asset_id)
+            asset.relevance_status = status
+            asset.updated_at = iso_now()
 
     # ---------------------------------------------------------- 拒审下架（R-M2-20）
     def mark_disabled(self, asset_id: int, reason: str) -> None:

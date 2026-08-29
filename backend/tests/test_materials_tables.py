@@ -1,4 +1,8 @@
-"""M2 素材库基座 · 表结构测试：7 表可建、CHECK 枚举生效、唯一约束生效。"""
+"""M2 素材库基座 · 表结构测试：7 表可建、CHECK 枚举生效、唯一约束生效。
+
+v1.1 增量（REC-迁移-03 C3 相关性门）：asset_items 新增 relevance_status
+（pending/passed/failed/manual_review，默认 pending）+ idx_asset_items_relevance 索引。
+"""
 
 import pytest
 from sqlalchemy import inspect
@@ -139,6 +143,39 @@ def test_invalid_evaluation_audit_rejected(db_materials):
     with pytest.raises(IntegrityError):
         with db_materials.session() as s:
             s.add(T.AssetEvaluation(asset_id=1, evaluation="great"))
+
+
+# ---------------------------------------------------------------- 相关性门（REC-迁移-03 C3）
+def test_relevance_status_column_default_and_index(db_materials):
+    """asset_items.relevance_status 列存在、默认 pending、索引就绪。"""
+    insp = inspect(db_materials.engine)
+    cols = {c["name"] for c in insp.get_columns("asset_items")}
+    assert "relevance_status" in cols, "asset_items 缺列 relevance_status"
+    idx = {i["name"] for i in insp.get_indexes("asset_items")}
+    assert "idx_asset_items_relevance" in idx
+    with db_materials.session() as s:
+        row = T.AssetItem(**_base_asset())
+        s.add(row)
+        s.flush()
+        assert row.relevance_status == "pending"   # 默认 pending（未过相关性门）
+
+
+def test_relevance_status_all_values_ok(db_materials):
+    """四个合法值均可落库（M3 判定结果消费口径）。"""
+    for i, status in enumerate(("pending", "passed", "failed", "manual_review")):
+        with db_materials.session() as s:
+            row = T.AssetItem(
+                **_base_asset(md5=f"{i:02d}" * 16, phash=f"{i:02d}" * 8, relevance_status=status)
+            )
+            s.add(row)
+            s.flush()
+            assert row.relevance_status == status
+
+
+def test_invalid_relevance_status_rejected(db_materials):
+    with pytest.raises(IntegrityError):
+        with db_materials.session() as s:
+            s.add(T.AssetItem(**_base_asset(relevance_status="maybe")))
 
 
 # ---------------------------------------------------------------- 唯一约束

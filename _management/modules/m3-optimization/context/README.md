@@ -69,7 +69,8 @@
 | DeepSeek | 结构化输出（JSON Schema 校验）：卖点拆解 / 口播稿 / 文案候选；失败重试 2 次 | DEEPSEEK_API_KEY |
 | Kimi | KimiImagePlanner：主图视觉策略规划；失败降级默认策略 | KIMI_API_KEY |
 | Wan | WanImageProvider：生图；RATE_LIMIT 180s 退避 + 日配额熔断 | WAN_API_KEY |
-| ffmpeg / ffprobe | 出片 + 硬规格校验（ffprobe JSON 输出留证据） | FFMPEG_PATH / FFPROBE_PATH |
+| Qwen-VL | **素材相关性门（REC-迁移-03 C3）**：前 15 秒抽帧相关性判定（related/unrelated/multi_style）+ 款式聚类；无 API Key 时 fixtures mock 判定器，环境就绪（mode=auto）自动启用真实模式；真实判定器骨架待 API 契约确认（QwenVLRelevanceJudge 抛错不静默） | QWEN_VL_API_KEY（relevance.api_key_env，仅变量名） |
+| ffmpeg / ffprobe | 出片 + 硬规格校验（ffprobe JSON 输出留证据）；相关性门真实抽帧复用 | FFMPEG_PATH / FFPROBE_PATH |
 | 小店素材库 | 上传（api/ui 待验证）→ platform_material_id + 平台评估标签 | M3_UPLOAD_MODE |
 
 ## 三、跨模块数据契约
@@ -83,6 +84,13 @@
 | 从 M5 回写 | platform_material_id, exposure, clicks, spend, orders, roi, diagnosis_json | 经 opt_evaluation_feedback，按 report_date 日快照聚合 |
 
 > 明细登记：`context/data-requests.md` + `_management/logs/data-audit.md`（宪法第 5 节）。
+
+### 3·B 素材相关性门契约（M2↔M3↔M4，REC-迁移-03 C3 / DA-010）
+
+- **M3 侧**：`review/relevance.py`（Qwen-VL 判定抽象 + mock 判定器 + 前 15 秒抽帧 + StyleClusterer 款式聚类）+ `review/gate.py` `RelevanceGate` 编排落 `opt_review_records`（gate_type=relevance，target_type=material，target_id=M2 asset_id）；判定三态 related（pass）/ unrelated（reject）/ multi_style（manual_review，`reasons_json.manual_note` 留证「多款式需人工确认目标款，禁止自动创建衍生商品」）。
+- **消费端（M2）**：`backend/materials/integration.py` `RelevanceGateService.receive_relevance`（result pass/reject/manual_review → relevance_status passed/failed/manual_review，幂等回写）；仅 `passed` 可进入询价/上架链（`is_ready_for_chain`）。
+- **M4 侧**：待派工——候选池/上架前置校验读取 M2 `relevance_status`（见 data-audit DA-010）。
+- **正式载体**：`_management/data-exchange/m2-m3-m4-relevance-gate.json`（字段契约 + 三态映射，待 M2/M3/M4 总工会签）。
 
 ## 四、环境事实
 

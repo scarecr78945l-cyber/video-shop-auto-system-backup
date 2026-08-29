@@ -78,6 +78,10 @@ class Quote(BaseModel):
     freight: float = 0.0
     raw_url: str = ""  # 拿到真实链接才算有效
     quoted_at: datetime = Field(default_factory=utcnow)
+    # REC-迁移-02（C2）：商品缺失的必填上架参数（适用年龄/包装清单/重量/容量/适用场景/类别/功能等）
+    # 由采集器从商品页属性区探测，M4 listing_gate attrs_complete 门禁消费；
+    # 空列表 = 参数完整或无法探测（不阻断）。字段名对照 listing-requirements.json missing_field_labels。
+    missing_attrs: list[str] = Field(default_factory=list)
 
     @property
     def effective_cost(self) -> float:

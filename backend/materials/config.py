@@ -29,6 +29,22 @@ ALLOWED_FORMATS: list[str] = ["mp4", "mov"]  # 允许的视频容器格式
 # 评估标签枚举（M5 回写唯一口径；M2 入库时为 NULL，context 1.4）
 EVALUATION_VALUES: tuple[str, ...] = ("exploring", "efficient", "potential")
 
+# 相关性门状态枚举（REC-迁移-03 C3 唯一口径；M3 relevance 判定结果消费落此字段，
+# 契约见 _management/data-exchange/m2-m3-m4-relevance-gate.json 与 data-audit DA-010）
+RELEVANCE_STATUS_VALUES: tuple[str, ...] = (
+    "pending",          # 未判定（默认；入库时 pending）
+    "passed",           # 相关 → 放行（可进入询价/上架链）
+    "failed",           # 不相关 → 淘汰（不进入询价/上架链，状态可查询）
+    "manual_review",    # 多款式 → 人工确认目标款（禁止自动创建衍生商品）
+)
+
+# M3 relevance 判定结果（gate.result: pass/reject/manual_review）→ relevance_status 映射
+RELEVANCE_RESULT_TO_STATUS: dict[str, str] = {
+    "pass": "passed",
+    "reject": "failed",
+    "manual_review": "manual_review",
+}
+
 
 class DownloadConfig(BaseModel):
     """下载中台参数（子代理 F 复用，对齐 09 文档第二节错误码/退避体系）。"""
