@@ -1,0 +1,26 @@
+{
+  "material": {
+    "description": "材质识别（旧系统 ai_generation 材质识别任务）",
+    "temperature": 0.1,
+    "template": "你是电商选品助手。识别以下商品主图对应的材质与规格信息。\n标题：{title}\n图片描述：{image_desc}\n请以 JSON 输出：{\"material\": \"...\", \"specs\": {\"材质\": \"...\", \"规格\": \"...\"}}",
+    "output_schema": {"material": "str", "specs": "dict"}
+  },
+  "title": {
+    "description": "商品标题清洗/生成（15-35 字符，不虚构卖点）",
+    "temperature": 0.3,
+    "template": "你是微信小店商品标题优化助手。基于淘宝原始标题机械清洗，不虚构卖点，输出 15-35 字符标题。\n原始标题：{raw_title}\n类目：{category}\n请以 JSON 输出：{\"title\": \"...\", \"removed\": [\"去词1\", \"去词2\"]}",
+    "output_schema": {"title": "str", "removed": "list"}
+  },
+  "compliance": {
+    "description": "合规审核（品牌词/功效词/供应链词）",
+    "temperature": 0.2,
+    "template": "你是平台合规审核员。审核以下商品信息是否含违规词：品牌侵权词、功效资质缺失词、供应链词（1688/工厂/批发/一件代发）。\n标题：{title}\n描述：{desc}\n请以 JSON 输出：{\"passed\": true/false, \"hits\": [\"词\"], \"level\": \"hard_reject|candidate|manual_review\"}",
+    "output_schema": {"passed": "bool", "hits": "list", "level": "str"}
+  },
+  "customer_service": {
+    "description": "1688 客服补参问题模板（C2 联动）",
+    "temperature": 0.6,
+    "template": "向供应商确认以下商品参数用于上架：\n商品：{title}\n缺失参数：{missing_attrs}\n请生成一条简洁客服询问话术，以 JSON 输出：{\"question\": \"...\"}",
+    "output_schema": {"question": "str"}
+  }
+}
