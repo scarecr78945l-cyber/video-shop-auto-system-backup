@@ -1220,3 +1220,13 @@
 - 产出文件：`backend/optimization/review/relevance.py`（新）、`review/gate.py`（+RelevanceGate）、`review/__init__.py`、`optimization/config.py`（+RelevanceSpec）；`backend/materials/config.py`、`tables.py`、`repo.py`、`integration.py`（+相关性门）；`backend/tests/test_optimization_review.py`、`test_materials_tables.py`、`test_materials_repo.py`、`test_materials_integration.py`（+用例）；`_management/logs/data-audit.md`（DA-010）、`_management/data-exchange/m2-m3-m4-relevance-gate.json`（新）、两模块 progress.md / context/README.md / database/README.md；本日志追加条目。
 - 当前阻塞：无。Qwen-VL 真实判定器待 API 契约确认（环境就绪 mode=auto 自动启用，不阻塞）；M4 侧消费端（候选池/上架前置校验读 relevance_status）待总控转达 M4 派工。
 - 备注：未运行任何 git 命令；未读写其他模块库（测试全内存/临时库）；未写明文密钥（QWEN_VL_API_KEY 仅环境变量名）；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；pytest 全程独立 basetemp（`.pytest-tmp-migrate`/`.pytest-tmp-m3`/`.pytest-tmp-m2`，P-001/P-011）。
+
+### 2026-08-29 ｜ 总控 Agent ｜ 全局 ｜ 角色：总控（第二波融合 P0 直接执行）
+
+- 完成任务：旧系统第二波融合 P0 四项（子代理环境不稳定，总控直接编码）：
+  1. P0-1 上架类目记忆（M4：listing_category_memory 表 + 记忆 repo + 拒审率/streak 阈值转人工）— 4 测试
+  2. P0-2 人审→规则草稿闭环（M0：learning_rule_drafts 表 + 草稿 repo + 确认 API）— 4 测试
+  3. P0-3 浏览器会话管理（M0：session_service.py 心跳探测/失效阻塞/恢复）— 5 测试
+  4. P0-4 来源轮换（M1：source_rotation.py 失败降权/风控隔离）— 5 测试
+- 产出：新增 4 个模块文件 + 4 个测试文件；全量回归 **1151 passed / 2 skipped**（迁移前 1093 → 1151）。
+- 当前阻塞：无。待用户确认前置条件后启用真实模式（ffmpeg/密钥/账号/资质/T1~T7）。
