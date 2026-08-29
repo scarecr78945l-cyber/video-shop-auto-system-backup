@@ -186,3 +186,9 @@
 - **现象与根因**：前端跨域访问 `/api/auth/me` 报 `No 'Access-Control-Allow-Origin' header`——OPTIONS 预检和 200 响应有 CORS 头，但 **auth_guard 内层中间件直接返回的 401 响应无 CORS 头**。根因：Starlette `add_middleware` 先注册的在栈**内层**，CORS 注册在 auth_guard 之前 → auth_guard 短路返回时跳过 CORS。
 - **解决方案**：CORS 中间件**最后注册**（栈最外层），保证所有响应（含内层中间件的 401/异常）都过 CORS 加头。修复后验证：401/200 均带 Allow-Origin + Allow-Credentials。
 - **防复发**：① FastAPI 中间件顺序纪律：CORS 必须最外层；② 跨域登录闭环测试须覆盖「未登录 401 响应带 CORS 头」断言；③ 前端联调异常先查 Console 的 CORS 报错并核对响应头。
+## P-023 ｜ SameSite=Lax + 跨站(127.0.0.1 vs localhost) → 登录后会话 cookie 不携带
+
+- **出现时间**：2026-08-29 ｜ **模块**：M6 前端/API 联调 ｜ **代理**：总控
+- **现象与根因**：登录成功（200 + Set-Cookie）但随后 `/api/auth/me` 401 → 前端弹回登录页。根因：Set-Cookie 为 SameSite=Lax，前端 localhost:3000 fetch **127.0.0.1:8001 属跨站**（Chrome 将 localhost 与 127.0.0.1 视为不同站点），Lax cookie 在跨站 fetch 中不携带。
+- **解决方案**：前后端统一 **localhost**（同站点跨端口，Lax 正常携带）：API 监听 `localhost:8001` + 前端 `NEXT_PUBLIC_API_BASE=http://localhost:8001`。验证：登录→me 完整闭环 200。
+- **防复发**：① 本地联调一律用 localhost（不用 127.0.0.1）；② 若必须跨站（不同域名），后端 Set-Cookie 需 `SameSite=None; Secure`（要求 HTTPS）；③ 生产推荐 Next.js rewrites 同源代理（/api → 后端），彻底消除跨站与 CORS。

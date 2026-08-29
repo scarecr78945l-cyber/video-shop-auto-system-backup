@@ -16,7 +16,7 @@
     { "id": "optimization", "type": "backend", "label": "M3 素材优化", "sublabel": "文案/主图/视频二创/A-B", "pos": [300, 350], "size": [170, 70] },
     { "id": "listing", "type": "backend", "label": "M4 上架", "sublabel": "OpenAPI/硬门禁/状态机 R22", "pos": [300, 450], "size": [170, 70] },
     { "id": "ads", "type": "backend", "label": "M5 托管投放", "sublabel": "执行/监控/止损 S1~S8/回写", "pos": [300, 550], "size": [170, 70] },
-    { "id": "frontend", "type": "frontend", "label": "M6 前端控制台", "sublabel": "Next.js·看板/闸门（建设中）", "pos": [560, 50], "size": [170, 70] },
+    { "id": "frontend", "type": "frontend", "label": "M6 前端控制台", "sublabel": "Next.js·9 路由·已上线", "pos": [560, 50], "size": [170, 70] },
     { "id": "exchange", "type": "database", "label": "数据契约层", "sublabel": "data-exchange JSON + data-audit 审计", "pos": [560, 250], "size": [170, 70] },
     { "id": "github", "type": "external", "label": "GitHub 备份", "sublabel": "video-shop-auto-system-backup", "pos": [560, 550], "size": [170, 70] },
     { "id": "chrome", "type": "cloud", "label": "共享 Chrome", "sublabel": "CDP 9223/9555 登录态", "pos": [820, 250], "size": [170, 70] },
@@ -43,8 +43,8 @@
     { "id": "frontend-backend", "from": "frontend", "to": "foundation", "label": "API 消费", "variant": "dashed" }
   ],
   "cards": [
-    { "dot": "emerald", "title": "开发完成度", "items": ["M0/M2/M4 100%，M1/M3 95%，M5 代码完成（v1.1）", "全量回归 1227 passed / 2 skipped", "旧系统融合 C1~C3 + P0~P2 全部落地（+134 测试）"] },
+    { "dot": "emerald", "title": "开发完成度", "items": ["M0/M2/M4/M6 100%，M1/M3 95%，M5 代码完成（v1.1）", "全量回归 1306 passed / 2 skipped", "前端控制台已上线（localhost:3000 登录可用）"] },
     { "dot": "rose", "title": "体系纪律", "items": ["总工独立会话 + 子代理任务书自包含 + 验收退回", "一模块一数据库 + 表名前缀 + 数据契约审计（DA-001~011）", "全局踩坑日志 P-001~P-018 闭环，防复发固化"] },
-    { "dot": "cyan", "title": "备份与真实化", "items": ["git 标签 v0.1~v0.45 + GitHub 双端同步", "真实模式前置：登录态✅/ffmpeg/密钥/资质/T1~T7", "M6 前端控制台建设中（API 层→工程→页面→闸门）"] }
+    { "dot": "cyan", "title": "备份与真实化", "items": ["git 标签 v0.1~v0.49 + GitHub 双端同步", "真实模式前置：登录态✅/ffmpeg/密钥/资质/T1~T7", "前端控制台 v1.0 已上线（P-021~023 联调闭环）"] }
   ]
 }

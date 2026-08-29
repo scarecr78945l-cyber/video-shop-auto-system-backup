@@ -19,12 +19,26 @@ npm run build        # 生产构建冒烟（exit 0；13 路由静态生成）
 npx tsc --noEmit     # 类型检查（0 errors）
 ```
 
-**登录闭环**（后端 `backend/api/` 需已启动，默认 `http://127.0.0.1:8000`）：
+**登录闭环**（后端 `backend/api/` 需已启动，**默认 `http://localhost:8001`**——P-023：本地联调必须前后端统一 `localhost`（同站点），否则 SameSite=Lax 会话 cookie 在跨站（127.0.0.1 vs localhost）fetch 中不携带导致登录后弹回）：
+
+```bash
+# 后端（backend/ 目录）：账号经环境变量注入
+$env:M6_ADMIN_USERNAME = "admin"
+$env:M6_ADMIN_PASSWORD_HASH = "<sha256(明文密码)>"
+$env:M6_CORS_ORIGINS = "http://localhost:3000"
+python -X utf8 -m api --host localhost --port 8001
+
+# 前端（frontend/ 目录）：API 指向同站 localhost
+$env:NEXT_PUBLIC_API_BASE = "http://localhost:8001"
+npm run dev
+```
 
 1. 打开 `http://localhost:3000/login`，输入用户名/密码；
 2. 后端 `POST /api/auth/login` 校验成功 → 下发 **httpOnly + SameSite=Lax 会话 cookie**（浏览器自动携带，前端不存 token）；
 3. 前端进入工作台；工作台布局挂载时 `GET /api/auth/me` 校验会话（路由守卫）；
 4. 会话失效/未登录访问受保护页 → **401 全局拦截跳 /login**（`lib/api.ts` 统一处理）。
+
+> 端口注意：8000 常被系统进程占用，默认用 8001；避开 8787/8788（P-008）。
 
 ## 二、环境变量
 
