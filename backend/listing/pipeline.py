@@ -9,6 +9,9 @@
   link_verifier(url) 为真；否则不迁移 listed，状态停留 platform_auditing。
 - 断点续跑语义：全程异常 → 结构化失败 {ok, stage, error_code, evidence}，
   任务状态留在最近合法状态，不伪造状态（07 文档原则：失败不阻塞 OpenAPI 队列）。
+- REC-融合 P0-1（decisions D14）：上架类目记忆接线——gate 前按类目预填
+  logistics_template（required_fields 仅标记，C2 attrs_complete 由迁移子代理落地）；
+  上架成功/拒审记录类目提交计数；类目拒审率 ≥50% 或连续图片拒审 ≥3 强制转人工。
 
 运行：cd backend && python -m pytest tests/test_listing_pipeline.py -q --basetemp=".pytest-tmp-m4"
 """
@@ -21,7 +24,7 @@ import uuid
 from typing import Any, Callable, Optional
 
 from adapters.wechat_openapi import WechatApiError, WechatOpenApiAdapter
-from services.listing_gate import ListingCandidate, ListingGate
+from services.listing_gate import ListingCandidate, ListingGate, PurchaseSettings
 
 from .models import ListingTask
 from .platform_rejection import RejectionHandler
@@ -68,6 +71,10 @@ class ListingPipeline:
           - 成功：{ok: True, stage, task_id, product_link?, evidence}；
           - 失败：{ok: False, stage, error_code, evidence}（任务留在最近合法状态）。
         """
+        # 0) REC-融合 P0-1：上架类目记忆预填（gate 前——预填字段参与门禁，
+        #    缺运费模板的单不再因无记忆字段被拦；不覆盖显式值）
+        candidate, prefill = self._prefill_from_category_memory(candidate)
+
         # 1) 门禁（P2）：六项硬门禁任一不过 → 不入队
         gate_result = self.gate.evaluate(candidate)
         if not gate_result.passed:
@@ -75,6 +82,7 @@ class ListingPipeline:
                 "ok": False,
                 "stage": "gate",
                 "gate_result": gate_result.model_dump(),
+                "category_memory": prefill,
             }
 
         # 2) 幂等：同 (product_id, generation_version) 已有任务 → 复用，不重复创建
@@ -85,6 +93,7 @@ class ListingPipeline:
                 "existing": True,
                 "task_id": existing.task_id,
                 "status": existing.status,
+                "category_memory": prefill,
             }
 
         # 3) 入队 + 状态链启动
@@ -97,9 +106,18 @@ class ListingPipeline:
             gate_result=gate_result.model_dump(),
         )
         self.repo.create_task(task)
+        if prefill:
+            # 预填证据留痕（脱敏：仅预填字段名/值，无密钥）
+            self.repo.append_op_log(
+                task_id=task.task_id,
+                api="category_memory_prefill",
+                direction="prefill",
+                payload_digest="",
+                evidence_json=json.dumps(prefill, ensure_ascii=False),
+            )
         task = self.state_machine.transition(task, "creating")
 
-        return self._upload_and_audit(task, candidate)
+        return self._upload_and_audit(task, candidate, prefill)
 
     # ------------------------------------------------------------ 拒审重提入口
 
@@ -133,22 +151,39 @@ class ListingPipeline:
                 },
             }
 
+        # 0) REC-融合 P0-1：类目记忆预填（重提同样享受记忆预填，gate 前）
+        candidate, prefill = self._prefill_from_category_memory(candidate)
+
         # P4 二次门禁：rejection.requalify 用 ListingGate 全量校验，passed 才放行
         if not self.rejection.requalify(task, candidate):
             return {
                 "ok": False,
                 "stage": "requalify",
                 "gate_result": self.gate.evaluate(candidate).model_dump(),
+                "category_memory": prefill,
             }
 
         task = self.state_machine.transition(
             task, "creating", evidence={"requalified": True}
         )
-        return self._upload_and_audit(task, candidate)
+        if prefill:
+            self.repo.append_op_log(
+                task_id=task_id,
+                api="category_memory_prefill",
+                direction="prefill",
+                payload_digest="",
+                evidence_json=json.dumps(prefill, ensure_ascii=False),
+            )
+        return self._upload_and_audit(task, candidate, prefill)
 
     # ------------------------------------------------------------ 上传+审核（4~7 步共用）
 
-    def _upload_and_audit(self, task: ListingTask, candidate: ListingCandidate) -> dict:
+    def _upload_and_audit(
+        self,
+        task: ListingTask,
+        candidate: ListingCandidate,
+        prefill: Optional[dict[str, Any]] = None,
+    ) -> dict:
         """SPU/SKU/图片上传 → draft → 提交审核 → 查审 → 上架/拒审分流（断点续跑）。
 
         任何异常 → 结构化失败，任务状态留在最近合法状态（不伪造状态）。
@@ -286,6 +321,11 @@ class ListingPipeline:
                     task = self.state_machine.transition(
                         task, "listed", evidence={"link_url": url, "verified": True}
                     )
+                    # REC-融合 P0-1：上架成功 → 类目提交计数（通过，streak+1），
+                    # 供拒审率/连续拒审阈值判定（拒审转人工）
+                    category = (candidate.category_name or "").strip()
+                    if category:
+                        self.repo.record_category_submission(category, rejected=False)
                     return {
                         "ok": True,
                         "stage": "listed",
@@ -295,6 +335,7 @@ class ListingPipeline:
                             "link_url": url,
                             "verified": True,
                             "link_verified_at": task.link_verified_at,
+                            "category_memory": prefill or {},
                         },
                     }
                 # R22 负面：链接验证失败 → 不迁移 listed，状态停留 platform_auditing
@@ -308,16 +349,27 @@ class ListingPipeline:
                         "link_url": url,
                         "verified": False,
                         "reason": "链接验证失败，R22 铁律拒绝标记 listed",
+                        "category_memory": prefill or {},
                     },
                 }
 
             # 驳回路径：rejected → rejection.handle → retry_candidate | manual
             reject_reason = str(audit_result.get("reject_reason") or "")
             analysis = self.rejection.analyze(reject_reason)
+            # REC-融合 P0-1：类目拒审率 ≥50% 或连续图片拒审 ≥3 → 强制转人工复核
+            # （即使有自动修复候选也不自动重提，防拒审风暴，decisions D14）
+            category = (candidate.category_name or "").strip()
+            manual_review = bool(category) and self.repo.should_manual_review_category(
+                category
+            )
             task = self.state_machine.transition(
                 task, "rejected", evidence={"reject_reason_code": analysis.category}
             )
-            rejection_result = self.rejection.handle(task, reject_reason)
+            rejection_result = self.rejection.handle(
+                task, reject_reason, force_manual=manual_review
+            )
+            if category:
+                self.repo.record_category_submission(category, rejected=True)
             return {
                 "ok": True,
                 "stage": rejection_result.action,
@@ -326,10 +378,12 @@ class ListingPipeline:
                     "rejected": True,
                     "category": rejection_result.category,
                     "action": rejection_result.action,
+                    "category_manual_review": manual_review,
                     "reject_reason": reject_reason,
                     "fix_candidates": [
                         c.model_dump() for c in rejection_result.analysis.fix_candidates
                     ],
+                    "category_memory": prefill or {},
                 },
             }
         except WechatApiError as exc:
@@ -340,6 +394,50 @@ class ListingPipeline:
             return self._fail(task_id, stage, "UNEXPECTED", {"message": str(exc)})
 
     # ------------------------------------------------------------ 工具
+
+    def _prefill_from_category_memory(
+        self, candidate: ListingCandidate
+    ) -> tuple[ListingCandidate, dict[str, Any]]:
+        """REC-融合 P0-1：上架类目记忆预填（旧系统 category_listing_memory 迁移）。
+
+        读取 listing_category_memory（键=candidate.category_name）：
+        - logistics_template → 预填 purchase_settings.freight_template_id（仅当
+          调用方显式未提供；预填发生在 gate 之前，预填字段参与门禁——缺运费模板
+          的单不再因无记忆字段被拦）；
+        - required_fields → 仅记入 evidence（C2 attrs_complete 门禁由迁移子代理
+          落地，本处只读取标记，不重复实现，避免与在途迁移冲突）；
+        - return_address_rule → 记入 evidence 供人工确认环节参照。
+        不覆盖显式值；无记忆/类目为空 → 原样返回。
+        返回 (候选, 预填证据 dict)。
+        """
+        category = (candidate.category_name or "").strip()
+        if not category:
+            return candidate, {}
+        memory = self.repo.get_category_memory(category)
+        if memory is None:
+            return candidate, {}
+
+        prefill: dict[str, Any] = {
+            "category": category,
+            "applied": False,
+        }
+        purchase = candidate.purchase_settings
+        logistics = memory.get("logistics_template")
+        if logistics and (
+            purchase is None or not (purchase.freight_template_id or "").strip()
+        ):
+            if purchase is None:
+                purchase = PurchaseSettings()
+            purchase.freight_template_id = logistics
+            prefill["applied"] = True
+            prefill["freight_template_id"] = logistics
+        if memory.get("required_fields"):
+            prefill["required_fields"] = memory["required_fields"]
+        if memory.get("return_address_rule"):
+            prefill["return_address_rule"] = memory["return_address_rule"]
+        if purchase is not candidate.purchase_settings:
+            candidate = candidate.model_copy(update={"purchase_settings": purchase})
+        return candidate, prefill
 
     @staticmethod
     def _to_int(value: Any, default: int = 0) -> int:

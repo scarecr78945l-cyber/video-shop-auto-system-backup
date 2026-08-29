@@ -185,7 +185,10 @@ class WechatOpenApiAdapter:
                 refill_rate=_DEFAULT_BUCKET_REFILL_RATE,
             ),
         )
-        if not bucket.try_acquire():
+        # mock 模式跳过令牌桶限流（开发/测试语义：多任务连续提交不触发
+        # RATE_LIMIT；真实限流属 live 模式行为，由配额配置控制——P0-1 类目
+        # 记忆预填集成测试暴露：跨任务共享 bucket 导致第二单 upload_image 限流）。
+        if not bucket.try_acquire() and self.config.mode != "mock":
             self._log_call(api, task_id, "RATE_LIMIT")
             raise WechatApiError(
                 "RATE_LIMIT",

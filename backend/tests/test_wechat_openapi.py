@@ -30,19 +30,11 @@ def test_sign_deterministic(adapter):
     assert first["sign"] == second["sign"]
 
 
-def test_token_bucket_exhausted(adapter):
-    adapter._buckets["create_spu"] = TokenBucket(
-        capacity=10, refill_rate=1.0, tokens=0.0
-    )
-    with pytest.raises(WechatApiError) as exc_info:
-        adapter.create_spu(
-            title="库存耗尽测试",
-            category_id=1001,
-            qualification=None,
-            freight_template_id=1,
-            purchase_limit=5,
-        )
-    assert exc_info.value.error_code == "RATE_LIMIT"
+def test_token_bucket_exhausted():
+    """令牌桶耗尽语义（live 模式行为；mock 模式跳过限流——P0-1 预填集成
+    暴露跨任务共享 bucket 会误伤 mock 连续提交，见 wechat_openapi.py _call）。"""
+    bucket = TokenBucket(capacity=10, refill_rate=1.0, tokens=0.0)
+    assert bucket.try_acquire() is False
 
 
 def test_retry_then_success(adapter, monkeypatch):

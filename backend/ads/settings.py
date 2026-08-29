@@ -14,6 +14,11 @@
 独立实现的 MockSettingsPage 承载行为，不触碰真实浏览器；真实 Playwright 适配器后续
 接入时本模块接口不变。
 
+REC-融合 P1-5（ROI 计算器衔接，D-M5-10）：SettingsForm 支持注入 roi_estimator
+（ROI 计算器，如 ads.roi.adjusted_target_roi 配合 PromotionMetrics），resolve_roi
+取值顺序 = 可配置覆盖 > 系统推荐 > ROI 计算器按 break_even 推算 > ValueError；
+金额一律「分」（int）由计算器侧保证（R-融合-03：退费率 10%/佣金率 7% 配置化）。
+
 口径（data-audit DA-001）：金额一律「分」（int），ROI 为浮点倍数（不走分）；
 枚举英文（中文仅注释/展示映射）；错误码复用 09 码表。
 """
@@ -23,7 +28,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 from .interfaces import PageOps
 from .ui_config import ShopAdsUiConfig
@@ -145,10 +150,15 @@ class SettingsForm:
         page: PageOps,
         ui_config: ShopAdsUiConfig,
         target_roi_override: float | None = None,
+        roi_estimator: Callable[[float | None], float] | None = None,
     ):
         self.page: PageOps = page
         self.ui: ShopAdsUiConfig = ui_config
         self.target_roi_override: float | None = target_roi_override  # 可配置覆盖（优先于系统推荐）
+        # REC-融合 P1-5：ROI 计算器注入（callable(recommended_roi|None) -> float；
+        # 典型实现 ads.roi.adjusted_target_roi 配合 PromotionMetrics，系统推荐缺失时按
+        # break_even 推算目标建议，金额分 int 由计算器侧保证）
+        self.roi_estimator: Callable[[float | None], float] | None = roi_estimator
         self.evidence: list[dict] = []  # 操作留痕：{op, selector, ms(耗时), ts(UTC), ...}
 
     # ------------------------------------------------------------ 内部工具
@@ -214,12 +224,21 @@ class SettingsForm:
             return None
 
     def resolve_roi(self, recommended_roi: float | None) -> float:
-        """目标 ROI 取值策略（08 文档四②）：可配置覆盖优先，否则系统推荐值；两者皆无抛 ValueError。"""
+        """目标 ROI 取值策略（08 文档四② + REC-融合 P1-5，D-M5-10）：
+
+        1) 可配置覆盖 target_roi_override 优先；
+        2) 系统推荐 recommended_roi；
+        3) 两者皆无且注入 ROI 计算器（roi_estimator）→ 调用其生成目标建议
+           （ads.roi.adjusted_target_roi 按 break_even 推算 + 安全垫，≥min_roi_floor）；
+        4) 均无可用来源抛 ValueError（由上层转人工，防止无依据填 ROI）。
+        """
         if self.target_roi_override is not None:
             return float(self.target_roi_override)
         if recommended_roi is not None:
             return float(recommended_roi)
-        raise ValueError("无可用目标 ROI：系统推荐缺失且未配置覆盖值")
+        if self.roi_estimator is not None:
+            return float(self.roi_estimator(None))
+        raise ValueError("无可用目标 ROI：系统推荐缺失、未配置覆盖值且未注入 ROI 计算器（roi_estimator）")
 
     # ------------------------------------------------------------ ③ 素材绑定
     def bind_materials(self, material_ids: list[str]) -> None:

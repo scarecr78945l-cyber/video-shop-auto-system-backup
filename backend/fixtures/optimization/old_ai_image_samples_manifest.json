@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "purpose": "旧系统真实 AI 生成图（小体积）回归样本清单",
+    "source": "旧系统 backend/runtime/generated_images",
+    "extracted_at": "2026-08-29",
+    "count": 0
+  },
+  "images": []
+}

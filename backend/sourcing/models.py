@@ -29,9 +29,20 @@ class ComplianceState(str, Enum):
 
 
 class SourceItem(BaseModel):
-    """榜单上的原始商品条目（三源通用）。"""
+    """榜单上的原始商品条目（三源通用）。
 
-    source: str  # opportunities | youmi | doudian（选品三源）；alibaba/taobao（询价/素材）
+    P2-7 对照旧系统 contracts.SourcedProduct（字段命名统一结论见 decisions.md D-10）：
+      image_url      → image_urls（新系统为 list，支持图集；旧系统单 URL）
+      name           → title（命名统一：title）
+      source_url     → 无单字段；由 (source, board, platform_item_id) 定位，
+                       原始证据保留在 raw["source_product_url"]（旧系统证据键同名）
+      category       → category（一致）
+      sales_rank     → rank（命名统一：rank，语义=榜单名次，0=无）
+      price_range    → price（语义差异：旧系统为区间字符串如 "9.9-29.9"；
+                       新系统统一为展示价 float 元，区间信息如需保留可入 raw）
+    """
+
+    source: str  # opportunities | youmi | doudian（选品三源）；alibaba/taobao（询价/素材）；kaogujia（第四源备胎，未启用）
     board: str  # 榜单名
     platform_item_id: str
     title: str
@@ -69,7 +80,21 @@ class BoardRunState(BaseModel):
 
 
 class Quote(BaseModel):
-    """1688 逐 SKU 真实询价结果（订单确认页读价，不下单）。"""
+    """1688 逐 SKU 真实询价结果（订单确认页读价，不下单）。
+
+    P2-7 对照旧系统 contracts.AlibabaMatch（以图搜款匹配结果，语义为「匹配」而非「询价」；
+    命名统一结论见 decisions.md D-10）：
+      url                → raw_url（命名统一：raw_url，拿到真实链接才算有效）
+      purchase_price     → unit_cost（命名统一：unit_cost，元）
+      freight            → freight（一致）
+      supplier_name      → supplier_name（一致）
+      sku_summary        → sku_name（近似：旧系统汇总描述，新系统单 SKU 名）
+      missing_fields     → missing_attrs（命名统一：REC-迁移-02 已用 missing_attrs 对照
+                           listing-requirements.json missing_field_labels）
+      旧系统独有未建模（登记 D-10，后续按需扩展）：score(匹配分)/material(材质)/
+      dropshipping_supported/product_attrs/customer_service_questions/customer_service_targets/
+      image_offer_candidates —— 其中 customer_service_* 归 M4 客服补参链路（C2）。
+    """
 
     supplier_name: str
     sku_name: str

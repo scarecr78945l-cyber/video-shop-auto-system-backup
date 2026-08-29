@@ -4,7 +4,8 @@
 任务队列 WorkflowQueue（enqueue/claim/complete/fail/租约/幂等/失败隔离）+
 调度器 WorkflowScheduler（进程化：断点自愈/节流/熔断）+
 风控规则引擎 RiskEngine（S7 预算三重/S1·S3 自动止损/S5 余额/S8 一键全停，与 M5 同口径）+
-通用脱敏 security（redact_url/redact_text/redact_path，P-004）。
+通用脱敏 security（redact_url/redact_text/redact_path，P-004）+
+备份协议 manifest（SHA-256 清单 MANIFEST.json，P2-4）。
 详见 _management/modules/m0-foundation/。
 """
 
@@ -37,4 +38,11 @@ __all__ = [
     "redact_url",
     "redact_text",
     "redact_path",
+    "MANIFEST_FORMAT",
+    "sha256_file",
+    "build_manifest",
+    "save_manifest",
+    "load_manifest",
+    "verify_manifest",
+    "ManifestVerification",
 ]

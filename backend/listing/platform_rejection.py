@@ -152,23 +152,29 @@ class RejectionHandler:
 
     # ------------------------------------------------------------ 拒审处理
 
-    def handle(self, task, reject_reason: str) -> RejectionResult:
+    def handle(
+        self, task, reject_reason: str, force_manual: bool = False
+    ) -> RejectionResult:
         """拒审决策并落地：
 
         - 有修复候选 → state_machine.transition(task, "retry_candidate", ...)
           （qualification 亦走 retry_candidate：门禁通过后人工补资质再重提）；
         - 无修复候选 → transition(task, "manual", ...)（人工介入）；
+        - force_manual=True（REC-融合 P0-1：该类目拒审率/连续图片拒审超阈值）
+          → 即使有修复候选也强制转 manual（人工复核兜底，防自动重提循环）；
         - 迁移证据带 reject_reason_code=分类码，并写 listing_audit_records 一条记录。
         要求 task 已处于 rejected（平台驳回后由调用方先迁移），否则 transition 抛
         IllegalTransitionError（与状态机契约一致）。
         """
         analysis = self.analyze(reject_reason)
-        action = "retry_candidate" if analysis.fix_candidates else "manual"
-        self.state_machine.transition(
-            task,
-            action,
-            evidence={"reject_reason_code": analysis.category},
-        )
+        if force_manual:
+            action = "manual"
+        else:
+            action = "retry_candidate" if analysis.fix_candidates else "manual"
+        evidence: dict[str, Any] = {"reject_reason_code": analysis.category}
+        if force_manual:
+            evidence["manual_reason"] = "category_manual_review"
+        self.state_machine.transition(task, action, evidence=evidence)
         self._record_audit(task, analysis, action)
         return RejectionResult(
             task_id=task.task_id,

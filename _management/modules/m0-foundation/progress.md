@@ -63,3 +63,14 @@
 - **交接核验**：模块六件套齐全且一致——brief.md（含 v1.0 实现快照）/risks.md（R01~R21）/progress.md/decisions.md（28 条决策）/context/README.md（数据字典/共享表归属/调度/风控/工程基座/环境变量注册表）/database/README.md（五表 DDL + PG 迁移脚本 0001+回滚）；BLOCKERS.md 为空；`backend/foundation/` 代码已实现并验收（tables/db/config/repo/scheduler/risk/security/__main__ + .env.example）；`data-audit.md` 契约 DA-001~DA-009 + REC-001~REC-011 + REC-迁移-01~04 已登记（六方会签 DA-008 销项、M4 DA-009 修复闭环）。
 - **纪律确认**：不运行 git（总控唯一执行）；不写明文密钥；文件一律 UTF-8 无 BOM；pytest 一律 `--basetemp=".pytest-tmp-m0"`（P-001/P-011，宪法第 12 节）。
 - **待办（等总控派发）**：体系级全量回归配合（总控 `.pytest-tmp-verify`）、迁移验收配合（迁移包 `app.sanitized.db` → `backend/app.db` 落地后 M0 核对 `tasks`/`workflow_jobs` DDL）、A 系列后续迭代。
+
+## P2 数据知识吸收（2026-08-29 总控派发，等总控验收）
+
+| 任务 | 负责 | 进度 | 剩余工作 |
+|---|---|---|---|
+| [x] P2-2 业务语料归档：旧系统 `docs/migration/` 脱敏语料 → `context/knowledge/corpus/` 只读存档（`CHAT_TRANSCRIPT_SANITIZED.md` 1.42MB + `CHAT_HANDOFF.md` + README 登记来源/用途） | 总工 | 100% | 无 |
+| [x] P2-4 备份协议增强：`backend/foundation/manifest.py`（SHA-256 清单：build/save/load/verify + `ManifestVerification` + CLI `manifest build/verify`）+ 15 测试；foundation 子集 **94 passed 零回归**（79+15）；对齐旧系统 `build_material_manifest.py`/迁移审计机制 | 总工 | 100% | 无 |
+| [x] P2-3 设计决策史：superpowers 27 篇（plans 15 + specs 12）→ `context/knowledge/superpowers/` 三份归档全部完成并验收——`specs-decisions.md` 12/12（103 条）、`plans-decisions-01-08.md` 8/8、`plans-decisions-09-15.md` 7/7（子代理 A/B 完成，C 两次中断由总工接管）；总索引 `knowledge/README.md` | 总工+子代理 | 100% | 无（等总控验收） |
+| [x] P-018 登记：M4 P0-1 融合中间状态竞态（13 failed 误报）→ 复跑 26 passed + foundation 94 passed 双证 | 总工 | 100% | 无 |
+
+> 知识库总索引：`context/knowledge/README.md`。P2-4 决策记录见 `decisions.md`（待追加）。

@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "source": "store.weixin.qq.com/shop/promotion 投放管理列表（08 文档一/四 后台事实锚点：商品/目标出价/智能诊断/商品曝光数/花费/成交金额/平台补贴/操作）",
+  "note": "M5 投放报表回读样本（P2 数据吸收）。old-system-assets 无投放/报表样本（仅 7 规则 JSON），本样本按 08 文档后台事实锚点 + data-audit DA-001 口径构造：金额为后台展示「元」字符串（parse_snapshot_row 换算为分 int）、时间 UTC+8 展示（解析转 UTC）、中文枚举（诊断/状态解析为英文）。",
+  "recorded_at": "2026-08-30T10:00:00+08:00",
+  "rows": [
+    {
+      "campaign_id": "2001",
+      "impressions": "12,345",
+      "spend": "45.60",
+      "gmv": "1,288.00",
+      "platform_subsidy": "10.00",
+      "diagnosis": "优秀",
+      "status": "投放中"
+    },
+    {
+      "campaign_id": "2002",
+      "impressions": "8,900",
+      "spend": "120.00",
+      "gmv": "0.00",
+      "platform_subsidy": "0.00",
+      "diagnosis": "1项待优化",
+      "status": "投放中"
+    },
+    {
+      "campaign_id": "2003",
+      "impressions": "3,210",
+      "spend": "30.50",
+      "gmv": "88.00",
+      "platform_subsidy": "0.00",
+      "diagnosis": "2项待优化",
+      "status": "暂停投放"
+    },
+    {
+      "campaign_id": "2004",
+      "impressions": "0",
+      "spend": "0.00",
+      "gmv": "0.00",
+      "platform_subsidy": "0.00",
+      "diagnosis": "良好",
+      "status": "不可投放"
+    }
+  ]
+}

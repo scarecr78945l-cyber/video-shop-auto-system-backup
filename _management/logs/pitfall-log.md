@@ -144,3 +144,12 @@
 - **现象与根因**：Python 3.13 在 Windows 默认以系统区域编码（GBK/cp936）读取 .py 源文件与 JSON，含中文的测试文件运行时出现乱码（如 pytest 收集的字符串变 `��乱码`）；-X utf8 后正常。
 - **解决方案**：运行 Python/pytest 统一加 `-X utf8`：`python -X utf8 -m pytest tests -q --basetemp=...`；或设置环境变量 `PYTHONUTF8=1`。
 - **防复发**：① 宪法测试纪律补充 -X utf8；② 各模块任务书测试命令统一；③ 中文断言/字面量所在测试必须 -X utf8 运行。
+
+---
+
+## P-018 ｜ 并行融合 P0-1 中间状态导致 M4 全量回归 13 failed（AttributeError _prefill_from_category_memory）
+
+- **出现时间**：2026-08-29 ｜ **模块**：M4 上架（REC-融合 P0-1 类目记忆）/ 全局 ｜ **代理**：M0 新任总工（P2 任务期间全量回归）
+- **现象与根因**：M0 执行全量回归（`--basetemp=".pytest-tmp-m0"`）报 **13 failed**（`test_listing_pipeline.py` ×11、`test_listing_candidate_pool.py` ×1、`test_foundation_integration.py` ×1），根因 `'ListingPipeline' object has no attribute '_prefill_from_category_memory'`——`listing/pipeline.py` 已加入调用点（第 76 行 `candidate, prefill = self._prefill_from_category_memory(candidate)`）而方法尚未落盘。排查：grep 确认 `listing/repo.py`（get_category_memory/upsert_category_memory）与 `tables.py`（listing_category_memory）均已实现、`pipeline.py` 第 398 行方法随后存在——回归执行时正值 M4 侧 REC-融合 P0-1 迁移**在途写入的中间状态**（P-015 同型竞态，非代码缺陷）。
+- **解决方案**：无需改代码。M4 侧落盘完成后复跑 `pytest tests/test_listing_pipeline.py tests/test_listing_candidate_pool.py tests/test_foundation_integration.py --basetemp=".pytest-tmp-m0"` → **26 passed 全绿**；M0 foundation 子集 **94 passed**（79 既有 + manifest 15 新增）零回归。
+- **防复发措施**：① 全量回归前先确认目标模块代理均完成（P-015 已立）；② 回归失败先复跑确认——本坑再次验证该流程有效（失败仅出现在并行代理在途期间 → 中间状态误报）；③ 跨模块并行期间，M0 验收以「foundation 子集 + 相关模块复跑」双证为准；④ P0-1 类目记忆融合由 M4 侧完成（新增 listing_category_memory 表），M0 共享表治理不受影响。

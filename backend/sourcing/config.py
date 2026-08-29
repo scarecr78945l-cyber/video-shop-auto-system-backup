@@ -237,6 +237,22 @@ class SourcingConfig(BaseSettings):
                 ),
                 # 飙升榜：URL 待登录态就绪后从页面地址栏回填（A3，见 selector-log 第 6 节）
                 BoardSpec(name="飙升榜", url_template=""),
+                # P2-6 旧系统罗盘榜单目录补全（douyin_compass_board_catalog.py，2026-08 旧系统现场）：
+                # 旧系统为「3 类目(运动户外/个护家清/智能家居) × 3 时间窗(近1天/近7天/近30天) × 3 静态榜
+                # + 1 实时榜」共 30 个组合，且均为 rank-product 同页内 tab 切换（URL 不区分榜单）。
+                # 本处仅登记 4 个榜单名（不展开类目×时间窗矩阵），全部 disabled：
+                # ① 不参与采集/调度（base.boards 过滤 enabled，见 scheduler/pipeline）；
+                # ② url_template 留空 → 采集器 URL 映射按非空过滤，不干扰商品榜/飙升榜；
+                # ③ 启用前置：罗盘页 tab 实测 + 选择器校准（R-23）+ 类目/时间窗切换参数化。
+                BoardSpec(name="商品卡榜", url_template="", kind="static", enabled=False),
+                BoardSpec(name="短视频榜", url_template="", kind="static", enabled=False),
+                BoardSpec(name="同行低退榜", url_template="", kind="static", enabled=False),
+                BoardSpec(
+                    name="实时爆品挖掘榜",
+                    url_template="",
+                    kind="realtime",
+                    enabled=False,
+                ),
             ],
             # A1：与 doudian.py DEFAULT_SELECTORS 一致，但刻意不含 columns（A4：留空走动态表头定位）
             selectors={
@@ -248,6 +264,55 @@ class SourcingConfig(BaseSettings):
             },
         )
     )  # 抖店电商罗盘（共享浏览器）
+
+    # P2-6 考古加（kaogujia）—— 第四源备胎（REC-006：D-1 裁决，考古加降级可选第四源）。
+    # 榜单目录来自旧系统 kaogujia_board_catalog.py（2026-08 现场，配套 playwright_kaogujia.py 32KB 分页逻辑）。
+    # 状态：**仅配置登记，未启用**（enabled=False → 不参与采集/调度）：
+    #   ① 采集器尚未实现（新系统无 kaogujia collector）；
+    #   ② 启用前置：实现采集器 + 登录态（独立 profile）+ 选择器校准（R-23，selectors 留空=待校准）；
+    #   ③ 旧系统采集节奏 interval_minutes=120（约 2h 级），本处按风控纪律保守登记 static（日扫，R-50），
+    #      启用时由总控按实测重新裁决 kind。
+    kaogujia: CollectorConfig = Field(
+        default_factory=lambda: CollectorConfig(
+            cdp_port=9223,
+            profile_dir="shared",  # 待实测后按登录态隔离需求校准（备胎未启用，端口/profile 均待裁决）
+            enabled=False,
+            boards=[
+                BoardSpec(
+                    name="实时销量榜",
+                    url_template="https://www.kaogujia.com/liveTopList/douyinProductList/realSales",
+                    kind="static",
+                    enabled=False,
+                ),
+                BoardSpec(
+                    name="视频热推荐榜",
+                    url_template="https://www.kaogujia.com/liveTopList/douyinProductList/videoRecommendList",
+                    kind="static",
+                    enabled=False,
+                ),
+                BoardSpec(
+                    name="商品热销榜",
+                    url_template="https://www.kaogujia.com/liveTopList/douyinProductList/hotSales",
+                    kind="static",
+                    enabled=False,
+                ),
+                BoardSpec(
+                    name="商品数据大盘",
+                    url_template="https://www.kaogujia.com/productMarket",
+                    kind="static",
+                    enabled=False,
+                ),
+                BoardSpec(
+                    name="往年爆款",
+                    url_template="https://www.kaogujia.com/historyBestseller",
+                    kind="static",
+                    enabled=False,
+                ),
+            ],
+            # selectors 留空：采集器未实现，启用时按 DEFAULT_SELECTORS 约定 + inspect-page 校准（R-23）
+            selectors={},
+        )
+    )  # 考古加（第四源备胎，未启用）
 
     # 询价/素材源（共享浏览器）
     alibaba: CollectorConfig = Field(

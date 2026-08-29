@@ -8,6 +8,7 @@
   python -m materials board-cache --source youmi --board B1 --json '[...]'  # 榜单图缓存（子代理 B3）
   python -m materials pipeline --source 视频号 --json '[...]' --mode fixtures  # 素材流水线编排（B4-3）
   python -m materials daily-stats [--date 2026-08-28]  # 日采集量统计（B4-3）
+  python -m materials archive --url-contains "id=123456" --archive-dir data/archives  # 商品素材归档（P2-5）
 """
 
 from __future__ import annotations
@@ -472,6 +473,46 @@ def daily_stats(config, date_str) -> None:
     db.create_all()  # 幂等建表（只读统计前保证表存在）
     pipe = MaterialPipeline(config, db=db)
     click.echo(_json.dumps(pipe.daily_stats(db, date_str), ensure_ascii=False, indent=2))
+
+
+@cli.command()
+@click.option(
+    "--url-contains", "url_contains", required=True,
+    help="source_url 子串（product 维度筛选，如 id=123456 / offer/123456789）",
+)
+@click.option("--source", "source_platform", default=None, help="来源平台过滤（可选）")
+@click.option("--archive-dir", "archive_dir", default="data/archives", type=click.Path(), help="归档根目录（默认 data/archives）")
+@click.option("--limit", type=int, default=500, show_default=True, help="最多归档素材条数")
+@click.pass_obj
+def archive(config, url_contains, source_platform, archive_dir, limit) -> None:
+    """商品素材归档（P2-5）：product 维度列出素材 → 复制到归档目录 → 导出 MANIFEST.json。
+
+    对齐旧系统 product-image-archive 插件思路：按商品归档素材文件 + SHA-256 清单
+    （P2-4 机制），供人工核对与下游使用。归档幂等：已存在且 sha256 一致 → 跳过；
+    不一致 → error 不覆盖。清单 UTF-8 无 BOM（宪法第 11 节）。
+    """
+    import json as _json
+
+    from .archive import MaterialArchiver, derive_product_key
+    from .db import Database
+    from .repo import AssetRepo
+    from .storage import LocalStorage
+
+    db = Database(config)
+    db.create_all()  # 幂等建表（查询前保证表存在）
+    repo = AssetRepo(db)
+    archiver = MaterialArchiver(repo, storage=LocalStorage(config.storage_dir), config=config)
+
+    assets = archiver.list_product_assets(url_contains, source_platform=source_platform, limit=limit)
+    if not assets:
+        click.echo(_json.dumps({"error": "no_matching_assets", "url_contains": url_contains}, ensure_ascii=False, indent=2))
+        raise SystemExit(2)
+
+    product_key = derive_product_key(assets[0]["source_url"])
+    result = archiver.archive_product_assets(assets, archive_dir, product_key=product_key)
+    click.echo(_json.dumps(result, ensure_ascii=False, indent=2))
+    if result["errors"]:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

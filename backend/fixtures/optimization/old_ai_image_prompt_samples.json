@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "purpose": "P2-1 AI 生成物 fixtures：旧系统真实 Wan 生图 prompt/plan 回归样本",
+    "source": "旧系统 backend_backup_20260816_214116.db (image_assets 表)",
+    "extracted_at": "2026-08-29",
+    "count": 0
+  },
+  "samples": []
+}

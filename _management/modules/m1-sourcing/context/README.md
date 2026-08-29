@@ -78,7 +78,7 @@
 | 抖店罗盘 | 共享 Chrome | 9223 | shared | rank-product 榜单（Aurora 表格） |
 | 1688 | 共享 Chrome | 9223 | shared | 以图搜款 + 订单确认页询价，**只读不下单** |
 | 淘宝 | 共享 Chrome | 9223 | shared | 同款参考素材（图片 URL 列表） |
-| （考古加） | — | — | — | **未实现**，D-1 待总控决策 |
+| 考古加（kaogujia） | 待定 | 待定 | 待定 | **第四源备胎（REC-006）**：config.py 已登记 5 榜 URL（实时销量榜/视频热推荐榜/商品热销榜/商品数据大盘/往年爆款，源旧系统 kaogujia_board_catalog.py），`enabled=False` 未启用；采集器未实现，启用前置=采集器+登录态+选择器校准（D-11） |
 
 - 环境变量：`SOURCING_DB_URL`/`SOURCING_LOG_LEVEL`/`SOURCING_CHROME_PATH`（只列名称，值不入库不落文档）。
 
@@ -174,3 +174,22 @@
 - `data-requests.md`（跨模块数据需求登记，宪法第 5 节）
 - `selector-log.md`（**S3a 建立**：5 来源选择器校准记录 + 待实测项清单 + 校准动作建议 A1~A6；**S3c 已追加三源真实采集实测小节与 A2/A4/A5 验证结论**）
 - （后续：`category-registry.md` 类目映射表——S3 阶段建立）
+
+## 六、P2 数据知识吸收（2026-08-29，P2-6/P2-7）
+
+### P2-6 旧系统榜单目录知识档案（config.py 已登记，全部 disabled）
+- **考古加（第四源备胎，REC-006/D-11）**：5 榜（`kaogujia.boards`，`enabled=False`）——
+  实时销量榜 `https://www.kaogujia.com/liveTopList/douyinProductList/realSales`
+  ｜ 视频热推荐榜 `.../videoRecommendList` ｜ 商品热销榜 `.../hotSales`
+  ｜ 商品数据大盘 `https://www.kaogujia.com/productMarket` ｜ 往年爆款 `https://www.kaogujia.com/historyBestseller`；
+  源：旧系统 `kaogujia_board_catalog.py`（page_size=50，旧节奏 interval=120min）；配套 `playwright_kaogujia.py` 32KB 分页逻辑（未移植，启用时按需吸收）。
+- **抖店罗盘旧榜单目录**（doudian.boards 扩展 4 榜，`enabled=False` + url_template 留空）——
+  商品卡榜/短视频榜/同行低退榜（static）/实时爆品挖掘榜（realtime）；
+  旧系统为「3 类目（运动户外/个护家清/智能家居）× 3 时间窗（近1天/近7天/近30天）× 3 静态榜 + 1 实时榜」共 30 组合，URL 同为 rank-product 页内 tab 切换（`playwright_douyin_compass.py` 实证 COMPASS_URL 单一）；
+  启用前置：罗盘页 tab 实测 + 类目/时间窗参数化 + 选择器校准（R-23）。
+
+### P2-7 旧系统契约字段对照（models.py 已加对照注释，决策 D-10）
+- `SourcedProduct` ↔ `SourceItem`：image_url→image_urls、name→title、sales_rank→rank、source_url→(source+board+platform_item_id)+raw["source_product_url"]、price_range(str 区间)→price(float 元)。
+- `AlibabaMatch` ↔ `Quote`（匹配 vs 询价语义）：url→raw_url、purchase_price→unit_cost、missing_fields→missing_attrs（REC-迁移-02）、sku_summary→sku_name（近似）；旧系统独有未建模：score/material/dropshipping_supported/product_attrs/customer_service_questions/targets（归 M4 C2）/image_offer_candidates。
+- `UploadResult` 属 M4 上架边界，M1 不建模。
+- 结论：**以新系统命名为准**，不实际改名（108 测试 + 库 schema 稳定），差异仅登记防漂移。

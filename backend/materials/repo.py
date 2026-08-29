@@ -222,6 +222,7 @@ class AssetRepo:
         evaluation: Optional[str] = None,
         compliance_status: Optional[str] = None,
         relevance_status: Optional[str] = None,
+        source_url_contains: Optional[str] = None,
         limit: int = 100,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
@@ -239,6 +240,9 @@ class AssetRepo:
                 stmt = stmt.where(T.AssetItem.compliance_status == compliance_status)
             if relevance_status is not None:
                 stmt = stmt.where(T.AssetItem.relevance_status == relevance_status)
+            if source_url_contains is not None:
+                # product 维度归档查询（P2-5）：source_url 子串过滤（LIKE %..%）
+                stmt = stmt.where(T.AssetItem.source_url.contains(source_url_contains))
             stmt = stmt.order_by(T.AssetItem.id.desc()).limit(limit).offset(offset)
             rows = s.execute(stmt).scalars().all()
             return [self._asset_to_dict(r) for r in rows]

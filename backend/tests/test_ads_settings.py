@@ -348,3 +348,51 @@ def test_config_ads_settings_fields():
     assert cfg.roi_recommended_source == "system"
     cfg2 = load_config(target_roi_override=2.5)
     assert cfg2.target_roi_override == 2.5
+
+
+# ---------------------------------------------------------------- resolve_roi × ROI 计算器（REC-融合 P1-5）
+def test_resolve_roi_estimator_fallback_when_no_recommendation():
+    """③ 无系统推荐 + 注入 ROI 计算器 → 调用计算器生成目标建议（estimator 收到 None）。"""
+    calls = []
+
+    def estimator(recommended):
+        calls.append(recommended)
+        return 2.85
+
+    form = SettingsForm(MockSettingsPage(), _make_ui(), roi_estimator=estimator)
+    assert form.resolve_roi(None) == 2.85
+    assert calls == [None]  # 计算器仅在系统推荐缺失时被调用
+
+
+def test_resolve_roi_estimator_not_used_when_override_or_recommended():
+    """覆盖/系统推荐存在时优先，不调用 ROI 计算器（计算器仅兜底）。"""
+    calls = []
+
+    def estimator(recommended):
+        calls.append(recommended)
+        return 9.99
+
+    form = SettingsForm(MockSettingsPage(), _make_ui(), roi_estimator=estimator)
+    assert form.resolve_roi(2.4) == 2.4  # 系统推荐优先
+    override_form = SettingsForm(
+        MockSettingsPage(), _make_ui(), target_roi_override=3.0, roi_estimator=estimator
+    )
+    assert override_form.resolve_roi(2.4) == 3.0  # 可配置覆盖优先
+    assert override_form.resolve_roi(None) == 3.0
+    assert calls == []  # 计算器全程未被调用
+
+
+def test_resolve_roi_with_roi_calculator_integration():
+    """衔接验证：真实 ROI 计算器（ads.roi）注入 SettingsForm ——
+    无系统推荐时按 break_even 推算（+5% 安全垫），且不低于 min_roi_floor。"""
+    from ads.roi import PromotionConfig, adjusted_target_roi, promotion_metrics
+
+    metrics = promotion_metrics(price_cents=2000, cost_cents=500, freight_cents=100)
+    form = SettingsForm(
+        MockSettingsPage(), _make_ui(),
+        roi_estimator=lambda rec: adjusted_target_roi(rec, metrics),
+    )
+    suggested = form.resolve_roi(None)
+    assert suggested == adjusted_target_roi(None, metrics)  # 与计算器独立调用一致
+    assert suggested > metrics.break_even_roi  # 高于盈亏平衡（安全垫生效）
+    assert suggested >= PromotionConfig().min_roi_floor  # 不低于建议下限

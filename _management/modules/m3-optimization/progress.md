@@ -55,3 +55,14 @@
   4. **发现项（C3 相关性门中间状态）**：`backend/optimization/review/relevance.py`（462 行）+ `gate.py` 内 `RelevanceGate` 已落地（三态判定/款式聚类/mock 自动降级），但：a) `review/__init__.py` 未导出 relevance 符号；b) `backend/tests/` 无 relevance 专项测试（test_optimization_review.py 未覆盖）；c) `gate.py` 引用的契约文件 `_management/data-exchange/m2-m3-m4-relevance-gate.json` 当前不存在。已列入「后续排期」第 5 项跟踪，待与 C3 迁移子代理对表收尾。
 - **后续动作**：等总控派发（C3 迁移验收配合、上传真实化/ffmpeg 验证、v1.2 迭代包等）。
 - **备注**：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）。
+
+---
+
+## P2 数据知识吸收任务进度（总控派发 2026-08-29）
+
+| 任务 | 状态 | 进度 | 说明 |
+|---|---|---|---|
+| P2-1 AI 生成物 fixtures：文案样本 | ✅ 已落盘 | 100% | `backend/fixtures/optimization/old_ai_copy_samples.json`（旧系统 products 表 6 条真实 AI 标题+详情样本） |
+| P2-1 AI 生成物 fixtures：生图样本 | 🔄 进行中 | 30% | 已确认旧系统 image_assets 表 prompt/plan 列均为空（非空 prompt=0、plan_json 全 `{}`）→ 改为①拷贝 3 张小体积真实生成图（1341 张可读，待挑选）②旧系统真实生产提示词模板（image_generation.py 内 `_fallback_ecommerce_plan`/`_exact_kit_prompts` 等）落 JSON；回归测试 test_optimization_fixtures.py 待写 |
+| P1-5 集成确认（M5 ROI 计算器 ↔ M3） | ✅ 已登记 | 100% | decisions.md 追加一条：ROI 口径统一（浮点倍数无换算层）+ 衔接关系（M3 排序输出素材侧质量、M5 adjusted_target_roi 商品侧财务门槛）+ 叠加规则（is_profitable=False 不投；efficient 且回写 ROI ≥ 目标 ROI 优先绑定）+ 当前无编排层（留 M5 消费） |
+| P2-2（如有） | — | — | 等总控派发 |

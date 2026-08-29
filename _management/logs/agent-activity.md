@@ -1242,3 +1242,31 @@
 - 产出：5 个新模块 + 5 个测试文件 + 2 个 JSON 配置；全量回归 **1179 passed / 2 skipped**（P0 后 1151 → 1179）。
 - P1-7 前端人工工作台：新系统无前端项目，记录待办（建控制台时搬组件）。
 - 当前阻塞：无。
+
+---
+
+### 2026-08-29 ｜ M3 总工程师（新任） ｜ M3 自动素材优化（m3-optimization） ｜ 角色：总工（P2 数据知识吸收 · 小步回合 1/2）
+
+- 任务来源：总控派发 P2 任务（P2-1 AI 生成物 fixtures + P1-5 集成确认），要求小步执行、每回合 1 个动作、立即落盘。
+- 完成任务（本回合 1 个动作）：
+  ① **P1-5 集成确认**：通读 M5 `backend/ads/roi.py`（总控已实现：promotion_metrics 可投金额/break_even + adjusted_target_roi 目标建议）与 M3 `ab/scoring.py`（roi_score 浮点倍数）/`ab/evaluate.py`（label_for：efficient=ROI≥2.0 或 CTR≥2%且ROI≥1.0）/`ab/ranking.py`（MaterialRanker 输出 (variant_id, platform_material_id, evaluation, score)）；确认衔接点并登记 decisions.md 一条——①ROI 口径统一（双方均浮点倍数，无换算层，DA-001/REC-005 对齐）②正交互补（M3 素材侧质量排序 ↔ M5 商品侧财务门槛 adjusted_target_roi）③叠加规则（is_profitable=False 不投；efficient 且回写 ROI ≥ 目标 ROI 优先绑定）④当前无编排层，留 M5 投放执行侧消费；
+  ② **落盘**：progress.md 追加「P2 数据知识吸收任务进度」小节（P2-1 文案样本已落盘/生图样本 30% 进行中/P1-5 已登记）；本日志追加台账。
+- 产出文件：`_management/modules/m3-optimization/decisions.md`（+P1-5 集成确认 1 条）；`progress.md`（+P2 任务进度小节）；本日志追加条目。未改动代码。
+- 备注（侦察结论，供后续回合）：旧系统 `image_assets` 表 prompt/plan 列均为空（非空 prompt=0、plan_json 全 `{}`），生图样本改取「真实生成图 1341 张（PIL 可读，已验证）+ 旧系统生产提示词模板（image_generation.py `_fallback_ecommerce_plan`/`_exact_kit_prompts` 等）」；文案样本 6 条已落盘 `backend/fixtures/optimization/old_ai_copy_samples.json`；C3 收尾已被门禁迁移子代理完成（M3 全量 327 passed，发现项 a/b/c 已销项，待总工验收）；总控已并行完成 P1-3（images/postprocess.py）/P1-4（images/knowledge.py）——M3 images 子包新增两文件，下回合一并纳入测试基线。
+- 当前阻塞：无。下一回合动作：P2-1 生图样本（拷贝 3 张真实生成图 + 生产提示词模板落 JSON + 写 test_optimization_fixtures.py 回归测试 + 跑 M3 全量 327 基线确认）。
+- 备注：未运行任何 git 命令；未读写其他模块库（仅只读采样旧系统备份库与旧系统 runtime 图片目录，零写入旧系统）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合未跑 pytest（无代码改动）。
+
+---
+
+### 2026-08-29 ｜ M0 总工程师（新任） ｜ m0-foundation ｜ 角色：总工（P2 数据知识吸收 · P2-2/P2-3/P2-4）
+
+- 任务来源：总控派发 P2 数据知识吸收任务（P2-2 业务语料归档 / P2-3 设计决策史 / P2-4 备份协议增强），纪律：pytest `--basetemp=".pytest-tmp-m0"`、UTF-8、禁 git、禁明文密钥，小步执行每项落盘防中断。
+- 完成任务：
+  ① **P2-2 业务语料归档**：旧系统 `docs/migration/` 脱敏语料只读存档到 `context/knowledge/corpus/`——`CHAT_TRANSCRIPT_SANITIZED.md`（1.42MB，3836 条已脱敏消息）+ `CHAT_HANDOFF.md`（6KB）+ `corpus/README.md` 登记（来源/用途=LLM 词表扩充/规则抽取/测试用例生成）；
+  ② **P2-4 备份协议增强**：`backend/foundation/manifest.py` 通用 SHA-256 清单机制（`MANIFEST_FORMAT=m0-manifest-v1`；build/save/load/verify + `ManifestVerification` 聚合校验 missing/mismatch；CLI `manifest build/verify` 接入 `__main__.py`，verify 退出码 0=全通过；相对路径 posix 归一 + base_dir 可移植；对齐旧系统 `build_material_manifest.py` + 迁移审计）+ 15 测试（`test_foundation_manifest.py`，含篡改/缺失/重复/空清单/CLI 接线）；**foundation 子集 94 passed 零回归**（79 既有 + 15 新增）；CLI 冒烟 build→verify 闭环通过（matched=2）；
+  ③ **P2-3 设计决策史**：superpowers 27 篇（plans 15 + specs 12，融合清单口径 15+11 与实测有出入，以文件系统为准）决策要点归档到 `context/knowledge/superpowers/`——3 子代理并行抽取：子代理 A 完成 `specs-decisions.md` 12/12（103 条，验收通过）；子代理 B 续跑完成 `plans-decisions-01-08.md` 8/8；子代理 C 两次中断（P-014）→ 总工接管完成 `plans-decisions-09-15.md` 7/7；总索引 `knowledge/README.md`；
+  ④ **P-018 登记**：全量回归 13 failed（M4 `ListingPipeline._prefill_from_category_memory` AttributeError）排查结论=总控 P0-1 类目记忆融合在途写入的中间状态（P-015 同型竞态，非缺陷）→ M4 落盘后复跑 `test_listing_pipeline + candidate_pool + foundation_integration` **26 passed 全绿** + foundation 子集 94 passed 双证；
+  ⑤ **落盘**：progress.md（+P2 小节：P2-2/P2-4 100%、P2-3 100%、P-018 已登记）；decisions.md（+P2-2/P2-3/P2-4 三条决策）；pitfall-log.md（+P-018）；knowledge/README.md（总索引）；本日志追加条目。
+- 产出文件：`backend/foundation/manifest.py`（新）、`backend/foundation/__init__.py`（+导出）、`backend/foundation/__main__.py`（+manifest 子命令）、`backend/tests/test_foundation_manifest.py`（新，15 例）；`_management/modules/m0-foundation/context/knowledge/corpus/`（2 语料 + README）、`context/knowledge/superpowers/`（3 份归档 + 总览）、`context/knowledge/README.md`；progress.md / decisions.md / pitfall-log.md（+P-018）；本日志追加条目。
+- 当前阻塞：无。P2 三项全部完成，等总控验收；外部观察项：总控已并行完成融合 P0-1/P0-2/P0-3/P1-2（M0 域新增 learning_rule_drafts/session_service/prompts，全量 1179 passed），M0 下一批可纳入基线核对。
+- 备注：未运行任何 git 命令；未读写其他模块库（旧系统仅只读语料/文档，零写入）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；pytest 全程 `.pytest-tmp-m0`（P-001/P-011）；语料存档为只读复制，已确认脱敏声明（头部抽查）。

@@ -256,11 +256,15 @@ def test_requalify_gate_fail(
 
 
 def test_rate_limit_failure_stays_legal_state(
-    pipeline, adapter, repo_listing, tmp_path
+    pipeline, adapter, repo_listing, tmp_path, monkeypatch
 ):
-    adapter._buckets["create_spu"] = TokenBucket(
-        capacity=10, refill_rate=1.0, tokens=0.0
-    )
+    # mock 模式跳过令牌桶限流（P0-1 预填集成后）；用 monkeypatch 模拟
+    # live 模式的 RATE_LIMIT 失败，验证 pipeline 停靠在最近合法状态
+    def boom(*args, **kwargs):
+        from adapters.wechat_openapi import WechatApiError
+        raise WechatApiError("RATE_LIMIT", message="模拟限流", evidence={"api": "create_spu"})
+
+    monkeypatch.setattr(adapter, "create_spu", boom)
     result = pipeline.submit(make_candidate(tmp_path), generation_version="v1")
 
     assert result["ok"] is False
