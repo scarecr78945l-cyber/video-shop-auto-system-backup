@@ -41,7 +41,13 @@ class CollectorConfig(BaseModel):
 
     enabled: bool = True
     boards: list[BoardSpec] = Field(default_factory=list)
-    selectors: dict[str, str] = Field(default_factory=dict)
+    # 选择器配置化（R-23/A1）：值与采集器 DEFAULT_SELECTORS 一致（columns 除外，
+    # youmi/doudian 的 columns 刻意不迁入 config → 走 _locate_columns 动态表头定位，见 A4）。
+    # 值类型为 Any：字符串选择器之外，columns 等结构化映射（dict[str, int]）也允许。
+    selectors: dict[str, Any] = Field(default_factory=dict)
+    # 榜单 URL 日期回看天数（有米云 {start_date}/{end_date} 占位符，A2）：
+    # end=当天，start=当天-lookback_days；无占位符模板不受影响。
+    lookback_days: int = 7
     pagination: dict[str, Any] = Field(default_factory=dict)
     cdp_port: int = 9222  # 浏览器 CDP 端口（Playwright connect_over_cdp）；各来源可独立端口隔离登录态
     chrome_path: str = ""  # 便携 Chrome 路径，空则用系统默认
@@ -176,6 +182,14 @@ class SourcingConfig(BaseSettings):
                     url_template="https://store.weixin.qq.com/shop/goods/opprotunity",
                 )
             ],
+            # A1：与 opportunities.py DEFAULT_SELECTORS 逐键一致（含 columns 结构化映射）
+            selectors={
+                "home_url": "https://store.weixin.qq.com/shop/goods/opprotunity",
+                "row": "table tbody tr",
+                "columns": {"title": 0, "source": 1, "status": 2},
+                "login_gate": "[class*='login']",
+                "verify_gate": "[class*='captcha'], [class*='verify']",
+            },
         )
     )  # 视频号商机中心（微信小店后台，共享浏览器）
     youmi: CollectorConfig = Field(
@@ -186,12 +200,21 @@ class SourcingConfig(BaseSettings):
                 BoardSpec(
                     name="商品榜",
                     # 不带 tableSelect → 默认视图（含「商品」列），避免用户隐藏列导致取不到标题
+                    # A2：日期参数占位符化，导航时按 lookback_days 动态生成（end=当天，start=当天-7）
                     url_template=(
                         "https://console.youshu.youcloud.com/goods/sale"
-                        "?site_id=10502&startDate=2026-08-22&endDate=2026-08-28"
+                        "?site_id=10502&startDate={start_date}&endDate={end_date}"
                     ),
                 )
             ],
+            # A1：与 youmi.py DEFAULT_SELECTORS 一致，但刻意不含 columns（A4：留空走动态表头定位）
+            selectors={
+                "home_url": "https://console.youshu.youcloud.com/",
+                "row": ".el-table__body-wrapper tr",
+                "next_page": ".el-pagination .btn-next, .el-pagination__next",
+                "login_gate": ".login-modal, [class*='login']",
+                "verify_gate": ".captcha, [class*='verify']",
+            },
         )
     )  # 有米云（独立特制浏览器 console.youshu.youcloud.com）
     doudian: CollectorConfig = Field(
@@ -203,17 +226,56 @@ class SourcingConfig(BaseSettings):
                     name="商品榜",
                     url_template="https://compass.jinritemai.com/shop/chance/rank-product",
                 ),
+                # 飙升榜：URL 待登录态就绪后从页面地址栏回填（A3，见 selector-log 第 6 节）
                 BoardSpec(name="飙升榜", url_template=""),
             ],
+            # A1：与 doudian.py DEFAULT_SELECTORS 一致，但刻意不含 columns（A4：留空走动态表头定位）
+            selectors={
+                "home_url": "https://compass.jinritemai.com/shop/chance/rank-product",
+                "row": ".aurora-table-tbody tr",
+                "next_page": ".aurora-pagination-next, [class*='pagination'] [class*='next']",
+                "login_gate": ".login, [class*='login']",
+                "verify_gate": ".captcha, [class*='verify'], [class*='captcha']",
+            },
         )
     )  # 抖店电商罗盘（共享浏览器）
 
     # 询价/素材源（共享浏览器）
     alibaba: CollectorConfig = Field(
-        default_factory=lambda: CollectorConfig(cdp_port=9223, profile_dir="shared")
+        default_factory=lambda: CollectorConfig(
+            cdp_port=9223,
+            profile_dir="shared",
+            # A1：与 alibaba.py DEFAULT_SELECTORS 逐键一致
+            selectors={
+                "search_input": "input[placeholder*='搜索'], input[class*='search']",
+                "search_btn": "button[class*='search'], .search-btn",
+                "image_upload": "input[type='file'], .upload-btn",
+                "result_row": ".card-item, [class*='offer'] li",
+                "result_title": ".title, [class*='title']",
+                "order_price": ".order-price, .price-box, [class*='price']",
+                "supplier_name": ".company-name, [class*='company']",
+                "confirm_btn": ".confirm-btn, button:has-text('确认')",
+                "login_gate": ".login-modal, [class*='login']",
+                "verify_gate": ".captcha, [class*='verify']",
+            },
+        )
     )
     taobao: CollectorConfig = Field(
-        default_factory=lambda: CollectorConfig(cdp_port=9223, profile_dir="shared")
+        default_factory=lambda: CollectorConfig(
+            cdp_port=9223,
+            profile_dir="shared",
+            # A1：与 taobao.py DEFAULT_SELECTORS 逐键一致
+            selectors={
+                "search_input": "input[placeholder*='搜索'], input[class*='search']",
+                "search_btn": "button[class*='search'], .search-btn",
+                "result_row": ".items .item, [class*='item']",
+                "result_title": ".title, [class*='title']",
+                "image": "img",
+                "next_page": ".next, [class*='next']",
+                "login_gate": ".login-modal, [class*='login']",
+                "verify_gate": ".captcha, [class*='verify']",
+            },
+        )
     )
 
     # 广告转化数据（回流）：按类目聚合的 ROI/成交额（AdReportSnapshot 汇总来源）

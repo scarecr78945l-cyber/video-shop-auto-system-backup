@@ -96,3 +96,19 @@
   2. M5 侧 28 用例全绿 + 全 ads 套件 **158 passed**（零回归）；
   3. M5-OUT-02/03 结构对齐 M2/DA-004 契约，待 M2 侧联调消费（receive_evaluation 已就绪）。
 - **总控核对结论**：（待总控核对字段/单位/时间格式后填写；C-2 会签建议双方总工在文件头签字）
+
+---
+
+## DA-007 ｜ M3 消费 M5 投放效果回写（v1.1-① 联调，评估标签回流摄取）
+
+- **提供方**：M5 总工（ad_report_snapshots 口径）｜ **接收方**：M3 总工（评估标签回流消费）。
+- **载体**：经总控协调的 data-exchange JSON（规划 `_management/data-exchange/m5-to-m3-evaluation.json`）；M3 不直读 M5 库（宪法第 5 节）。
+- **契约字段**（对齐 M5 context 数据字典 + DA-001）：
+  - `platform_material_id`（= M5 素材记录 material_id = M3 opt_video_variants.platform_material_id，回写主键）；
+  - `report_date`（UTC YYYY-MM-DD，幂等键 (variant_id, report_date)）；
+  - `impressions`（曝光 int）/ `clicks`（可选，M5 快照暂缺省 0 → CTR 分量按 0，评分由 ROI/诊断主导）；
+  - `spend_cents` / `gmv_cents`（金额「分」int，DA-001）→ M3 换算：spend 元 = /100、roi = gmv/spend；
+  - `orders`（可选缺省 0）；`diagnosis`（M5 中文枚举：优秀/良好/1项待优化/N项待优化 → ab.scoring 兼容）。
+- **M3 消费入口**：`backend/optimization/ab/ingest.py`（ingest_m5_record / ingest_m5_batch）——unmatched material_id 不落库（失败隔离），幂等回写 opt_evaluation_feedback，驱动评估标签与模板重训练。
+- **校验结果**：联调契约测试 `test_optimization_m5_integration.py` **5 用例全绿**（金额分→元换算、ROI 计算、中文诊断兼容、unmatched 隔离、幂等、排序消费）；全量回归 **1021 passed, 2 skipped**（M3 全范围全绿）。
+- **总控核对结论**：（待总控核对字段/单位后填写；建议 M5 侧同步登记对端，双方在 data-exchange JSON 文件头会签）
