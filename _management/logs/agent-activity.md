@@ -1080,3 +1080,17 @@
 - 产出文件：`backend/ads/stop_loss.py`（基座引用改造）；`_management/logs/data-audit.md`（+DA-008 M5 会签）；`_management/modules/m5-ads/decisions.md`（+D-M5-09）、`progress.md`（v1.1）；本日志追加条目。
 - 当前阻塞：无。M5 侧 DA-008 会签完成并回传 M0（风控基座引用已执行并通过 158 全量验证）；A7 集成联调待总控推进（M5 代码 v0.1~v1.1 全部完成，真实实投依赖登录态/账号/余额/素材/实机探针就绪）。
 - 备注：未运行任何 git 命令；未读写其他模块库（foundation/risk.py 仅只读 import 引用）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m5`（P-001/P-011）。
+
+---
+
+### 2025 体系建立日（第 9 轮）｜ M3 总工程师 ｜ M3 自动素材优化 ｜ 角色：总工（DA-008 M3 会签确认 · 2 处口径差异当场修正）
+
+- 任务来源：M0 基座发起 A6 数据字典定稿会签（DA-008），总控转达 M3 核对项。
+- 完成任务（逐项核对 `backend/optimization/` 实际实现）：
+  ① **app_config 只读（risk.high_risk_categories 扩展点预留）** ✅ 确认——review/manual.py ManualSampler 构造注入扩展点，本模块不直读 app_config；错误码使用 09 文档 8+1 码表；
+  ② **opt_* 时间 _at UTC / 金额分 int** ✅ 确认（**当场修正 1 处**）：opt_* 9 表时间戳 `_at` UTC（DateTime(timezone=True)+utcnow）；`opt_evaluation_feedback.spend` 原为元（ingest /100 换算）→ **改为「分」直存**（`ab/ingest.py` spend=float(spend_cents)，models 注释同步，roi 比值不受影响）；
+  ③ **evaluation 枚举与 M2/M5 共口径** ✅ 确认（**当场修正 1 处**）：M3 原用 exploration/high_efficiency → **统一为 exploring/efficient/potential**（ab/evaluate.py 常量、ab/ranking.py EVALUATION_ORDER、tables.py 默认值×2、models.py、upload api/service/ui、video composer 全部同步；测试断言同步 e2e/m5_integration/retrain_driven/video_composer/ab）。
+- **修正后验证**：M3 全范围 `pytest -k "optimization" --basetemp=".pytest-tmp-m3"` → **305 passed, 1 skipped 全绿**；全量 → **1089 passed, 2 skipped**（M0 foundation_security 此前 2 个失败已由 M0 修复，零回归）。
+- 产出文件：`backend/optimization/ab/evaluate.py`、`ranking.py`、`scoring.py`（docstring）、`ingest.py`（金额分直存）、`models.py`、`tables.py`、`upload/api.py`、`service.py`、`ui.py`、`video/composer.py`、`video/__init__.py`（枚举统一）；`backend/tests/test_optimization_{m5_integration,e2e,retrain_driven,video_composer,ab}.py`（断言同步）；`_management/logs/data-audit.md`（+DA-008 M3 会签确认）；`context/README.md`（1.4 评估标签枚举同步）；本日志追加条目。
+- 当前阻塞：无。**M3 会签确认**——DA-008 全部模块（M0/M1/M2/M3/M4/M5）已完成会签；同意推进 A7 集成联调。
+- 备注：未运行任何 git 命令；未读写其他模块库（测试全内存库）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m3`（P-001/P-011）。

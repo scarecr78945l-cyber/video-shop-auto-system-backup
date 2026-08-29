@@ -45,11 +45,11 @@
 
 | 标签 | 定义 | 用途 |
 |---|---|---|
-| 探索期（exploration） | 新素材/无回写数据 | 默认起步标签 |
+| 探索期（exploring） | 新素材/无回写数据 | 默认起步标签 |
 | 潜力（potential） | 曝光/点击有正向信号，成交待观察 | 次级推荐 |
-| 高效（high_efficiency） | 成交 ROI / 点击率达标 | 投放绑定首选 |
+| 高效（efficient） | 成交 ROI / 点击率达标 | 投放绑定首选 |
 
-> **口径**：标签由 M3 依据 M5 回写数据（曝光/花费/成交/诊断）计算并落 opt_evaluation_feedback；M2 的 assets.evaluation 由总控协调同步，M3 不直写 M2 库。
+> **口径**：枚举与 M2/M5 共口径（exploring/efficient/potential，DA-008 会签统一）；标签由 M3 依据 M5 回写数据（曝光/花费/成交/诊断）计算并落 opt_evaluation_feedback；M2 的 assets.evaluation 由总控协调同步，M3 不直写 M2 库。
 
 ### 1.5 A/B 版本结构
 

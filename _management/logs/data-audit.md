@@ -205,3 +205,19 @@
 4. **补充口径登记**：枚举存储英文（status=pending/active/paused/not_eligible/ended；evaluation=exploring/efficient/potential 与 M2/M3 共口径；诊断 excellent/good/optimize_1/optimize_n），动作枚举 pause/halt_new/stop_new/degrade_material/record_optimization/record_subsidy/halt_all；错误码使用 09 码表（含 PAGE_CHANGED 扩展码，M5 executor/report 使用）——与 M0 基准一致。
 
 **结论：M5 会签确认（3 项全部确认，其中第 1 项风控基座引用已执行完毕并通过 158 全量验证）。** 回传 M0；同意推进 A7 集成联调（M5 侧 v0.1~v1.0 代码全部完成，mock 模式全链路可测；真实实投依赖登录态/账号/余额/素材/实机探针就绪）。佐证：`backend/ads/stop_loss.py`（基座引用）、`ads/repo.py`（app_config 只读）、`ads/tables.py`（5 表 DDL）。
+
+---
+
+### DA-008 ｜ M3 会签确认（2025 体系建立日 ｜ M3 总工）
+
+按 M3 分模块核对项（DA-008 第 130 行）逐条确认（已核实 `backend/optimization/` 实现）：
+
+1. **app_config 只读（`risk.high_risk_categories` 扩展点预留）** ✅ **确认**——`review/manual.py` ManualSampler 的 `high_risk_categories` 为构造注入扩展点（生产可从 app_config 读取后注入，**本模块不直读 app_config**，归 M0 只读，写入经总控协调）；`review/gate.py`/`ab/*`/`upload/*` 均无 app_config 写操作。错误码使用 09 文档 8+1 码表（VERIFICATION_REQUIRED/AUTH_REQUIRED/RATE_LIMIT/TIMEOUT/NO_MATCH/PLATFORM_REJECT/UNEXPECTED，upload 错误映射 + video VideoToolError 限定子集）。
+2. **opt_* 表时间 _at UTC / 金额分 int** ✅ **确认（会签发现 1 处差异已当场修正）**：
+   - 时间：opt_* 9 表时间戳全部 `_at` 后缀、`DateTime(timezone=True)` + `utcnow()`（UTC 存储，展示转 UTC+8），与 DA-001 一致；
+   - 金额：**差异修正**——`opt_evaluation_feedback.spend` 原为元（float，ingest 层 /100 换算）→ **已改为「分」直存**（`ab/ingest.py` 去掉 /100，`spend=float(spend_cents)` 直存，DA-001 金额单位=分 int）；`models.EvaluationSnapshot.spend` 注释同步（金额单位分）；roi 为比值不受单位影响；
+   - 主键：`TEXT` UUID 风格（`opt_<uuid12>`，与 M4 listing_tasks 业务主键模式同向）——**补充说明**：M0 基准「主键自增整数」适用于自增表；M3 opt_* 业务实体主键用模块内生成 ID（跨库不建 FK、避免依赖基座序列），如总控要求统一自增可裁定（不阻塞）。
+3. **evaluation 枚举与 M2/M5 共口径** ✅ **确认（会签发现 1 处差异已当场修正）**——**差异修正**：M3 原用 `exploration`/`high_efficiency` → **已统一为 `exploring`/`efficient`/`potential`**（与 M2/M5 共口径，DA-004/DA-007 互认）：`ab/evaluate.py` 常量（HIGH_EFFICIENCY="efficient"、EXPLORATION="exploring"）、`ab/ranking.py` EVALUATION_ORDER、`tables.py` 默认值（opt_video_variants/opt_evaluation_feedback）、`models.py`、`upload`（api/service/ui）、`video/composer` 全部同步；测试断言同步（e2e/m5_integration/retrain_driven/video_composer/ab）。
+   - **修正后验证**：M3 全范围 `pytest tests -q --basetemp=".pytest-tmp-m3" -k "optimization"` → **305 passed, 1 skipped 全绿**；全量 → **1089 passed, 2 skipped**（含 M0 foundation_security 此前 2 个失败亦已消失，零回归）。
+
+**结论：M3 会签确认（3 项全部确认，含 2 处会签发现差异已当场修正：金额分直存、evaluation 枚举统一共口径）。** 回传 M0；同意推进 A7 集成联调。佐证：`backend/optimization/ab/evaluate.py`（枚举常量）、`ab/ranking.py`（EVALUATION_ORDER）、`ab/ingest.py`（金额分直存）、`review/manual.py`（app_config 只读扩展点）。
