@@ -35,7 +35,7 @@ class FoundationConfig(BaseSettings):
 
     model_config = SettingsConfigDict(env_prefix="M0_", env_file=".env", extra="ignore")
 
-    db_url: str = "sqlite:///data/m0-foundation.db"
+    db_url: str = "sqlite:///data/db/m0-foundation.db"  # 宪法第 4 节：backend/data/db/<模块>.db
     log_level: str = "INFO"
     lease_minutes: int = 45  # 队列租约时长（09 文档：45min 过期回收）
     data_dir: Path = Path("data")

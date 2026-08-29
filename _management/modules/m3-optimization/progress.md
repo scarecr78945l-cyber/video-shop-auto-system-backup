@@ -21,13 +21,13 @@
 | [x] 上传素材库 upload（v1.0-3） | 子代理-F（验收通过） | 100% | 无（upload 子包 7 文件 + 测试通过） |
 | [x] 端到端集成测试（v1.0-4） | 总工（集成验收） | 100% | 无（test_optimization_e2e.py 2 用例；修复集成缺口：VideoVariantRepo 回填） |
 | [x] **M5 回写联调（v1.1-①）** | 总工（联调验收） | 100% | 无（ab/ingest.py 摄取入口 + test_optimization_m5_integration.py 5 用例全绿；全量 1021 passed 无回归） |
-| [ ] **模板重训练数据驱动（v1.1-②）** | 总工 | 0% | 「M5 回写摄取 → retrain_all → stats 落库 → best_template 决策」数据驱动链路测试（retrain 实现已就绪，样本闸门 min_samples 已实现） |
+| [x] **模板重训练数据驱动（v1.1-②）** | 总工（验收通过） | 100% | 无（test_optimization_retrain_driven.py 2 用例：摄取→retrain_all→stats/类目记忆落库→best_template 决策；修复 retrain.best_template_for_category 空 stats 误选缺陷） |
 
 ## 里程碑进度
 
-- 本模块当前完成度：**92%**（v1.0 全链路 90% + M5 回写联调 v1.1-①）
-- 已达成：v1.0 全链路闭环（全量 1016 passed）+ **M5 回写联调**（ingest 摄取入口：金额分→元、ROI 换算、中文诊断兼容、unmatched 失败隔离、幂等；全量 **1021 passed, 2 skipped**）
-- 剩余：v1.1-② 模板重训练数据驱动测试 → ③④ 依赖用户侧环境（上传真实化 / 真实 ffmpeg，待确认清单）
+- 本模块当前完成度：**95%**（v1.0 全链路 90% + M5 回写联调 v1.1-① + 模板重训练数据驱动 v1.1-②）
+- 已达成：v1.0 全链路闭环 + **M5 回写联调**（ingest 摄取，金额分→元/ROI 换算/中文诊断/unmatched 隔离/幂等）+ **模板重训练数据驱动**（M5 回写摄取 → retrain_all → stats/类目记忆落库 → best_template 决策；样本闸门 min_samples、空日不计样本；M3 全范围 **305 passed, 1 skipped** 全绿）
+- 剩余：③④ 依赖用户侧环境（上传真实化待小店账号 / 真实 ffmpeg 待环境安装，待确认清单）
 
 ## 后续排期（v1.1+ 迭代任务包）
 

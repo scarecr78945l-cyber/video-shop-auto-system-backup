@@ -972,3 +972,40 @@
 - 里程碑：**v0.4 达成：风控规则引擎可跑**（预算三重/自动止损/余额/一键全停全链可测，与 M5 同口径，M5 引用由总控协调）。
 - 当前阻塞：无。**请总控提交备份（里程碑：v0.4 风控规则引擎验收通过）**；批准后推进 A4（工程基座：环境变量化/脱敏巡检/.env.example，默认库路径修正 data/db/）与 A5（SQLite→PostgreSQL 迁移脚本）。
 - 备注：未运行任何 git 命令；未读写其他模块库（M5 stop_loss.py 仅只读勘察）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m0`（P-001/P-011）。
+
+### 2026-08-29 ｜ S3b 子代理 ｜ M1 自动选品（m1-sourcing） ｜ 角色：子代理（选择器校准动作实施 A1/A2/A3/A4）
+
+- 完成任务（S3b，不依赖登录态，承接 S3a 的 selector-log 第 6 节）：
+  ① **A1 config.selectors 迁移**：5 来源（opportunities/youmi/doudian/alibaba/taobao）DEFAULT_SELECTORS 逐键迁入 `config.py` 各来源 `CollectorConfig.selectors`（键值一致，R-23 落地）；youmi/doudian 刻意不含 columns（A4 设计）；`selectors` 类型改 `dict[str, Any]`（承载 columns int 值）；代码 DEFAULT_SELECTORS 保留兜底，合并逻辑不变 → 行为零变化（测试验证合并结果==纯默认）；
+  ② **A2 有米云 URL 日期动态化**：config.boards[0].url_template 改 `startDate={start_date}&endDate={end_date}` 占位符；youmi.py 新增 `render_board_url`（str.replace 替换，end=当天、start=当天-lookback_days，`CollectorConfig.lookback_days` 默认 7 可配），导航处渲染；无占位符模板原样使用；
+  ③ **A3 抖店飙升榜 fixtures**：`fixtures/doudian.json` 已有「飙升榜」3 条样本（S3a 期间已落盘，本次核实未重复改），补单测验证 FixtureCollector.collect_board("飙升榜") 可回放；config 飙升榜 url_template 保持空（待登录态回填真实 URL）；
+  ④ **A4 动态列定位启用**：youmi.py/doudian.py `_locate_columns` 改为只认 `config.selectors.columns`（config 空/缺键 → 走动态表头定位，DEFAULT_SELECTORS.columns 不再短路）；config 配置 columns 时用配置值（保持现状）。
+- 测试：新增 `backend/tests/test_collector_config.py` **17 用例**（A1 迁移一致/columns 缺省/合并零变化/覆盖优先；A2 占位符替换/无占位符/lookback 边界/模板占位符化/采集器 goto 动态日期；A3 飙升榜回放/商品榜回归；A4 youmi+doudian 动态定位/配置覆盖/缺列报错）。sourcing 域全量 `python -m pytest tests/test_pricing.py ... tests/test_page_changed.py tests/test_collector_config.py -q --basetemp=".pytest-tmp-m1"` → **108 passed**（基线 91 + 新增 17，全绿）。
+- 行为保持确认：fixtures 模式不受影响（scheduler/pipeline fixtures 测试全绿；`python -m sourcing run-pipeline --mode fixtures --no-persist --no-quotes --top-n 10` 冒烟通过，采集 23 = opportunities 5 + youmi 7 + doudian 商品榜 8 + 飙升榜 3）。
+- 文档落盘：`context/selector-log.md` v1.1 —— 第 6 节 A1/A2/A4 标注「✅ 已完成（S3b）」、A3 标注「fixtures 已完成 / 真实 URL 待登录态回填」、A5/A6 保持「🔲 待登录态实测」；第 0/2/3 节陈旧描述同步更新。
+- 未改动：`config.py` 的 db_url / ad_data_max_age_days / ad_exchange_file；scoring.py / pipeline.py / tables.py / ad_backfill.py；未运行任何真实采集（collect --mode auto 留 S3c）；未运行 git 命令；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m1`（宪法第 12 节/P-001/P-011）。
+- 当前阻塞：无。
+
+---
+
+### 2026-08-29 ｜ M1 总工程师 ｜ M1 自动选品（m1-sourcing） ｜ 角色：总工（S3b 验收通过 · S3c 恢复）
+
+- 完成任务：① **S3b 验收通过**（子代理 45e06cf4，第 3 次尝试完成）——独立复跑 sourcing 域 13 文件 → **108 passed**（91 基线 + 17 新增 test_collector_config.py）；代码抽查：youmi.py `_locate_columns`（只认 config.selectors.columns，空→动态表头定位，处理 Element UI 重复表头 heads[:14]、列名匹配、缺 title 抛 PAGE_CHANGED）、AUTH_REQUIRED/VERIFICATION_REQUIRED/PAGE_CHANGED 错误分类完整；A1（selectors 5 来源迁移、类型 dict[str,Any] 承载 columns int、DEFAULT_SELECTORS 兜底合并不变）、A2（url_template 占位符 + render_board_url + lookback_days=7 可配，str.replace 防花括号异常）、A3（doudian.json 飙升榜 3 样本 + 单测）、A4（youmi/doudian 动态列定位复活）全部符合任务书；fixtures 行为不变（CLI 冒烟采集 23 含飙升榜）；selector-log.md v1.1（A1/A2/A4 ✅、A3 fixtures ✅/URL 🔲、A5/A6 待登录态）；② **S3c 恢复**（子代理 c73de00e，第 1 次中断零产出；S3b 验收后代码稳定，已发完整任务书恢复，含总控 5 条安全边界：≤50 条/源、throttle 0 级+熔断、日志脱敏、fixtures 对照、验证码即停转人工）；③ progress.md 更新（S3b 100%、完成度 **35%**、S3c 标注恢复执行中）。
+- 产出文件：S3b 产出 `backend/sourcing/config.py`（selectors 迁移+lookback_days）、`collectors/youmi.py`/`doudian.py`（A4）、`backend/tests/test_collector_config.py`（17 例）、`fixtures/doudian.json`（飙升榜）、`context/selector-log.md`（v1.1）；`progress.md` 更新。
+- 当前阻塞：无。待 S3c 完成通知 → 验收（读产出 + s3c.db 查证 + selector-log 实测小节）→ A5/A6 实测收敛 → 模块 v1.0 收官（progress 100% + 实现快照 + 台账）→ 通知总控备份。
+- 备注：未运行任何 git 命令；未读写其他模块库；临时验证全部走 .pytest-tmp-m1；全部文件经 write/edit 工具 UTF-8 无 BOM；无明文密钥。
+
+---
+
+### 2025 体系建立日（第 8 轮）｜ M3 总工程师 ｜ M3 自动素材优化 ｜ 角色：总工（v1.1-② 模板重训练数据驱动验收通过）
+
+- 任务来源：总控确认 v1.1-②（模板重训练数据驱动，样本闸门已就绪）并指示小步落盘；会话中断后续跑。
+- 完成任务：
+  ① **数据驱动链路测试**：新建 `backend/tests/test_optimization_retrain_driven.py`（2 用例）——M5 回写摄取（ingest_m5_record，v1.1-① 入口）→ opt_evaluation_feedback 积累 → `TemplateRetrainer.retrain_all`（样本闸门 min_samples=3、有效样本=曝光>0 或成交>0）→ opt_templates.stats_json / opt_category_memory.template_stats_json 落库 → `best_template_for_category` 决策；覆盖模板间 ROI 对比（avg_roi 2.75 vs 1.1）、零样本模板 skipped、空日不计样本、无训练数据 best_template=None；
+  ② **修复 1 个缺陷**：`ab/retrain.py::best_template_for_category` 原实现 0.0 > -1.0 会误选「第一个未训练模板」为最优 → 改为仅参与含 `avg_roi` 训练数据的模板（无训练数据返回 None），已记 decisions.md；
+  ③ **修复 2 个测试种子问题**：variant_no 解析错误（int('a')）、同商品 variant_no 唯一约束冲突（A/B 版本号商品内连续）；
+  ④ **验收**：`pytest tests/test_optimization_retrain_driven.py tests/test_optimization_ab.py -q --basetemp=".pytest-tmp-m3"` → **66 passed**（2+64，修复未破坏 ab 既有用例）；M3 全范围 → **305 passed, 1 skipped 全绿**；
+  ⑤ **全量观察（提请总控转达 M0）**：全量 1086 passed 中 2 个失败均属 **M0 foundation_security**——`test_redact_text_bearer_token` 稳定失败（redact_text 把 "Bearer <token>" 整体脱敏为 "*** ***"，断言期望保留 "Bearer" 字样，M0 实现/断言不一致，与 M3 零关联）；`test_no_plaintext_secret_in_outputs` 全量偶发（单独跑通过，顺序/并发相关）；M3 未触碰 foundation 任何文件。
+- 产出文件：`backend/tests/test_optimization_retrain_driven.py`（2 例）、`backend/optimization/ab/retrain.py`（best_template 修复）；`progress.md`（v1.1-② 勾选 100%、完成度 **95%**）；`decisions.md`（+联调摄取入口 + best_template 缺陷修复）；本日志追加条目。
+- 当前阻塞：无。v1.1 迭代项 ①② 完成；③④（上传真实化/真实 ffmpeg）依赖用户侧环境（待确认清单：小店账号、ffmpeg 安装）。
+- 备注：未运行任何 git 命令；未读写其他模块库（测试全内存库）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m3`（P-001/P-011）。

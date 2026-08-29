@@ -77,6 +77,13 @@
 - **边界**：S2/S4/S6（诊断优化记录/补贴统计/活跃上限）为投放业务专属规则，留在 M5 不清除。
 - **代码位置**：`backend/foundation/risk.py`（RiskEngine/rule_s1~s5/check_budget_triple/kill_switch_enabled/normalize_diagnosis）、`backend/tests/test_foundation_risk.py`（26 例）；M0 环境变量 `M0_KILL_SWITCH` + `app_config` 键（`risk.kill_switch`）为全停入口（A4 工程基座统一 .env.example）。
 
+## 工程基座（A4，v0.5）
+
+- **通用脱敏**（P-004）：`backend/foundation/security.py`——`redact_url`（URL 敏感查询参数值→***，键集 token/sec_uid/a_bogus/sign 等）/`redact_text`（URL+密钥键值+Bearer token+截断）/`redact_path`（@账号 段+键值+截断）；对齐 M2 语义、独立实现不依赖业务模块；任何日志/证据/evidence 写入前必须经本模块（宪法第 8 节第 5 条）。测试 `test_foundation_security.py` 11 例。
+- **默认库路径修正**：`FoundationConfig.db_url` 默认 `sqlite:///data/db/m0-foundation.db`（宪法第 4 节：backend/data/db/<模块>.db）；`M0_DB_URL` 可覆盖。
+- **环境变量模板**：`backend/.env.example`（全模块变量名+默认值+用途注释，**不含任何明文值**；复制为 .env 后填写，.env 不入 git）。
+- **巡检结论（M0 范围）**：foundation 包 grep 无硬编码 Windows 路径（C:\ / C:/）与密钥字面量（sk-xxx/api_key=xxx/secret=xxx）；此前发现的 `.exe` 匹配为 `execute` 误报；sourcing 便携 Chrome 路径为 02 文档已知项（M1 处理，`SOURCING_CHROME_PATH` 已环境变量化）。
+
 ## 环境事实
 
 - **运行时**：Python 3.12、FastAPI、SQLAlchemy 2.0、Playwright、ffmpeg（11 文档前置清单）

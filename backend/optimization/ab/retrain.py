@@ -189,7 +189,11 @@ class TemplateRetrainer:
         }
 
     def best_template_for_category(self, category: str) -> Optional[str]:
-        """读 stats_json，返回类目下平均 ROI 最高的模板（无训练数据 → None）。"""
+        """读 stats_json，返回类目下平均 ROI 最高的模板（无训练数据 → None）。
+
+        修复（v1.1-② 数据驱动链路测试暴露）：空 stats 的模板不参与决策——
+        原实现 0.0 > -1.0 会误选「第一个未训练模板」为最优。
+        """
         best: Optional[str] = None
         best_roi = -1.0
         with self.db.session() as s:
@@ -199,7 +203,10 @@ class TemplateRetrainer:
                 )
             ).scalars().all()
             for t in rows:
-                roi = float((t.stats_json or {}).get("avg_roi") or 0)
+                stats = t.stats_json or {}
+                if "avg_roi" not in stats:  # 无训练数据不参与
+                    continue
+                roi = float(stats.get("avg_roi") or 0)
                 if roi > best_roi:
                     best_roi = roi
                     best = t.template_id

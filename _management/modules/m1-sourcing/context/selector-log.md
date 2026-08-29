@@ -1,6 +1,6 @@
 # M1 自动选品 · 选择器校准记录（selector-log）
 
-> 版本：v1.0 ｜ 日期：体系建立日 ｜ 撰写：S3a 子代理（fixtures 对照，不依赖登录态）
+> 版本：v1.1 ｜ 初始撰写：S3a 子代理（fixtures 对照，不依赖登录态）｜ S3b 子代理（2026-08-29）实施 A1~A4 并更新状态
 > 目的：对照 `backend/sourcing/config.py` 与采集器代码 `backend/sourcing/collectors/*.py`，
 > 校准 5 个来源的 URL 模板 / 选择器配置 / fixtures 字段映射，登记「待实测项」——
 > 登录态就绪后在真实页面用 `inspect-page` 验证的选择器清单。
@@ -11,7 +11,7 @@
 
 ## 0. 全局结论（5 来源一致项）
 
-1. **`config.py` 中 5 个来源的 `selectors` 全部为空 dict（默认值）** —— 实际生效的选择器全部来自各采集器代码内置的 `DEFAULT_SELECTORS`（采集器构造时 `{**DEFAULT_SELECTORS, **config.selectors}` 合并，config 为空即纯用默认）。→ 选择器配置化**结构就位但尚未落地到 config**：任何平台改版仍要改代码而非只改配置（R-23 目标未完全达成）。
+1. **`config.py` 中 5 个来源的 `selectors` 已全部迁入（S3b/A1）** —— 与采集器内置 `DEFAULT_SELECTORS` 逐键一致（youmi/doudian 除 columns 外）；采集器构造时 `{**DEFAULT_SELECTORS, **config.selectors}` 合并，config 与默认同值 → 行为零变化。**改配置即可改选择器（R-23 完全落地）**；youmi/doudian 的 columns 刻意不进 config → 动态表头定位生效（A4）。
 2. 各采集器 `probe()` / 登录态 gate 均用 `selectors["login_gate"]` / `["verify_gate"]`（默认选择器），config 无覆盖。
 3. fixtures 字段结构（`fixtures/*.json`）与 `SourceItem` 字段一一对应（`platform_item_id/title/price/sales/rank/category/image_urls`，见 `collectors/fixtures.py collect_board`），**fixtures 模式与真实采集器的字段口径一致**（价格=元、销量=件，R-31 满足）。
 4. `detect_page_changed` 当前仅在 **youmi / alibaba / taobao** 三处被调用；**opportunities 用 row.count()==0、doudian 用 row.count()<2 替代**（各自语义见下）。
@@ -37,12 +37,12 @@
 
 ## 2. 有米云（youmi）
 
-- **URL 模板**（config.boards[0]）：`https://console.youshu.youcloud.com/goods/sale?site_id=10502&startDate=2026-08-22&endDate=2026-08-28`（商品榜，**日期参数硬编码在 config**，R-25 漂移点：日期会过期，需调度期动态生成）
+- **URL 模板**（config.boards[0]）：`https://console.youshu.youcloud.com/goods/sale?site_id=10502&startDate={start_date}&endDate={end_date}`（商品榜；**日期参数已占位符化，S3b/A2**：导航时按 lookback_days 动态生成，end=当天、start=当天-7，不再硬编码过期日期）
 - **config.selectors 键清单**：`（空）`
 - **采集器实际使用键**（`collectors/youmi.py` DEFAULT_SELECTORS）：`home_url`、`row`=`.el-table__body-wrapper tr`、`columns`={rank:0, title:1, price:5, sales:7}、`next_page`=`.el-pagination .btn-next, .el-pagination__next`、`login_gate`、`verify_gate`
 - **实际取数逻辑**：`_collect_from_page` 先查 login/verify gate → `detect_page_changed(page, [row])` → 逐行 `td` 按 columns 取数（cell 用 textContent 兼容 el-popover 隐藏标题）→ `parse_num` 支持 万/亿 → 翻页 `next_page` 最多 30 页。**注意：`_locate_columns` 的动态表头定位（未配置 columns 时）因 DEFAULT_SELECTORS 恒提供 columns 而成为死代码**——columns 固定 0/1/5/7，改版需改代码或 config。
 - **fixtures 字段映射**：全字段直接映射（youmi.json，含 `image_phash` 进 raw）。
-- **现状评估**：配置齐全（代码默认）；列索引为实测值（代码注释记录实测页面列：#(0) 商品(1) 价格(5) 新增销量(7) 累计销量(10)）；**URL 日期参数需动态化**；动态列定位分支被默认 columns 短路（潜在脆弱点）。
+- **现状评估**：配置齐全（代码默认）；列索引为实测值（代码注释记录实测页面列：#(0) 商品(1) 价格(5) 新增销量(7) 累计销量(10)）；**URL 日期参数已动态化（A2）**；动态列定位分支已启用（A4，config.selectors.columns 留空时按表头自动定位）。
 - **待实测项**（`inspect-page --source youmi`）：
   1. `console.youshu.youcloud.com/goods/sale` 打开后 `.el-table__body-wrapper tr` 是否命中；
   2. 列索引 title=1 / price=5 / sales=7 与真实表头顺序是否一致（重点：新增销量 vs 累计销量口径）；
@@ -58,8 +58,8 @@
 - **config.selectors 键清单**：`（空）`
 - **采集器实际使用键**（`collectors/doudian.py` DEFAULT_SELECTORS）：`home_url`、`row`=`.aurora-table-tbody tr`、`columns`={title:1, sales:5}、`next_page`=`.aurora-pagination-next, [class*='pagination'] [class*='next']`、`login_gate`、`verify_gate`
 - **实际取数逻辑**：查 login/verify gate → 改版检测用 **`row.count() < 2`（Aurora 首行是隐藏表头，不能用 is_visible，故未用 detect_page_changed）** → `_locate_columns`（同 youmi，默认 columns 短路动态定位，另 `setdefault("pay", 3)`）→ 逐行：跳过表头行（head0=="排名"）、title 取 col1、`price` 优先 `price_from_title`（标题「价格带 ¥XX」）否则 `parse_num(pay 列)`、sales=col5（成交件数，区间取最小）。
-- **fixtures 字段映射**：全字段直接映射（doudian.json；含「飙升榜」board 数据吗？doudian.json 仅「商品榜」——**飙升榜 fixtures 缺失**）。
-- **现状评估**：商品榜配置齐全（代码默认）；**飙升榜 URL 模板与 fixtures 数据均缺失**（board 存在但空转兜底）；Aurora 表格选择器 `.aurora-table-tbody tr` 为代码注释实测值，需真实验证。
+- **fixtures 字段映射**：全字段直接映射（doudian.json；含「商品榜」+「飙升榜」——**飙升榜 3 条样本已由 S3b/A3 补齐**，fixtures 采集器可回放）。
+- **现状评估**：商品榜配置齐全（代码默认）；**飙升榜 fixtures 数据已补全（S3b/A3），真实 URL 模板仍待登录态回填**（board 存在时 url_template 为空 → 回退 current_page 读当前页）；Aurora 表格选择器 `.aurora-table-tbody tr` 为代码注释实测值，需真实验证；动态列定位已启用（A4）。
 - **待实测项**（`inspect-page --source doudian`）：
   1. 商品榜页 `.aurora-table-tbody tr` count ≥ 2（含隐藏表头行）；
   2. 列索引 title=1 / sales=5 与真实表头顺序（排名/商品/店铺/支付金额/点击/成交件数/转化率）；
@@ -105,13 +105,17 @@
 
 ---
 
-## 6. 校准动作建议（待总工/后续任务处理，本任务未改代码）
+## 6. 校准动作建议（S3b 已实施 A1~A4；A5/A6 待登录态实测）
 
-| # | 动作 | 来源 | 说明 |
-|---|---|---|---|
-| A1 | config.selectors 迁移 | 全部 | 把 DEFAULT_SELECTORS 内容迁入 `config.py` 各来源 `selectors`（结构已就位，R-23 完全落地）；或至少在 README 标注「config 为空=用代码默认」 |
-| A2 | 有米云 URL 日期动态化 | youmi | `startDate/endDate` 硬编码 2026-08-22~28，需按调度日生成（模板参数化） |
-| A3 | 飙升榜 URL 补全 | doudian | config.boards[1].url_template 为空；登录态就绪后取真实地址回填 + fixtures 补「飙升榜」样本 |
-| A4 | 动态列定位死代码 | youmi/doudian | `_locate_columns` 的动态表头分支被 DEFAULT columns 短路；建议 config.selectors.columns 留空时允许动态定位（需小改代码，本次未动） |
-| A5 | 商机中心 price/sales/category 恒空 | opportunities | 与 fixtures 口径差异（R-25）；若真实页面有价格/销量列（如商机来源列含价格区间）需扩展 columns |
-| A6 | alibaba/taobao 宽泛选择器收敛 | alibaba/taobao | 登录态就绪后按 inspect-page 结果收窄（优先级最高） |
+> S3b（2026-08-29）已完成不依赖登录态的 4 项代码级动作：A1/A2/A3/A4，详见下方状态列。
+> 对应代码：`backend/sourcing/config.py`、`collectors/{youmi,doudian}.py`、`backend/fixtures/doudian.json`、
+> 新增测试 `backend/tests/test_collector_config.py`（17 用例，sourcing 域 108 全绿）。
+
+| # | 动作 | 来源 | 状态 | 说明 |
+|---|---|---|---|---|
+| A1 | config.selectors 迁移 | 全部 | ✅ 已完成（S3b） | 5 来源 DEFAULT_SELECTORS 逐键迁入 `config.py` 各来源 `selectors`（键值一致，R-23 落地）；youmi/doudian 刻意**不含 columns**（见 A4）；`CollectorConfig.selectors` 类型改为 `dict[str, Any]`（承载 columns int 值）；代码内 DEFAULT_SELECTORS 保留兜底，合并 `{**DEFAULT_SELECTORS, **config.selectors}` 不变 → 行为零变化（测试验证合并结果与纯默认一致） |
+| A2 | 有米云 URL 日期动态化 | youmi | ✅ 已完成（S3b） | config.boards[0].url_template 改为 `startDate={start_date}&endDate={end_date}` 占位符；采集器导航时 `render_board_url` 替换（end=当天、start=当天-lookback_days，`CollectorConfig.lookback_days` 默认 7 可配）；无占位符模板原样使用 |
+| A3 | 飙升榜 URL 补全 | doudian | ✅ fixtures 样本已完成 / 🔲 真实 URL 待登录态回填 | `fixtures/doudian.json` 已补「飙升榜」3 条样本（dd-101~103，字段与商品榜同构，fixtures 采集器可直接回放）；config.boards[1].url_template **保持空**——登录态就绪后从页面地址栏取真实地址回填 |
+| A4 | 动态列定位死代码 | youmi/doudian | ✅ 已完成（S3b） | `_locate_columns` 改为只认 `config.selectors.columns`（config 为空/缺键 → 走动态表头定位，DEFAULT_SELECTORS.columns 不再短路）；config 配置了 columns 时用配置值（保持现状）；mock 表头单测覆盖动态定位与配置覆盖 |
+| A5 | 商机中心 price/sales/category 恒空 | opportunities | 🔲 待登录态实测 | 与 fixtures 口径差异（R-25）；若真实页面有价格/销量列（如商机来源列含价格区间）需扩展 columns |
+| A6 | alibaba/taobao 宽泛选择器收敛 | alibaba/taobao | 🔲 待登录态实测 | 登录态就绪后按 inspect-page 结果收窄（优先级最高） |

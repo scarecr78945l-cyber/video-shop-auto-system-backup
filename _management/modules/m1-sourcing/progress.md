@@ -19,8 +19,8 @@
 | [x] S1b 打分扩展+白名单接线+m1 表（tables/pipeline/迁移/测试） | 子代理 58579182 | 100% | ✅ 验收通过（sourcing 62 passed；全量 331 passed / 4 failed 均为 M0 foundation 既有问题） |
 | [x] S2 投放转化回写：`ad_backfill.py` + CLI `ad-sync` + 单测 | 子代理 3e6fd497 | 100% | ✅ 验收通过（sourcing 域 85 passed 串行复跑；子代理自测全量 417 passed, 1 skipped） |
 | [x] S3a 探测+选择器校准（fixtures 对照，page_changed 单测） | 子代理 00389792 | 100% | ✅ 验收通过（91 passed；selector-log.md A1~A6 建议登记） |
-| [ ] S3b 校准动作实施（A1 config.selectors 迁移 / A2 有米云日期动态化 / A3 飙升榜 fixtures / A4 动态列定位） | 子代理 45e06cf4 | 已派发（中断 1 次，断点恢复中；A3 fixtures 已落盘） | 待完成验收 |
-| [ ] S3c 真实采集联调（三源真实入库 ≤50/源、节流熔断观察、日志脱敏、fixtures 对照、验证码即停） | 子代理 c73de00e | 已派发 | 执行中，待验收 |
+| [x] S3b 校准动作实施（A1 config.selectors 迁移 / A2 有米云日期动态化 / A3 飙升榜 fixtures / A4 动态列定位） | 子代理 45e06cf4 | 100% | ✅ 验收通过（108 passed = 91+17；selector-log v1.1） |
+| [ ] S3c 真实采集联调（三源真实入库 ≤50/源、节流熔断观察、日志脱敏、fixtures 对照、验证码即停） | 子代理 c73de00e | 已派发（中断 1 次零产出，待恢复） | S3b 已验收，代码稳定，恢复执行中 |
 | [ ] S4 联调与验收：M4/M5 交换联调、日有效候选≥200 度量、打分可解释抽查 | 总工 | 0% | 全部 |
 | [ ] S5 迭代：闸门放松、LLM 复核（可选）、PostgreSQL 迁移配合 | 总工 | 0% | 全部 |
 

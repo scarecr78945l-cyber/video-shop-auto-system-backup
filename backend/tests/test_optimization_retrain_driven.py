@@ -28,13 +28,14 @@ _TEMPLATES = [
     ("tpl_pet_v1", "宠物用品", "宠物模板"),
 ]
 
-# (variant_id, template_id, product_id, category)
+# (variant_id, template_id, product_id, category, variant_no)
+# 注意：variant_no 是「同商品 A/B 版本号」，商品内必须唯一（opt_video_variants 唯一约束）
 _VARIANTS = [
-    ("vv_h1a", "tpl_home_v1", "p_demo_001", "家居日用"),
-    ("vv_h1b", "tpl_home_v1", "p_demo_001", "家居日用"),
-    ("vv_h2a", "tpl_home_v2", "p_demo_001", "家居日用"),
-    ("vv_h2b", "tpl_home_v2", "p_demo_001", "家居日用"),
-    ("vv_p1a", "tpl_pet_v1", "p_demo_002", "宠物用品"),
+    ("vv_h1a", "tpl_home_v1", "p_demo_001", "家居日用", 1),
+    ("vv_h1b", "tpl_home_v1", "p_demo_001", "家居日用", 2),
+    ("vv_h2a", "tpl_home_v2", "p_demo_001", "家居日用", 3),
+    ("vv_h2b", "tpl_home_v2", "p_demo_001", "家居日用", 4),
+    ("vv_p1a", "tpl_pet_v1", "p_demo_002", "宠物用品", 1),
 ]
 
 # variant → (spend_cents, gmv_cents)：roi = gmv/spend
@@ -64,10 +65,10 @@ def rt_db(rt_cfg):
                 template_id=tid, category=cat, template_name=name,
                 opening_seconds=3,
             ))
-        for vid, tid, pid, cat in _VARIANTS:
+        for vid, tid, pid, cat, no in _VARIANTS:
             s.add(tables.OptVideoVariant(
                 variant_id=vid, product_id=pid, source_asset_id="a_src",
-                variant_no=int(vid[-1]) or 1, template_id=tid,
+                variant_no=no, template_id=tid,
                 template_params_snapshot={"category": cat},
                 file_path=f"fixtures/{vid}.mp4", spec_ok=1,
                 review_status="passed", upload_status="uploaded",

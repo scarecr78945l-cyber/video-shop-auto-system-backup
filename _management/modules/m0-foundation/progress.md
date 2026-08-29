@@ -26,14 +26,17 @@
 | [x] A3-1：风控规则引擎 `backend/foundation/risk.py`（通用四层防线，与 M5 stop_loss.py 同口径：金额分/ROI 浮点/枚举英文/纯函数 dict·ORM 兼容）——S7 `check_budget_triple` 预算三重硬约束（0=不限/多超限取首个）/S1 `rule_s1_stop_loss` 止损暂停/S3 `rule_s3_roi_floor` 连续 2 周期降档/S5 `rule_s5_balance` 余额检测/S8 `kill_switch_enabled` 一键全停（未识别字符串视为关）+ `normalize_diagnosis` + `RiskEngine.evaluate`（S8 短路→S7→S5→S1→S3，halt_all=S8|S5 对齐 M5） | 总工 | 100% | 无 |
 | [x] A3-2：风控单测 26 例（诊断枚举/四层防线各规则命中与边界/预算三重全分支/全停开启与防误触发/引擎短路·组合·全过·dict 输入）→ foundation 全量 **68 passed**（30+12+26） | 总工 | 100% | 无 |
 | [x] A3-3：M5 stop_loss.py 口径勘察 + 对齐预登记 decisions.md（S2/S4/S6 投放业务专属留 M5 不清除；M5 引用基座由总控协调） | 总工 | 100% | 无 |
-| [ ] 工程基座：环境变量化/脱敏巡检/.env.example/迁移脚本 | 总工/子代理 | 0% | 排期 A4/A5，下一步 |
+| [x] A4-1：通用脱敏基座 `backend/foundation/security.py`（redact_url/redact_text/redact_path，对齐 M2 语义 + Bearer token 增强；P-004）+ 脱敏单测 11 例（URL 参数掩码/键值掩码/Bearer/路径 @账号/空值/无明文审计） | 总工 | 100% | 无 |
+| [x] A4-2：默认库路径修正 `FoundationConfig.db_url` → `sqlite:///data/db/m0-foundation.db`（宪法第 4 节）+ `backend/.env.example` 模板（全模块变量名，无明文值）+ 硬编码巡检（foundation 无 C:\/C:/ 路径与密钥字面量，.exe 匹配为 execute 误报；sourcing Chrome 路径为 M1 已知项） | 总工 | 100% | 无 |
+| [x] A4-3：A4 落盘 context/README.md（工程基座小节：脱敏/默认路径/.env.example/巡检结论）→ foundation 全量 **79 passed**（30+12+26+11） | 总工 | 100% | 无 |
+| [ ] 工程基座 A5：SQLite→PostgreSQL 迁移脚本（迁移计划/方言差异/回滚方案） | 总工 | 0% | 排期 A5，下一步 |
 | [ ] 治理：数据字典定稿 + 跨模块契约会签 | 总工 | 0% | 排期 A6 |
 | [ ] 集成：与 M1~M5 联调 | 总工 | 0% | 排期 A7 |
 
 ## 里程碑进度
 
-- 本模块当前完成度：**50%**（筹备 15% + A1 队列基座 15% + A2 调度器 10% + A3 风控 10%；**里程碑 v0.4 达成：风控规则引擎可跑**——预算三重/止损/余额/一键全停全链可测，与 M5 同口径）
-- 距离目标还差：工程基座（A4/A5）→ 治理（A6）→ 集成（A7）
+- 本模块当前完成度：**60%**（筹备 15% + A1 15% + A2 10% + A3 10% + A4 10%；**里程碑 v0.5 达成：工程基座落地**——脱敏基座/默认库路径/.env.example 全绿）
+- 距离目标还差：迁移脚本（A5）→ 治理（A6）→ 集成（A7）
 
 ## 后续开发排期（可拆给子代理的任务标注 ✅）
 
