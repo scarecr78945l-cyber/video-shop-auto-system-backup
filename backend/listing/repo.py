@@ -19,6 +19,7 @@ from sqlalchemy.exc import IntegrityError
 from .db import ListingDatabase
 from .models import ListingOpLog, ListingTask, utcnow_iso
 from .tables import (
+    ListingCategoryMemoryRow,
     ListingOpLogRow,
     ListingQuotaStateRow,
     ListingSkuRow,
@@ -393,6 +394,119 @@ class ListingRepo:
             session.execute(stmt)
 
     # ------------------------------------------------------------ 行/模型转换
+
+    # ================== REC-融合 P0-1：上架类目记忆 ==================
+
+    DEFAULT_MANUAL_REVIEW_REJECT_RATE = 0.5  # 拒审率 ≥50% 转人工（可配置化）
+
+    def upsert_category_memory(
+        self,
+        category: str,
+        manual_pass_streak: int | None = None,
+        platform_image_rejection_streak: int | None = None,
+        required_fields: list[str] | None = None,
+        logistics_template: str | None = None,
+        return_address_rule: dict | None = None,
+    ) -> None:
+        """按类目 upsert 类目记忆（ON CONFLICT(category) DO UPDATE）。"""
+        now = utcnow_iso()
+        values: dict[str, Any] = {"updated_at": now}
+        if manual_pass_streak is not None:
+            values["manual_pass_streak"] = manual_pass_streak
+        if platform_image_rejection_streak is not None:
+            values["platform_image_rejection_streak"] = platform_image_rejection_streak
+        if required_fields is not None:
+            values["required_fields_json"] = json.dumps(required_fields, ensure_ascii=False)
+        if logistics_template is not None:
+            values["logistics_template"] = logistics_template
+        if return_address_rule is not None:
+            values["return_address_rule_json"] = json.dumps(return_address_rule, ensure_ascii=False)
+
+        stmt = sqlite_insert(ListingCategoryMemoryRow).values(category=category, **values)
+        update_cols = {k: getattr(stmt.excluded, k) for k in values}
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["category"], set_=update_cols
+        )
+        with self.database.session() as session:
+            session.execute(stmt)
+
+    def record_category_submission(self, category: str, rejected: bool) -> dict:
+        """提交/拒审计数累计；返回累计后的记忆 dict（供阈值判定）。"""
+        now = utcnow_iso()
+        with self.database.session() as session:
+            row = session.execute(
+                select(ListingCategoryMemoryRow).where(
+                    ListingCategoryMemoryRow.category == category
+                )
+            ).scalar_one_or_none()
+            if row is None:
+                row = ListingCategoryMemoryRow(
+                    category=category, submit_count=1,
+                    reject_count=1 if rejected else 0,
+                    manual_pass_streak=1 if not rejected else 0,
+                    platform_image_rejection_streak=1 if rejected else 0,
+                    updated_at=now,
+                )
+                session.add(row)
+            else:
+                row.submit_count += 1
+                if rejected:
+                    row.reject_count += 1
+                    row.platform_image_rejection_streak += 1
+                    row.manual_pass_streak = 0
+                else:
+                    row.manual_pass_streak += 1
+                    row.platform_image_rejection_streak = 0
+                row.updated_at = now
+            session.flush()
+            return {
+                "category": row.category,
+                "submit_count": row.submit_count,
+                "reject_count": row.reject_count,
+                "manual_pass_streak": row.manual_pass_streak,
+                "platform_image_rejection_streak": row.platform_image_rejection_streak,
+            }
+
+    def get_category_memory(self, category: str) -> dict | None:
+        """读取类目记忆（None=无记录）。返回含预填字段的 dict。"""
+        with self.database.session() as session:
+            row = session.execute(
+                select(ListingCategoryMemoryRow).where(
+                    ListingCategoryMemoryRow.category == category
+                )
+            ).scalar_one_or_none()
+            if row is None:
+                return None
+            return {
+                "category": row.category,
+                "manual_pass_streak": row.manual_pass_streak,
+                "platform_image_rejection_streak": row.platform_image_rejection_streak,
+                "required_fields": (
+                    json.loads(row.required_fields_json) if row.required_fields_json else []
+                ),
+                "logistics_template": row.logistics_template,
+                "return_address_rule": (
+                    json.loads(row.return_address_rule_json)
+                    if row.return_address_rule_json else None
+                ),
+                "submit_count": row.submit_count,
+                "reject_count": row.reject_count,
+                "updated_at": row.updated_at,
+            }
+
+    def should_manual_review_category(
+        self, category: str, reject_rate_threshold: float | None = None
+    ) -> bool:
+        """拒审率 ≥ 阈值（默认 0.5）或连续图片拒审 ≥3 → 该类目转人工复核。"""
+        memory = self.get_category_memory(category)
+        if memory is None:
+            return False
+        if memory["platform_image_rejection_streak"] >= 3:
+            return True
+        threshold = reject_rate_threshold or self.DEFAULT_MANUAL_REVIEW_REJECT_RATE
+        if memory["submit_count"] == 0:
+            return False
+        return (memory["reject_count"] / memory["submit_count"]) >= threshold
 
     @staticmethod
     def _to_row(task: ListingTask) -> ListingTaskRow:

@@ -276,3 +276,15 @@
 - **正式载体**：`_management/data-exchange/m2-m3-m4-relevance-gate.json`（字段契约 + 三态映射 + 判定输入样例，文件头待 M2/M3/M4 总工会签）。
 - **校验结果**：M3 侧 `RelevanceGate`（relevance.py + gate.py）22 用例全绿；M2 侧表结构/repo/service 11 用例全绿；验收命令 `pytest tests/test_optimization_review.py tests/test_materials_tables.py --basetemp=".pytest-tmp-migrate"` → **91 passed**；M3 全量 327 passed/1 skipped、M2 全量 329 passed/1 skipped（独立 basetemp，零回归）。
 - **总控核对结论**：（待总控核对字段/枚举/映射后填写；建议转达 M4 总工消费端接线）
+---
+
+## 第二波融合裁决（REC-融合-01~05，2026-08-29）
+
+> 来源：《旧系统第二波融合清单.md》（P0 四项与门禁 C1–C3 同批；P1 一批；P2 持续吸收）。已入库 v0.38。
+
+- **REC-融合-01**：P0-3 会话服务归 **M0**（公共会话服务），M1 collectors 依赖注入，不重复实现。
+- **REC-融合-02**：P0-2 规则草稿表 learning_rule_drafts 挂 **M0**（跨 M3/M4 使用），字段对齐 DA-008 命名纪律。
+- **REC-融合-03**：P1-5 ROI 计算口径——金额一律「分」int；退费率/佣金率默认与旧系统一致（10%/7%），配置化。
+- **REC-融合-04**：P1-4 学习资料仅作内部策略参考，不直接进商品图（版权合规）。
+- **REC-融合-05**：批次排期——P0 四项当前批（与 C1–C3 同批推进），P1 一批，P2 随知识库建设持续吸收。
+- **执行模式**：子代理环境不稳定，P0 由**总控直接编码**（fixtures 测试 ≥3 用例/项），完成后全量回归 + 标签备份。

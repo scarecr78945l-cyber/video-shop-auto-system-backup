@@ -174,6 +174,31 @@ class ErrorCode(Base):
     description: Mapped[str] = mapped_column(String(300), default="")
 
 
+class LearningRuleDraft(Base):
+    """REC-融合 P0-2：人审→规则草稿闭环（旧系统 learning_rule_drafts 迁移）。
+
+    人工审核决定（approve/reject + 理由）→ 沉淀为规则草稿 → 人工确认后生效
+    （status: draft → active）；草稿按 stage 聚类（素材规格/文案/主图/上架）。
+    规则文本 rule_text 为自然语言/JSON 规则描述，命中判定由对应模块实现。
+    """
+
+    __tablename__ = "learning_rule_drafts"
+    __table_args__ = (
+        UniqueConstraint("stage", "rule_key", name="uq_rule_draft_stage_key"),
+        Index("idx_rule_drafts_status", "status"),
+    )
+
+    draft_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    stage: Mapped[str] = mapped_column(String(40), nullable=False)  # 对齐 STAGE_VALUES 语义
+    rule_key: Mapped[str] = mapped_column(String(120), nullable=False)  # 规则标识（幂等键）
+    rule_text: Mapped[str] = mapped_column(Text, nullable=False)  # 规则描述（JSON/自然语言）
+    sample_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="draft")  # draft|active|rejected
+    evidence: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON 证据（含脱敏摘要）
+    created_at: Mapped[str] = mapped_column(String(40), nullable=False)
+    updated_at: Mapped[str] = mapped_column(String(40), nullable=False)
+
+
 # 任务阶段（09 文档第二节 stage 枚举；workflow_jobs/tasks.stage 共用）
 STAGE_VALUES: list[str] = [
     "source_collect",      # 选品采集（调度器驱动）

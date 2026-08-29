@@ -14,13 +14,14 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy import and_, or_, select
 
 from .db import Database
-from .tables import ErrorCode, WorkflowJob
+from .tables import ErrorCode, LearningRuleDraft, WorkflowJob
 
 # 人工接管类错误码 → 任务状态映射（10 文档：验证码/登录人工处理，单任务暂停不阻塞队列）
 _MANUAL_STATUS: dict[str, str] = {
@@ -222,3 +223,75 @@ class WorkflowQueue:
             for job in jobs:
                 session.expunge(job)
             return jobs
+
+    # ================== REC-融合 P0-2：人审→规则草稿闭环 ==================
+
+    def create_rule_draft(
+        self,
+        stage: str,
+        rule_key: str,
+        rule_text: str,
+        evidence: dict | None = None,
+    ) -> str:
+        """人工审核决定沉淀为规则草稿（幂等：同 stage+rule_key 只累计 sample_count）。"""
+        now = _utcnow().isoformat()
+        with self.database.session() as session:
+            row = session.execute(
+                select(LearningRuleDraft).where(
+                    LearningRuleDraft.stage == stage,
+                    LearningRuleDraft.rule_key == rule_key,
+                )
+            ).scalar_one_or_none()
+            if row is None:
+                import uuid
+                row = LearningRuleDraft(
+                    draft_id=f"rd-{uuid.uuid4().hex[:12]}",
+                    stage=stage,
+                    rule_key=rule_key,
+                    rule_text=rule_text,
+                    sample_count=1,
+                    status="draft",
+                    evidence=(
+                        json.dumps(evidence, ensure_ascii=False) if evidence else None
+                    ),
+                    created_at=now,
+                    updated_at=now,
+                )
+                session.add(row)
+                session.flush()
+                return row.draft_id
+            # 已存在草稿 → 累计样本（人工决定复现），不重复建
+            row.sample_count += 1
+            row.updated_at = now
+            return row.draft_id
+
+    def confirm_rule_draft(self, draft_id: str, action: str = "active") -> bool:
+        """人工确认草稿生效（draft → active）或驳回（draft → rejected）。"""
+        with self.database.session() as session:
+            row = session.get(LearningRuleDraft, draft_id)
+            if row is None or row.status != "draft":
+                return False
+            row.status = action if action in ("active", "rejected") else "active"
+            row.updated_at = _utcnow().isoformat()
+            return True
+
+    def list_rule_drafts(self, status: str | None = None, stage: str | None = None) -> list[dict]:
+        """列出规则草稿（draft 待确认 / active 已生效 / rejected 已驳回）。"""
+        with self.database.session() as session:
+            stmt = select(LearningRuleDraft).order_by(LearningRuleDraft.created_at.desc())
+            if status:
+                stmt = stmt.where(LearningRuleDraft.status == status)
+            if stage:
+                stmt = stmt.where(LearningRuleDraft.stage == stage)
+            rows = list(session.scalars(stmt).all())
+            return [
+                {
+                    "draft_id": r.draft_id,
+                    "stage": r.stage,
+                    "rule_key": r.rule_key,
+                    "rule_text": r.rule_text,
+                    "sample_count": r.sample_count,
+                    "status": r.status,
+                }
+                for r in rows
+            ]

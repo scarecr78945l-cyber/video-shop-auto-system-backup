@@ -175,3 +175,30 @@ class ListingQuotaStateRow(Base):
     window_start: Mapped[str] = mapped_column(String(40), nullable=False)
     consecutive_failures: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     circuit_open_until: Mapped[str | None] = mapped_column(String(40), nullable=True)
+
+
+class ListingCategoryMemoryRow(Base):
+    """REC-融合 P0-1 上架类目记忆（旧系统 category_listing_memory 迁移）。
+
+    语义：某类目历史人工通过后 → 上架包自动预填必填参数/物流模板/退货地址；
+    平台拒审率升高（连续拒审 streak / 拒审率阈值）→ 该类目转人工复核。
+    通用约定：金额分 int、时间戳 `_at` UTC、JSON 字段 TEXT（PG 迁移为 jsonb）。
+    """
+
+    __tablename__ = "listing_category_memory"
+    __table_args__ = (
+        UniqueConstraint("category", name="uq_cat_memory_category"),
+        Index("idx_cat_memory_streaks", "manual_pass_streak", "platform_image_rejection_streak"),
+    )
+
+    category: Mapped[str] = mapped_column(String(120), primary_key=True)
+    manual_pass_streak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    platform_image_rejection_streak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # JSON 文本：必填参数清单（与 C2 missing_field_labels 联动）/物流模板/退货地址规则
+    required_fields_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    logistics_template: Mapped[str | None] = mapped_column(Text, nullable=True)
+    return_address_rule_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # 拒审率统计（最近 N 次提交内）用于阈值判定
+    submit_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    reject_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    updated_at: Mapped[str] = mapped_column(String(40), nullable=False)
