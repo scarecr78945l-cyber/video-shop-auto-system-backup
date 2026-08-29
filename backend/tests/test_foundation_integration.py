@@ -173,17 +173,16 @@ def test_a7_full_loop_m1_m0_m4_m5_backfill(
     assert result.get("product_link"), "R22：listed 必须带真实链接证据"
     assert result["evidence"]["link_verified_at"], "R22：链接验证时间证据"
 
-    # ---- ③ M5 候选池：只读读出销售中商品
+    # ---- ③ M5 候选池：只读读出销售中商品（DA-009 已修复：M4 SPU/SKU 幂等落库 → 断言收紧）
     pool = CandidatePool(repo_listing)
     candidates = pool.get_sale_candidates()
     assert len(candidates) == 1
     cand = candidates[0]
     assert cand["product_id"] == product_id
     assert cand["product_link"]
-    # 集成缺口（DA-009，已提请总控转达 M4）：M4 pipeline 未将 SPU/SKU 落本模块库
-    # （listing_spus/listing_skus），title/category_id/price_min_cents/price_max_cents 恒 None——
-    # 商品级字段（product_id/product_link）闭环可用；价格/标题聚合待 M4 修复后启用断言。
-    assert cand["price_min_cents"] is None or cand["price_min_cents"] == 2990  # 金额分 int（DA-001）
+    assert cand["title"] == TITLE_OK            # 关联 listing_spus（DA-009 修复后非 None）
+    assert cand["category_id"] == 2001          # 类目 ID 正确
+    assert cand["price_min_cents"] == 2990 and cand["price_max_cents"] == 2990  # 金额分 int（DA-001）
 
     # ---- ④ M0 风控：预算三重/余额充足 → 不 halt；全停开启 → halt_all
     engine = RiskEngine()

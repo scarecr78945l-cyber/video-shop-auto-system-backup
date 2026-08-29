@@ -36,11 +36,12 @@
 | [x] A6-2：**A6 六方会签销项**（DA-008，M0/M1/M2/M3/M4/M5 全部确认 + 总控裁决 REC-009~011）——M5 已完成风控基座引用（stop_loss.py import foundation.risk，158 passed）；M3/M4 当场修正（金额分直存/evaluation 枚举统一/PAGE_CHANGED 对齐）；M2 指纹口径确认（安全指纹 SHA-256、去重指纹 MD5+phash）；M1 app_config 键对齐待执行（category.whitelist） | 总工 | 100% | 无 |
 | [x] A7-1：跨模块集成冒烟 `backend/tests/test_foundation_integration.py`（3 例，mock/fixtures、临时库隔离）——M1 商品池→M0 队列（入队/claim/complete）→M4 上架（listed+R22 链接证据）→M5 候选池→M0 风控（预算三重/余额/全停）+脱敏→M5 回写 C-2→M1 ad_backfill 导入（m1 cache 落库）全闭环跑通 | 总工 | 100% | 无 |
 | [x] A7-2：联调发现登记 DA-009（M4 pipeline 未落 SPU/SKU 本库 → 候选池 title/category/价格恒 None，提请总控转达 M4 修复；冒烟商品级字段断言已通过） | 总工 | 100% | 无 |
+| [x] A7-3（收官）：M4 DA-009 修复后**收紧集成断言**（候选池 title/category_id/price_min·max_cents 改为「非 None 且正确」）→ `test_foundation_integration.py` **3 passed** + foundation 全量 **82 passed** 全绿 | 总工 | 100% | 无 |
 
 ## 里程碑进度
 
-- 本模块当前完成度：**90%**（筹备 15% + A1 15% + A2 10% + A3 10% + A4 10% + A5 10% + A6 10% + A7 10%；**里程碑 v0.7 达成：六方会签销项 + 跨模块集成冒烟跑通**——M1→M0→M4→M5→回写闭环全绿）
-- 距离目标还差：M4 候选池价格缺口修复（DA-009，外部依赖）→ 体系级全量回归（总控）→ M0 模块收官（100%）
+- 本模块当前完成度：**100%**（筹备 15% + A1 15% + A2 10% + A3 10% + A4 10% + A5 10% + A6 10% + A7 20%；**里程碑 v1.0 达成：M0 模块级收官**——基座/队列/调度/风控/脱敏/迁移/会签/集成闭环全部完成，foundation 82 passed）
+- 距离目标还差：体系级全量回归（总控 `.pytest-tmp-verify`）→ 最终备份；外部跟进项：M1 app_config 键对齐（category.whitelist，M1 执行）
 
 ## 后续开发排期（可拆给子代理的任务标注 ✅）
 

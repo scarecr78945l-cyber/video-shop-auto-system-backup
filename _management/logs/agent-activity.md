@@ -1151,3 +1151,17 @@
 - 产出文件：`backend/listing/repo.py`（+upsert_spu/upsert_skus/get_spu/get_skus）、`backend/listing/pipeline.py`（+落库接线）、`backend/tests/test_listing_pipeline.py`（+断言）、`backend/tests/test_listing_candidate_pool.py`（+1 端到端用例）；`progress.md`（+DA-009 修复记录、测试数 132）、`decisions.md`（+D13）；本日志追加条目。
 - 当前阻塞：无。**M4 侧 DA-009 修复完成，可通知 M0 收紧集成冒烟断言**（候选池 title/category/价格断言可从「恒 None」改为「非 None 且正确」）并完成模块收官；M4 全量 132 passed。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写任何明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m4`（P-001/P-011）。
+
+---
+
+### 2026-08-29 ｜ M0 总工程师 ｜ m0-foundation ｜ 角色：总工（A7 收官 · M0 模块级收官 v1.0）
+
+- 任务来源：M4 DA-009 修复完成（SPU/SKU 幂等落库，M4 全量 132 passed），总控指示收紧断言并模块收官。
+- 完成任务：
+  ① **收紧集成断言**（test_foundation_integration.py ③ 候选池）：title/category_id/price_min·max_cents 从「允许恒 None」改为 **「非 None 且正确」**（title==TITLE_OK、category_id==2001、price==2990 分）——DA-009 修复生效验证；
+  ② **验收**：`python -m pytest tests/test_foundation_integration.py -q --basetemp=".pytest-tmp-m0"` → **3 passed**；foundation 全量（integration+security+risk+scheduler+queue+tables）→ **82 passed** 全绿；
+  ③ **模块收官**：progress.md（A7-3 勾选、完成度 **100%**、v1.0 里程碑）；brief.md（+实现快照第五节：代码/测试/里程碑达成/外部跟进项）；decisions.md（+收官决策）；本日志追加条目。
+- 产出文件：`backend/tests/test_foundation_integration.py`（断言收紧）；`progress.md`（100%、v1.0）；`brief.md`（+实现快照）；`decisions.md`（+1 条）；本日志追加条目。
+- 里程碑：**v1.0 达成：M0 模块级收官**——A1~A7 全部验收（共享基座/队列/调度进程化/风控引擎/工程基座/迁移脚本/六方会签/集成闭环），foundation 82 passed；M5 风控基座引用、M4 DA-009 修复均已完成闭环。
+- 当前阻塞：无。**请总控执行体系级全量回归（`.pytest-tmp-verify`）并提交最终备份**；外部跟进项：M1 app_config 键对齐已由 M1 执行（REC-010，M1 v1.0 收官）。
+- 备注：未运行任何 git 命令；未读写其他模块库（M4 代码仅冒烟测试 import 调用）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m0`（P-001/P-011）；foundation 现有 **82 测试**（表/队列 30 + 调度 12 + 风控 26 + 脱敏 11 + 集成 3）。

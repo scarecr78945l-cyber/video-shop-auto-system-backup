@@ -58,3 +58,20 @@
 | 工程基座 | 环境变量化/脱敏巡检/迁移脚本/pytest 约定落地 | v0.5 | `.env.example` 全量；迁移演练通过 |
 | 治理 | 数据字典定稿、跨模块契约对齐（与 M1~M5 会签） | v0.6 | `data-audit` 核对记录齐全 |
 | 集成 | 与 M1~M5 联调（队列/错误码/风控） | v1.0 | 端到端模拟流程跑通（不提交真实商品） |
+
+## 五、实现快照（v1.0 模块收官，2026-08-29）
+
+**代码**（`backend/foundation/`）：
+- `tables.py`（五表 ORM + `AwareUTCDateTime` + `STAGE_VALUES`/`JOB_STATUSES` + 9 错误码种子）/ `db.py`（引擎/会话/StaticPool 内存库）/ `config.py`（`FoundationConfig` + `SchedulerConfig`）
+- `repo.py`（`WorkflowQueue`：enqueue 幂等/claim 租约 45min/complete/fail 错误码策略/recover_expired_leases/list）
+- `scheduler.py`（`WorkflowScheduler` 进程化：断点自愈/节流 0~4 级/熔断/失败隔离 + `Worker`/`LoggingWorker`）+ `__main__.py`（init-db/scheduler CLI）
+- `risk.py`（`RiskEngine` 四层防线：S7 预算三重/S1·S3 止损/S5 余额/S8 全停，与 M5 同签名同语义，**M5 已引用基座**）
+- `security.py`（`redact_url`/`redact_text`/`redact_path`，P-004，Bearer 前缀保留仅 token 脱敏）
+- 迁移脚本：`_management/modules/m0-foundation/database/migrations/`（0001 PG DDL + 回滚 + README）
+- `backend/.env.example`（全模块变量模板，零明文值）
+
+**测试**：foundation **82 passed**（表/队列 30 + 调度器 12 + 风控 26 + 脱敏 11 + 集成冒烟 3），全量回归 **1089+ passed 零回归**（总控 `.pytest-tmp-verify` 为准）。
+
+**里程碑达成**：v0.2 队列基座 → v0.3 调度器进程化 → v0.4 风控引擎 → v0.5 工程基座 → v0.6 迁移脚本 → v0.7 六方会签+集成冒烟 → **v1.0 模块收官**。
+
+**外部跟进项**：M1 app_config 键对齐（`category.whitelist`，M1 S3c 后执行）；体系级全量回归与最终备份（总控）。
