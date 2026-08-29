@@ -233,3 +233,29 @@
 - **建议修复（M4 侧）**：pipeline 在 `create_spu`/`create_skus` 成功后将结果落 `listing_spus`（task_id/spu_id/title/category_id）+ `listing_skus`（spu_id/price_cents/product_sku_code）本库；M4 测试补充候选池价格聚合断言。
 - **状态**：**已提请总控转达 M4 总工**；M0 冒烟测试已标注缺口断言（`price_min_cents is None or == 2990`），M4 修复后可收紧。
 - **总控核对结论**：（待填）
+---
+
+## 旧系统门禁迁移裁决与派工（REC-迁移-01~04）
+
+> 来源：独立分析会话对旧系统 `E:\视频号上架系统\视频号上架系统` 的逆向分析（2026-08-29 入库 v0.38）。清单：`_management/data-exchange/旧系统门禁迁移清单.md`；资产：`old-system-assets/` 7 规则 JSON。旧系统门禁约七成已被新系统吸收，**3 个实缺口（C1/C2/C3）待迁移**。
+
+### REC-迁移-01 ｜ C1 鞋服/包类硬拦词表 → M1（批准）
+- 词表进配置（`hard-block-policy.json` 挂为 sourcing compliance 配置，JSON 配置化不硬编码）；实现 `_apparel_excluded` 同语义判定（命中 + 非安全上下文 → hard_reject）；fixtures 用例覆盖 4 场景（鞋服词→拒/衣架洗衣机→放行/包词→拒/垃圾袋收纳袋→放行）。
+
+### REC-迁移-02 ｜ C2 1688 客服补参闭环 → M1 + M4（批准）
+- M1 alibaba 采集结果保留 `missing_attrs` 字段（对照 `listing-requirements.json` missing_field_labels）；M4 上架包校验新增 `attrs_complete` 门禁（缺参 → 禁止提交并列出缺项）；客服补参为人工/半自动环节（OpenAPI 主链路人工补填，Playwright 兜底保留自动问客服）。
+
+### REC-迁移-03 ｜ C3 素材相关性门 → M2 + M3 + M4（批准）
+- **不做独立 stage worker**（避免打乱 stage 链）；作为 M2 入库质量门 + M4 候选池前置校验；M3 复用 `optimization/review/gate.py` 框架新增 `relevance` 审核类型（Qwen-VL 判定 + 款式聚类）；规则保留「多款式聚类 → 人工确认目标款，禁止自动创建衍生商品」。
+
+### REC-迁移-04 ｜ 词表唯一权威（批准）
+- 新系统 compliance 现有词表与旧系统全量词表合并为**唯一权威词表 JSON**（`old-system-assets/compliance-words.json` 为基准源），后续由人工/LLM 维护；error-codes/pricing-ladder/scheduler-params/scoring-model 作为对照存档（A 类已套用项）。
+
+### 派工清单
+| 缺口 | 模块 | 任务 | 验收 |
+|---|---|---|---|
+| C1 | M1 | 鞋服/包词表配置化 + _apparel_excluded + fixtures 4 场景 | fixtures 用例全绿 |
+| C2 | M1+M4 | missing_attrs 字段 + attrs_complete 门禁 | listing_gate 新增 gate 项测试 |
+| C3 | M2+M3+M4 | 入库质量门 + relevance 审核类型 + 候选池前置校验 | fixtures 3 场景（相关放行/不相关拒/多款式人工） |
+
+> 迁移完成后：新系统全量 1093 passed 不回归；新增 C1/C2/C3 fixtures 用例；旧系统 534 用例门禁断言作为规则覆盖率参照。
