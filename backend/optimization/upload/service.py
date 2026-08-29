@@ -64,7 +64,7 @@ class UploadResult(BaseModel):
 
     status: str = "failed"                    # success / failed / waiting_manual
     platform_material_id: str = ""
-    platform_evaluation: str = "exploration"  # 平台评估标签（探索期起步，06 文档）
+    platform_evaluation: str = "exploring"  # 平台评估标签（探索期起步，06 文档；M2/M5 共口径 DA-008）
     error_code: str = ""                      # 复用 WorkflowJob 错误码表
     evidence: dict[str, Any] = Field(default_factory=dict)
 

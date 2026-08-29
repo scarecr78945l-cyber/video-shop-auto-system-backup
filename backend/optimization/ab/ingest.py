@@ -15,7 +15,7 @@
 - ``orders``：成交单数（可选，缺省 0）；
 - ``diagnosis``：M5 中文枚举（优秀/良好/1项待优化/N项待优化）→ ab.scoring 兼容。
 
-换算规则：``spend_yuan = spend_cents / 100``；``roi = gmv_cents / spend_cents``
+换算规则：``spend 存储单位 = 分``（DA-001/DA-008，spend_cents 直存不换算）；``roi = gmv_cents / spend_cents``
 （spend>0，否则 0）。platform_material_id 反查不到本地版本 → 不落库，
 返回 unmatched（失败隔离，不阻塞批次其他记录）。
 """
@@ -60,7 +60,7 @@ def ingest_m5_record(
         str(record.get("report_date") or ""),
         exposure=record.get("impressions") or 0,
         clicks=record.get("clicks") or 0,
-        spend=spend_cents / 100.0,          # DA-001：分 → 元
+        spend=float(spend_cents),           # DA-001/DA-008：金额单位「分」int，直存不换算
         orders=record.get("orders") or 0,
         roi=roi,
         diagnosis=diagnosis,                # 字典形状，scoring 兼容

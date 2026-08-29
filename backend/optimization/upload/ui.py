@@ -302,7 +302,7 @@ class UiUploader(UploadService):
             result = UploadResult(
                 status="success",
                 platform_material_id=mid,
-                platform_evaluation="exploration",
+                platform_evaluation="exploring",
                 evidence={
                     **base,
                     "flow": flow,

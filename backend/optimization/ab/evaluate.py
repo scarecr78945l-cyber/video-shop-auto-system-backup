@@ -193,7 +193,7 @@ class EvaluationService:
     # ---------- 读 ----------
 
     def latest(self, variant_id: str) -> Optional[dict[str, Any]]:
-        """最新回写快照（无数据 → None，排序层按 0 分 / exploration 处理）。"""
+        """最新回写快照（无数据 → None，排序层按 0 分 / exploring 处理）。"""
         return self.repo.latest_by_variant(variant_id)
 
     def latest_map(self, variant_ids: list[str]) -> dict[str, dict[str, Any]]:

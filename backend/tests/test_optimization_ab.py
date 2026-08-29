@@ -114,7 +114,7 @@ def _add_variant(
     platform_material_id: str = "",
     category: str = "家居日用",
     snapshot: dict | None = None,
-    evaluation: str = "exploration",
+    evaluation: str = "exploring",
     spec_ok: bool = True,
 ) -> str:
     overrides = params or {}
@@ -296,7 +296,7 @@ class TestLabels:
     def test_exposure_no_orders_potential(self):
         assert label_for(1000, 10, 50, 0, 0.0, {}) == POTENTIAL
 
-    def test_low_data_exploration(self):
+    def test_low_data_exploring(self):
         # exposure=99 < min_exposure=100 → 探索期
         assert label_for(99, 5, 10, 0, 0.0, {}) == EXPLORATION
         assert label_for(99, 5, 10, 3, 1.5, {}) == EXPLORATION
@@ -305,7 +305,7 @@ class TestLabels:
         # exposure=100 恰达阈值 → 有曝光无成交 → 潜力
         assert label_for(100, 5, 10, 0, 0.0, {}) == POTENTIAL
 
-    def test_no_data_exploration(self):
+    def test_no_data_exploring(self):
         assert label_for(0, 0, 0, 0, 0.0, {}) == EXPLORATION
         assert label_for(None, None, None, None, None, {}) == EXPLORATION
 
@@ -446,7 +446,7 @@ class TestEvaluationService:
         assert latest["score"] == pytest.approx(0.99)
         assert latest["evaluation"] == HIGH_EFFICIENCY
 
-    def test_no_data_score_zero_exploration(self, db, ranker):
+    def test_no_data_score_zero_exploring(self, db, ranker):
         _add_variant(db, "p1", 1, platform_material_id="pm_1")
         rows = ranker.rank_for_product("p1")
         assert rows == [("vv_p1_1", "pm_1", EXPLORATION, 0.0)]
@@ -531,7 +531,7 @@ class TestRanking:
             assert isinstance(row[3], float)
 
     def test_unknown_evaluation_sorted_last(self):
-        # 未知标签按探索期桶处理（rank=2），且分数更低时排在 exploration 之后
+        # 未知标签按探索期桶处理（rank=2），且分数更低时排在 exploring 之后
         items = [
             ("a", "pm", "bogus", 0.1),
             ("b", "pm", HIGH_EFFICIENCY, 0.1),

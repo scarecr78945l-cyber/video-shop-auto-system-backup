@@ -1066,3 +1066,17 @@
 - 产出文件：`_management/logs/data-audit.md`（+DA-008）；`progress.md`（A6-1 登记 30%、A7 标注待 A6 会签完成）；本日志追加条目。
 - 当前阻塞：无（等待型）。**请总控转达 M1~M5 总工会签**（DA-008 核对项清单），各方确认回传后 M0 完成会签（更新 progress.md/decisions.md，A6 销项）并推进 A7 集成联调。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM。
+
+---
+
+### 2025 体系建立日 ｜ M5 总工程师 ｜ M5 自动小店投放（商品托管） ｜ 角色：总工（DA-008 会签确认 + 风控基座引用完成）
+
+- 任务来源：M0 基座 A6 数据字典会签（DA-008）+ 总控「风控共享规则引用基座」指示。
+- 完成任务：
+  ① **A6 会签确认（3 项全部确认）**：金额分 int / 时间 UTC（`_at`）/ 主键自增 / 枚举 snake_case 英文——M5 已符合（ad_* 五表金额 Integer 分、时间戳 `_at` UTC、枚举英文存储）；ad_* 口径确认；app_config 只读确认（`ads/repo.py` 仅 read_app_config 原生 SQL 只读）；
+  ② **风控共享规则引用基座（v1.1 改造）**：`backend/ads/stop_loss.py` 改为 `from foundation.risk import (...)`——S1（rule_s1_stop_loss）/ S3（rule_s3_roi_floor）/ S5（rule_s5_balance）/ S7（check_budget_triple）/ S8（kill_switch_enabled）+ normalize_diagnosis + RuleVerdict/BudgetVerdict/EngineResult 数据类型全部指向 M0 基座（import 断言 `is` 同一对象通过），**删除 M5 自有重复实现**；业务专属 **S2（诊断优化记录）/ S4（平台补贴记录）/ S6（活跃数上限）与 StopLossEngine 编排（含 subsidy_only_report/_resolve_budget 三形状）保留**（基座不含，docstring 注明 DA-008）；
+  ③ **验收**：import 冒烟（BASE-REF OK：S1/S3/S5/S7/S8 + dataclasses → foundation.risk；S2/S4/S6 retained）；定向 `pytest tests/test_ads_stop_loss.py -q --basetemp=".pytest-tmp-m5"` → **28 passed**；全 ads 套件 7 文件 → **158 passed**（零回退）；
+  ④ **落盘**：`data-audit.md` +DA-008 M5 会签确认（3 项确认 + 补充口径登记）；`decisions.md` +D-M5-09（基座引用决策）；`progress.md` +v1.1 迭代（3 项全勾选、里程碑更新）。
+- 产出文件：`backend/ads/stop_loss.py`（基座引用改造）；`_management/logs/data-audit.md`（+DA-008 M5 会签）；`_management/modules/m5-ads/decisions.md`（+D-M5-09）、`progress.md`（v1.1）；本日志追加条目。
+- 当前阻塞：无。M5 侧 DA-008 会签完成并回传 M0（风控基座引用已执行并通过 158 全量验证）；A7 集成联调待总控推进（M5 代码 v0.1~v1.1 全部完成，真实实投依赖登录态/账号/余额/素材/实机探针就绪）。
+- 备注：未运行任何 git 命令；未读写其他模块库（foundation/risk.py 仅只读 import 引用）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m5`（P-001/P-011）。

@@ -85,7 +85,7 @@ def test_end_to_end_pipeline(e2e_cfg, e2e_db, tmp_path):
         assert row["variant_no"] >= 1
         assert row["spec_ok"], row.get("spec_check_json")
         assert row["review_status"] == "pending"
-        assert row["evaluation"] == "exploration"
+        assert row["evaluation"] == "exploring"
     variant_ids = [r["variant_id"] for r in variants]
 
     # ---------- ③ 审核闸门（规则/评估/抽检 0%，干净素材全过） ----------
@@ -116,15 +116,15 @@ def test_end_to_end_pipeline(e2e_cfg, e2e_db, tmp_path):
         exposure=1000, clicks=120, spend=50.0, orders=10, roi=2.5,
         diagnosis={"score": 90},
     )
-    # v2 无回写 → exploration 排最后
+    # v2 无回写 → exploring 排最后
     ranker = MaterialRanker(e2e_db)
     ranked = ranker.rank_for_product(product_id)
     assert len(ranked) == len(variant_ids)
     order_vals = [EVALUATION_ORDER[it[2]] for it in ranked]
     assert order_vals == sorted(order_vals), f"排序必须 高效>潜力>探索期：{ranked}"
-    assert ranked[-1][2] == "exploration"
+    assert ranked[-1][2] == "exploring"
     assert ranked[-1][0] == variant_ids[1]
-    assert ranked[0][2] in ("high_efficiency", "potential")
+    assert ranked[0][2] in ("efficient", "potential")
 
     # ---------- ⑤ 上传素材库（api mock 拿 platform_material_id） ----------
     demo_file = tmp_path / "demo_video.mp4"

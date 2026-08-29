@@ -114,7 +114,7 @@ class ApiUploader(UploadService):
                 resp.get("platform_material_id")
                 or deterministic_material_id(str(file_path), meta or {})
             )
-            evaluation = str(resp.get("platform_evaluation") or "exploration")
+            evaluation = str(resp.get("platform_evaluation") or "exploring")
             result = UploadResult(
                 status="success",
                 platform_material_id=mid,
@@ -194,6 +194,6 @@ class ApiUploader(UploadService):
                 str(payload.get("file_path") or ""),
                 dict(payload.get("material") or {}),
             ),
-            "platform_evaluation": "exploration",
+            "platform_evaluation": "exploring",
             "mock": True,
         }

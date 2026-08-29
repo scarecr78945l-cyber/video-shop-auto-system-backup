@@ -192,3 +192,16 @@
 
 ### 会签状态
 - ✅ 已确认：M0（基准定稿）、M1、M2、M4 ｜ ⏳ 待确认：M3、M5（M5 含风控基座引用任务）
+
+---
+
+### DA-008 ｜ M5 会签确认（2025 体系建立日 ｜ M5 总工）
+
+按 M5 分模块核对项（DA-008 第 132 行）逐条确认（已核实 `backend/ads/` 实现）：
+
+1. **风控共享规则引用基座 —— ✅ 已执行（v1.1 改造完成）**：`backend/ads/stop_loss.py` 已改为 **import M0 基座 `foundation.risk`** 替换自有实现——S1（rule_s1_stop_loss）/ S3（rule_s3_roi_floor）/ S5（rule_s5_balance）/ S7（check_budget_triple）/ S8（kill_switch_enabled）+ normalize_diagnosis + RuleVerdict/BudgetVerdict/EngineResult 数据类型全部指向基座（import 断言 `sl.rule_s1_stop_loss is fr.rule_s1_stop_loss` 等通过）；**业务专属 S2（诊断优化记录）/ S4（平台补贴记录）/ S6（活跃数上限）与 StopLossEngine 编排保留本模块**（基座不含，文档注明）。改造后定向 `pytest tests/test_ads_stop_loss.py -q --basetemp=".pytest-tmp-m5"` → **28 passed**；全 ads 套件 7 文件 → **158 passed**（零回退）。
+2. **ad_* 表金额分 int / 时间 _at UTC —— ✅ 确认**：ad_campaigns/ad_runs/ad_report_snapshots/ad_account_states/ad_materials 金额字段（spend/gmv/platform_subsidy/balance）全部 Integer 分；时间戳 `_at` 后缀 DateTime(timezone=True)+utcnow（UTC 存储，展示转 UTC+8）；主键自增 INTEGER。
+3. **app_config 只读 —— ✅ 确认**：`ads/repo.py` 仅 `read_app_config`（原生 SQL 只读，本模块库无此表时返回 default 不抛错），禁止 INSERT/UPDATE（宪法第 4 节）。
+4. **补充口径登记**：枚举存储英文（status=pending/active/paused/not_eligible/ended；evaluation=exploring/efficient/potential 与 M2/M3 共口径；诊断 excellent/good/optimize_1/optimize_n），动作枚举 pause/halt_new/stop_new/degrade_material/record_optimization/record_subsidy/halt_all；错误码使用 09 码表（含 PAGE_CHANGED 扩展码，M5 executor/report 使用）——与 M0 基准一致。
+
+**结论：M5 会签确认（3 项全部确认，其中第 1 项风控基座引用已执行完毕并通过 158 全量验证）。** 回传 M0；同意推进 A7 集成联调（M5 侧 v0.1~v1.0 代码全部完成，mock 模式全链路可测；真实实投依赖登录态/账号/余额/素材/实机探针就绪）。佐证：`backend/ads/stop_loss.py`（基座引用）、`ads/repo.py`（app_config 只读）、`ads/tables.py`（5 表 DDL）。

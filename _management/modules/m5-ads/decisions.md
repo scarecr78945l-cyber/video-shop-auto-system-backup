@@ -12,3 +12,4 @@
 | 2025 体系建立日 | D-M5-06：`ad_report_snapshots` 以 `(campaign_id, recorded_at)` 唯一约束实现幂等 upsert（同周期只保留最新快照） | 回读重试/断点续跑不产生重复快照；报表口径稳定 | 应用层去重 | 总工 |
 | 2025 体系建立日 | D-M5-07：v0.3 执行层（Playwright）先做**抽象接口 + fixtures 模拟**，真实 UI 依赖登录态与实机探针（总控待用户确认清单） | 无登录态/无实机时开发与测试不阻塞；接口稳定后接真实适配器 | 等登录态就绪再开发 | 总工（遵循总控指示） |
 | 2025 体系建立日 | D-M5-08：`normalize_diagnosis` 英文枚举**幂等原样返回**（report.py 与 stop_loss.py 统一口径；excellent/good/optimize_1/optimize_n/unknown 输入输出不变） | v0.4 集成交叉断言发现两模块英文输入行为不一致（report 原「英文→unknown」、stop_loss 幂等）；统一为幂等防已归一化快照回流丢失枚举 | report 保持 unknown / 两模块都 unknown | 总工（集成修整） |
+| 2025 体系建立日 | D-M5-09：**风控共享规则引用 M0 基座**（DA-008 会签，v1.1）——stop_loss.py 的 S1/S3/S5/S7/S8 + normalize_diagnosis + RuleVerdict/BudgetVerdict/EngineResult 一律 `from foundation.risk import ...`（同签名同语义，以基座为准），删除自有实现；业务专属 S2/S4/S6 与 StopLossEngine 编排保留；改造后定向 28 + 全 ads 套件 158 passed 零回退 | 总控裁决共享规则以基座为准（避免多模块各自实现口径漂移）；M0 foundation/risk.py 为四层资金防线权威实现 | 保留 M5 自有实现 | 总工（遵循总控 DA-008 裁决） |

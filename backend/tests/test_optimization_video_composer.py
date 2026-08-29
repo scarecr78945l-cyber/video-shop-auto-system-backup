@@ -341,7 +341,7 @@ class TestComposer:
             assert r["spec_ok"] is True
             assert r["compliance_json"]["subtitle"]["passed"] is True
             assert r["compliance_json"]["subtitle"]["rejected"] == []
-            assert r["evaluation"] == "exploration"
+            assert r["evaluation"] == "exploring"
             assert r["upload_status"] == "local"
             assert r["review_status"] == "pending"
             assert str(r["file_path"]).endswith(".mp4")
@@ -380,7 +380,7 @@ class TestComposer:
             match = next(s for s in stored if s["variant_no"] == r["variant_no"])
             assert match["variant_id"] == r["variant_id"]
             assert match["spec_ok"] is True
-            assert match["evaluation"] == "exploration"
+            assert match["evaluation"] == "exploring"
             assert match["template_params_snapshot"]["params"]["opening_seconds"] == \
                 r["template_params_snapshot"]["params"]["opening_seconds"]
 
@@ -482,7 +482,7 @@ class TestComposer:
             assert f["reason"] and "value" in f
         assert r["spec_check_json"]["probe"]["width"] == 480
         assert r["upload_status"] == "local"            # 不落 uploaded（P-007）
-        assert r["evaluation"] == "exploration"
+        assert r["evaluation"] == "exploring"
         # 落库同样反映失败
         stored = VideoVariantRepo(db).list_by_product(product["product_id"])
         assert len(stored) == 1 and stored[0]["spec_ok"] is False
@@ -517,7 +517,7 @@ class TestRunPipeline:
         for r in result["variants"]:
             assert r["variant_id"].startswith("vv_")
             assert r["spec_ok"] is True
-            assert r["evaluation"] == "exploration"
+            assert r["evaluation"] == "exploring"
         assert len(VideoVariantRepo(db).list_by_product(product["product_id"])) == 2
 
     def test_pipeline_default_db_in_memory(self, cfg, asset, product, good_runner):

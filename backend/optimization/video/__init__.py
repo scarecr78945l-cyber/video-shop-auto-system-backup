@@ -25,7 +25,7 @@
 - ``VideoComposer`` / ``run_pipeline`` / ``VideoVariantRepo`` / ``probe_from_asset``：
   编排器 —— 文案候选 + 模板参数 → 多版 ffmpeg 命令（字幕/角标 drawtext）→ 出片 →
   validate_specs 硬规格校验（失败记录 failures 不落 uploaded）→ 落 opt_video_variants
-  （template_params_snapshot/spec_check_json/compliance_json/evaluation=exploration）。
+  （template_params_snapshot/spec_check_json/compliance_json/evaluation=exploring）。
 """
 
 from __future__ import annotations

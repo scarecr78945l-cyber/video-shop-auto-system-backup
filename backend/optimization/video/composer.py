@@ -6,7 +6,7 @@
 经 runner（本机未装 ffmpeg 走 ``MockFFmpegRunner``，环境就绪自动切
 ``FFmpegProcessRunner``）出片 → 出片后 ``validate_specs`` 五维硬规格校验
 （失败记录 failures，upload_status 不落 uploaded）→ 落 ``opt_video_variants``
-（template_params_snapshot / spec_check_json / compliance_json / evaluation=exploration）。
+（template_params_snapshot / spec_check_json / compliance_json / evaluation=exploring）。
 
 字幕内容取文案候选并过 ``optimization.compliance.check_text`` 预审：
 命中即该版作废、改用备选文案（rejected 留证据）；全部候选命中 → 该版跳过
@@ -203,7 +203,7 @@ class VideoVariantRepo:
             row.compliance_json = record.get("compliance_json", {})
             row.review_status = record.get("review_status", "pending")
             row.upload_status = record.get("upload_status", "local")
-            row.evaluation = record.get("evaluation", "exploration")
+            row.evaluation = record.get("evaluation", "exploring")
             s.flush()
             return row.variant_id
 
@@ -386,7 +386,7 @@ class VideoComposer:
                 "compliance_json": compliance_json,
                 "review_status": "pending",
                 "upload_status": "local",   # 出片+预审阶段不落 uploaded（P-007：校验失败更不允许）
-                "evaluation": "exploration",
+                "evaluation": "exploring",
             }
             if self.repo is not None:
                 record["variant_id"] = self.repo.upsert(record)

@@ -72,7 +72,7 @@ def rt_db(rt_cfg):
                 template_params_snapshot={"category": cat},
                 file_path=f"fixtures/{vid}.mp4", spec_ok=1,
                 review_status="passed", upload_status="uploaded",
-                platform_material_id=f"mat_{vid}", evaluation="exploration",
+                platform_material_id=f"mat_{vid}", evaluation="exploring",
             ))
     return db
 

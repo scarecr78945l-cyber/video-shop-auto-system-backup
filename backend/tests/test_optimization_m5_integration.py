@@ -82,15 +82,15 @@ def _record(material_id: str, **overrides) -> dict:
 
 
 def test_ingest_single_record(m5_db, uploaded_variants):
-    """单条回写：金额分→元换算、roi 计算、M5 中文诊断兼容、落库正确。"""
+    """单条回写：金额分直存（DA-001）、roi 计算、M5 中文诊断兼容、落库正确。"""
     ok, fid = ingest_m5_record(m5_db, _record("material_0001"))
     assert ok, fid
     service = EvaluationService(m5_db)
     latest = service.latest(uploaded_variants[0])
     assert latest is not None
-    assert latest["spend"] == pytest.approx(50.0)   # 5000 分 → 50.00 元
+    assert latest["spend"] == pytest.approx(5000.0)  # 5000 分（DA-001 金额单位=分 int）
     assert latest["roi"] == pytest.approx(2.5)       # gmv/spend = 12500/5000
-    assert latest["evaluation"] == "high_efficiency"  # roi 2.5 ≥ 2.0
+    assert latest["evaluation"] == "efficient"        # roi 2.5 ≥ 2.0（M2/M5 共口径）
     assert latest["exposure"] == 1000
 
 
@@ -131,9 +131,9 @@ def test_ranking_consumes_ingested(m5_db, uploaded_variants):
     ranker = MaterialRanker(m5_db)
     ranked = ranker.rank_for_product("p_demo_001", only_uploaded=True)
     assert len(ranked) == 2
-    assert ranked[0][2] == "high_efficiency"   # 高效排前
+    assert ranked[0][2] == "efficient"   # 高效排前（M2/M5 共口径）
     assert ranked[0][1] == "material_0001"
-    assert ranked[1][2] == "exploration"
+    assert ranked[1][2] == "exploring"
 
 
 def test_diagnosis_chinese_variants(m5_db, uploaded_variants):

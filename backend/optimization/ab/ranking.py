@@ -6,7 +6,7 @@
 
 输出形状：``[(variant_id, platform_material_id, evaluation, score)]``。
 
-- 无回写数据的版本 → evaluation=exploration、score=0（排最后）；
+- 无回写数据的版本 → evaluation=exploring、score=0（排最后）；
 - ``platform_material_id`` 取自 opt_video_variants（上传层回填）；
   ``only_uploaded=True`` 时仅输出已上传平台的版本；
 - 类目排序按 ``template_params_snapshot.category`` 过滤（Python 侧过滤，

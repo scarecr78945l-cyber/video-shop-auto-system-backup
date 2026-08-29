@@ -133,62 +133,7 @@ def _sort_snapshots(snapshots: list[Any]) -> list[Any]:
 
 # ---------------------------------------------------------------- 业务专属规则
 
-# S2：诊断优化记录（业务专属，基座不含）
-def normalize_diagnosis(raw: str | None) -> str:
-    """后台智能诊断回读值 → 英文枚举（与 report.py 同口径，独立实现）。
-
-    优秀→excellent、良好→good、"1项待优化"→optimize_1、
-    正则 `(\\d+)项待优化` 且 N>1 → optimize_n（N==1 亦归一为 optimize_1）、
-    空/未知（含非字符串、"N项待优化" 字面量、未识别文本）→ unknown；
-    已是英文枚举时原样返回（幂等）。
-    """
-    if raw is None or not isinstance(raw, str):
-        return "unknown"
-    text = raw.strip()
-    if not text:
-        return "unknown"
-    if text in _DIAGNOSIS_CN_TO_EN:
-        return _DIAGNOSIS_CN_TO_EN[text]
-    m = _OPTIMIZE_RE.fullmatch(text)
-    if m:
-        n = int(m.group(1))
-        return "optimize_1" if n == 1 else "optimize_n"
-    if text in _EN_DIAGNOSIS_VALUES:
-        return text
-    return "unknown"
-
-
-# ---------------------------------------------------------------- S1：止损暂停
-
-def rule_s1_stop_loss(snapshot: Any, threshold_impressions: int = DEFAULT_STOPLOSS_IMPRESSION) -> RuleVerdict | None:
-    """S1 花费>0 且 成交=0 且 曝光≥阈值（默认 500）→ 暂停该托管 + 标签「换素材/调ROI」。
-
-    不命中返回 None。snapshot 为 dict 或 AdReportSnapshot（spend/gmv/impressions 单位：分/次）。
-    """
-    spend = _as_int(_get(snapshot, "spend", 0), 0)
-    gmv = _as_int(_get(snapshot, "gmv", 0), 0)
-    impressions = _as_int(_get(snapshot, "impressions", 0), 0)
-    threshold = _as_int(threshold_impressions, DEFAULT_STOPLOSS_IMPRESSION)
-    if spend > 0 and gmv == 0 and impressions >= threshold:
-        return RuleVerdict(
-            rule_id="S1",
-            action=ACTION_PAUSE,
-            reason=(
-                f"花费>0 且 成交=0 且 曝光≥阈值：暂停该托管并打标签「换素材/调ROI」"
-                f"（花费={spend}分，成交=0分，曝光={impressions}次，阈值={threshold}）"
-            ),
-            evidence={
-                "spend": spend,
-                "gmv": gmv,
-                "impressions": impressions,
-                "threshold_impressions": threshold,
-            },
-            suggested_actions=["换素材", "调ROI"],
-        )
-    return None
-
-
-# ---------------------------------------------------------------- S2：诊断优化记录
+# S2：诊断优化记录（业务专属，基座不含；normalize_diagnosis 引用基座 foundation.risk）
 
 def rule_s2_optimize_diagnosis(snapshot: Any) -> RuleVerdict | None:
     """S2 诊断=1项待优化（或 N 项待优化）→ 记录优化项到 evidence，标记优先重投。
@@ -209,54 +154,6 @@ def rule_s2_optimize_diagnosis(snapshot: Any) -> RuleVerdict | None:
                 "priority_retry": True,
             },
             suggested_actions=["标记优先重投", "优先换素材重投"],
-        )
-    return None
-
-
-# ---------------------------------------------------------------- S3：ROI 止损线（连续 2 周期）
-
-def rule_s3_roi_floor(
-    snapshots: list[Any],
-    target_roi: float,
-    floor_ratio: float = DEFAULT_ROI_FLOOR_RATIO,
-) -> RuleVerdict | None:
-    """S3 最近连续 2 个快照周期 成交ROI < 目标×80% → 降素材优先级/建议调 ROI。
-
-    ROI = 花费>0 ? 成交金额/花费 : 0（花费=0 视为 0 ROI，命中边界）。
-    少于 2 周期 / 目标 ROI 不可解析 → 不判定（None）；等于止损线不命中（严格小于）。
-    """
-    target = _as_float(target_roi, None)
-    if target is None:
-        return None
-    ratio = _as_float(floor_ratio, DEFAULT_ROI_FLOOR_RATIO)
-    ordered = _sort_snapshots(snapshots)
-    if len(ordered) < 2:
-        return None
-    periods = ordered[-2:]
-    period_data: list[dict[str, Any]] = []
-    for s in periods:
-        spend = _as_int(_get(s, "spend", 0), 0)
-        gmv = _as_int(_get(s, "gmv", 0), 0)
-        roi = (gmv / spend) if spend > 0 else 0.0
-        period_data.append({"spend_fen": spend, "gmv_fen": gmv, "roi": roi})
-    floor = target * ratio
-    if all(p["roi"] < floor for p in period_data):
-        return RuleVerdict(
-            rule_id="S3",
-            action=ACTION_DEGRADE_MATERIAL,
-            reason=(
-                f"最近连续 2 个快照周期成交 ROI 均 < 目标×{ratio:.0%}（目标={target:.2f}，"
-                f"止损线={floor:.2f}，实际 ROI={period_data[0]['roi']:.2f}/{period_data[1]['roi']:.2f}）："
-                f"降素材优先级/建议调 ROI"
-            ),
-            evidence={
-                "target_roi": target,
-                "floor_ratio": ratio,
-                "roi_floor": floor,
-                "periods": period_data,
-                "consecutive_periods": 2,
-            },
-            suggested_actions=["降素材优先级", "调ROI"],
         )
     return None
 
@@ -283,36 +180,6 @@ def rule_s4_subsidy(snapshot: Any) -> RuleVerdict | None:
     return None
 
 
-# ---------------------------------------------------------------- S5：余额检测
-
-def rule_s5_balance(
-    account_balance_fen: int,
-    min_balance_fen: int = DEFAULT_MIN_BALANCE_FEN,
-) -> RuleVerdict | None:
-    """S5 余额 < 阈值（默认 ¥100=10000 分）→ 暂停新托管 + 告警人工充值。
-
-    = 阈值不命中（严格小于）；不命中返回 None。金额单位：分。
-    """
-    balance = _as_int(account_balance_fen, 0)
-    threshold = _as_int(min_balance_fen, DEFAULT_MIN_BALANCE_FEN)
-    if balance < threshold:
-        return RuleVerdict(
-            rule_id="S5",
-            action=ACTION_HALT_NEW,
-            reason=(
-                f"余额不足：可用余额 {balance} 分 < 阈值 {threshold} 分（¥{threshold / 100:g}）："
-                f"暂停新托管并告警人工充值"
-            ),
-            evidence={
-                "account_balance_fen": balance,
-                "min_balance_fen": threshold,
-                "shortfall_fen": threshold - balance,
-            },
-            suggested_actions=["暂停新托管", "告警人工充值"],
-        )
-    return None
-
-
 # ---------------------------------------------------------------- S6：活跃数上限
 
 def rule_s6_active_cap(active_count: int, cap: int = DEFAULT_ACTIVE_CAP) -> RuleVerdict | None:
@@ -331,70 +198,6 @@ def rule_s6_active_cap(active_count: int, cap: int = DEFAULT_ACTIVE_CAP) -> Rule
             suggested_actions=["停止新增", "等自然淘汰"],
         )
     return None
-
-
-# ---------------------------------------------------------------- S7：预算三重硬约束
-
-def check_budget_triple(
-    single_spend_fen: int,
-    daily_spend_fen: int,
-    plan_spend_fen: int,
-    budget_single_fen: int = 0,
-    budget_daily_fen: int = 0,
-    budget_plan_fen: int = 0,
-) -> BudgetVerdict:
-    """预算三重硬约束（S7）：单笔/日总/计划总预算同时生效，任一超限即停。
-
-    约束语义：预算 <= 0 视为不限（0=不限）；超限判定 spend > budget（严格大于）。
-    同时多超限时按 single → daily → plan 顺序取首个（rule 字段标识）。
-    未超限时 spend_fen 上报最大花费维度、budget_fen 为其预算（该维度不限时为 0）。
-    金额单位：分。
-    """
-    dims: list[tuple[str, int, int, str]] = [
-        ("single", _as_int(single_spend_fen, 0), _as_int(budget_single_fen, 0), "单笔预算"),
-        ("daily", _as_int(daily_spend_fen, 0), _as_int(budget_daily_fen, 0), "日总预算"),
-        ("plan", _as_int(plan_spend_fen, 0), _as_int(budget_plan_fen, 0), "计划总预算"),
-    ]
-    for rule, spend, budget, label in dims:
-        if budget > 0 and spend > budget:
-            return BudgetVerdict(
-                over_limit=True,
-                rule=rule,
-                reason=f"{label}超限：花费 {spend} 分 > 预算 {budget} 分",
-                spend_fen=spend,
-                budget_fen=budget,
-            )
-    max_dim = max(dims, key=lambda d: d[1])
-    return BudgetVerdict(
-        over_limit=False,
-        rule="none",
-        reason="预算三重约束均未超限（0=不限）",
-        spend_fen=max_dim[1],
-        budget_fen=max_dim[2],
-    )
-
-
-# ---------------------------------------------------------------- S8：一键全停
-
-def kill_switch_enabled(kill_switch: bool, app_config_value: Any = None) -> bool:
-    """S8 一键全停（后台总开关）判定：kill_switch=True 或 app_config 覆盖值开启 → True。
-
-    app_config_value 支持 bool / int / 字符串（"true"/"1"/"yes"/"on" 视为开，
-    "false"/"0"/"no"/"off"/"" 视为关；未识别字符串视为关，避免误触发全停）。
-    True 时引擎全部动作应被拒绝（秒级终止所有投放/托管/采集动作）。
-    """
-    if bool(kill_switch):
-        return True
-    if app_config_value is None:
-        return False
-    if isinstance(app_config_value, str):
-        text = app_config_value.strip().lower()
-        if text in ("1", "true", "yes", "on", "enabled"):
-            return True
-        if text in ("0", "false", "no", "off", "disabled", ""):
-            return False
-        return False  # 未识别字符串：不视为开启（避免误触发全停）
-    return bool(app_config_value)
 
 
 # ---------------------------------------------------------------- 引擎（S1~S8 逐规则评估）
