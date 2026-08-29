@@ -30,14 +30,15 @@
 | [x] A4-2：默认库路径修正 `FoundationConfig.db_url` → `sqlite:///data/db/m0-foundation.db`（宪法第 4 节）+ `backend/.env.example` 模板（全模块变量名，无明文值）+ 硬编码巡检（foundation 无 C:\/C:/ 路径与密钥字面量，.exe 匹配为 execute 误报；sourcing Chrome 路径为 M1 已知项） | 总工 | 100% | 无 |
 | [x] A4-3：A4 落盘 context/README.md（工程基座小节：脱敏/默认路径/.env.example/巡检结论）→ foundation 全量 **79 passed**（30+12+26+11） | 总工 | 100% | 无 |
 | [x] A4-4（修复任务）：foundation_security 2 失败修复——`test_redact_text_bearer_token` 按总控裁决改实现（`_mask_secret_value` 回调：值为 Bearer 时保留原文 → 输出 `Authorization: Bearer ***`，**Bearer 前缀保留、仅 token 脱敏**）；`test_no_plaintext_secret_in_outputs` 排查结论：纯函数无共享可变状态，偶发为旧断言/P-011 并发抖动，断言已改为键值/URL/Bearer 形式 → **11 passed + 全量 1089 passed, 2 skipped 零回归** | 总工 | 100% | 无 |
-| [ ] 工程基座 A5：SQLite→PostgreSQL 迁移脚本（迁移计划/方言差异/回滚方案） | 总工 | 0% | 排期 A5，下一步 |
-| [ ] 治理：数据字典定稿 + 跨模块契约会签 | 总工 | 0% | 排期 A6 |
-| [ ] 集成：与 M1~M5 联调 | 总工 | 0% | 排期 A7 |
+| [x] A5-1：`database/migrations/0001_create_base_tables.pg.sql`（PG 五表 DDL + 9 错误码种子，幂等 IF NOT EXISTS + ON CONFLICT DO NOTHING；方言映射 JSONB/TIMESTAMPTZ/BIGSERIAL/BOOLEAN）| 总工 | 100% | 无 |
+| [x] A5-2：`0001_rollback.pg.sql`（逆序 DROP）+ `README.md`（四阶段迁移计划/方言差异清单/执行方式/回滚方案（切回 SQLite 快照）/校验 SQL）→ database/README.md 迁移记录 v0.6 | 总工 | 100% | 无 |
+| [x] 治理前置：数据字典定稿 + 跨模块契约会签 | 总工 | 0% | 排期 A6，下一步（亲办） |
+| [ ] 集成：与 M1~M5 联调 | 总工 | 0% | 排期 A7（亲办） |
 
 ## 里程碑进度
 
-- 本模块当前完成度：**60%**（筹备 15% + A1 15% + A2 10% + A3 10% + A4 10%；**里程碑 v0.5 达成：工程基座落地**——脱敏基座/默认库路径/.env.example 全绿）
-- 距离目标还差：迁移脚本（A5）→ 治理（A6）→ 集成（A7）
+- 本模块当前完成度：**70%**（筹备 15% + A1 15% + A2 10% + A3 10% + A4 10% + A5 10%；**里程碑 v0.6 达成：SQLite→PostgreSQL 迁移脚本齐备**——PG DDL/回滚/迁移计划可执行）
+- 距离目标还差：治理（A6，亲办）→ 集成（A7，亲办）
 
 ## 后续开发排期（可拆给子代理的任务标注 ✅）
 

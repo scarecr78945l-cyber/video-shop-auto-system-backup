@@ -1041,3 +1041,17 @@
 - 产出文件：`backend/foundation/security.py`（+_mask_secret_value 回调）、`backend/tests/test_foundation_security.py`（断言恢复 Bearer 保留）；`progress.md`（+A4-4 修复勾选）；`decisions.md`（+修复裁决落实：Bearer 前缀保留仅 token 脱敏）；本日志追加条目。
 - 当前阻塞：无。A4 全部销项（v0.5 里程碑）；待总控批准后推进 A5（SQLite→PostgreSQL 迁移脚本）。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m0`（P-001/P-011）。
+
+---
+
+### 2026-08-29 ｜ M0 总工程师 ｜ m0-foundation ｜ 角色：总工（A5 SQLite→PostgreSQL 迁移脚本 · v0.6 里程碑达成）
+
+- 完成任务（A5，总控批准；database/migrations/ 目录，对齐 database/README.md 迁移计划与五表最终 DDL v0.2，仿照 M1 migrations 目录模式）：
+  ① **`0001_create_base_tables.pg.sql`**：PG 方言五表 DDL（workflow_jobs/tasks/logs/app_config/error_codes）——方言映射 JSON→JSONB（默认 `'{}'::jsonb`）、DATETIME→TIMESTAMPTZ（默认 now()）、AUTOINCREMENT→BIGSERIAL、retryable INTEGER→BOOLEAN；唯一约束 uq_wj_idempotency/uq_tk_idempotency、索引 idx_wj_*/idx_tk_*/idx_logs_module_ts；9 错误码种子 `ON CONFLICT DO NOTHING`；**幂等可重复执行**；REC-005 口径注释（金额分/时间戳 _at UTC/retry_after 命名例外）；
+  ② **`0001_rollback.pg.sql`**：逆序 DROP 回滚（幂等）；
+  ③ **`README.md`**：四阶段迁移计划（兼容期/迁移脚本/切换/校验）、方言差异清单表、执行方式（psql -f + 数据复制 Python/SQLAlchemy 双引擎 + 切换冒烟）、回滚方案（未切流量=切回 SQLite 快照零损失 / 已切流量=停服回切 / 彻底放弃=rollback 脚本）、校验 SQL（行数/种子数/约束存在性）；
+  ④ **database/README.md** 迁移记录 +v0.6 行。
+- 产出文件：`database/migrations/0001_create_base_tables.pg.sql`、`0001_rollback.pg.sql`、`README.md`（新建 3 文件）；`database/README.md`（迁移记录 v0.6）；`progress.md`（A5-1/A5-2 勾选、完成度 **70%**、v0.6 里程碑）；`decisions.md`（+A5 决策：纯 SQL 幂等脚本不引入 alembic，数据复制双引擎脚本，回滚以 SQLite 快照为基线）；本日志追加条目。
+- 里程碑：**v0.6 达成：SQLite→PostgreSQL 迁移脚本齐备**（PG DDL/回滚/迁移计划可执行）。
+- 当前阻塞：无。**请总控提交备份（里程碑：v0.6 迁移脚本验收通过）**；A5 后进入 A6（数据字典定稿+跨模块契约会签）与 A7（集成联调），由总工亲办（A6 需与 M1~M5 总工经 data-audit 会签，届时在 data-requests/台账登记并结束回合等总控转达）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；无测试变更（A5 纯 SQL/文档，foundation 79 测试保持全绿）。

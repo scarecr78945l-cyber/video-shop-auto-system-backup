@@ -163,3 +163,4 @@ INSERT INTO error_codes VALUES
 | 版本 | 说明 | 日期 |
 |---|---|---|
 | v0 | 初始规划（本文件：共享表清单/DDL/迁移计划） | 2026-08-28 |
+| v0.6 | A5 迁移脚本（`migrations/0001_create_base_tables.pg.sql` PG 五表 DDL+种子 / `0001_rollback.pg.sql` 回滚 / README 迁移计划·方言差异·回滚方案） | 2026-08-29 |
