@@ -59,6 +59,16 @@
 | M1~M5 → M0 | 任务入队请求/业务事件/错误上报 | 入队 API / data-exchange JSON（宪法 5 节流程） |
 | M0 ↔ 各模块 | 字段口径核对（金额/时间/枚举/ID） | `data-audit.md` 登记 + 会签 |
 
+## 调度与运行（A2 调度器进程化，v0.3）
+
+- **设计对齐**：继承 `backend/sourcing/scheduler.py` 基线模式（02 文档「最值得抄」），M0 通用化——职责 = 通用队列驱动（轮询领取 → 分派 Worker → 回写 complete/fail + 节流/熔断），业务执行由注入的 `Worker` 实现（各模块提供；CLI 默认 `LoggingWorker` 仅留痕演示）。选品源级账本/降频（实时榜空转降日轮询）属业务调度（sourcing），M0 不实现。
+- **独立进程方案**：`python -m foundation scheduler --loop [--interval N]`（独立进程，生产建议 systemd/后台托管拉起，09 文档第三节）；`--once` 单轮调试；`--db-url` 覆盖 DSN（默认 `M0_DB_URL`）。
+- **断点自愈**：`resume_on_startup()` 启动即恢复租约过期的 running job 为 pending（`recover_expired_leases`，45min 过期回收），进程重启自愈（09 文档 recover_after_process_restart）。
+- **节流/熔断**（09 文档第三节）：stage 级内存态——连续失败 ≥2 → 熔断暂停该 stage 至 `throttle_base_seconds × 2^level`（0~4 级，×1/2/4/8/16），冷却后自动恢复；成功后失败计数清零。全 stage 暂停 → 本轮跳过。
+- **失败隔离**：单 job 失败/等待人工（waiting_verification/waiting_login）不阻塞其他 stage/job 排队（复用 `WorkflowQueue.claim`）。
+- **配置**（`M0_SCHEDULER_*` 前缀，`SchedulerConfig`）：`M0_SCHEDULER_POLL_INTERVAL_SECONDS`（30）/`M0_SCHEDULER_MAX_CLAIM_PER_ROUND`（10）/`M0_SCHEDULER_THROTTLE_BASE_SECONDS`（30）/`M0_SCHEDULER_THROTTLE_LEVELS`（5）/`M0_SCHEDULER_CIRCUIT_BREAKER_FAILURES`（2）。
+- **代码位置**：`backend/foundation/scheduler.py`（Worker/LoggingWorker/WorkflowScheduler/default_worker_id）、`backend/foundation/__main__.py`（init-db/scheduler CLI）、`backend/tests/test_foundation_scheduler.py`（12 例）。
+
 ## 环境事实
 
 - **运行时**：Python 3.12、FastAPI、SQLAlchemy 2.0、Playwright、ffmpeg（11 文档前置清单）
@@ -74,7 +84,7 @@
 | `SOURCING_DB_URL` / `SOURCING_CHROME_PATH` / `SOURCING_LOG_LEVEL` | M1 选品模块 | M1 |
 | `M0_DB_URL` / `M0_LOG_LEVEL` | M0 基座库连接/日志 | M0 |
 | `M0_LEASE_MINUTES` | 队列租约时长（默认 45） | M0 |
-| `M0_SCHEDULER_INTERVAL` | 调度器轮询间隔 | M0 |
+| `M0_SCHEDULER_POLL_INTERVAL_SECONDS` / `M0_SCHEDULER_MAX_CLAIM_PER_ROUND` / `M0_SCHEDULER_THROTTLE_BASE_SECONDS` / `M0_SCHEDULER_THROTTLE_LEVELS` / `M0_SCHEDULER_CIRCUIT_BREAKER_FAILURES` | 调度器配置（A2） | M0 |
 | `M0_KILL_SWITCH` | 一键全停总开关 | M0 |
 | `BUDGET_SINGLE_MAX` / `BUDGET_DAILY_MAX` / `BUDGET_PLAN_MAX` | 预算三重硬约束 | M0 |
 | `AD_BALANCE_MIN` | 投放余额阈值（默认 100） | M0 |

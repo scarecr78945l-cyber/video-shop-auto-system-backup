@@ -52,13 +52,14 @@ def cmd_scheduler(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="foundation", description="M0 基座与数据治理 CLI")
-    parser.add_argument("--db-url", default=None, help="覆盖数据库 DSN（默认读 M0_DB_URL）")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_init = sub.add_parser("init-db", help="幂等建五表 + 错误码种子")
+    p_init.add_argument("--db-url", default=None, help="覆盖数据库 DSN（默认读 M0_DB_URL）")
     p_init.set_defaults(func=cmd_init_db)
 
     p_sched = sub.add_parser("scheduler", help="队列调度器（独立进程）")
+    p_sched.add_argument("--db-url", default=None, help="覆盖数据库 DSN（默认读 M0_DB_URL）")
     p_sched.add_argument("--once", action="store_true", help="只跑一轮")
     p_sched.add_argument("--interval", type=float, default=None, help="轮询间隔秒（--loop 用）")
     p_sched.set_defaults(func=cmd_scheduler)
