@@ -957,3 +957,18 @@
 - 产出文件：`backend/optimization/ab/ingest.py`、`backend/optimization/repo.py`（+get_by_platform_material_id）、`backend/tests/test_optimization_m5_integration.py`（5 例）；`progress.md`、`data-audit.md`（+DA-007）、`context/data-requests.md`；本日志追加条目。
 - 当前阻塞：无。下一小步：**v1.1-② 模板重训练数据驱动链路测试**（M5 回写摄取 → retrain_all → stats 落库 → best_template 决策；retrain 实现已就绪、样本闸门 min_samples 已实现）。
 - 备注：未运行任何 git 命令；未读写其他模块库（测试全内存库）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m3`（P-001/P-011）。
+
+---
+
+### 2026-08-28 ｜ M0 总工程师 ｜ m0-foundation ｜ 角色：总工（A3 风控规则引擎验收通过 · v0.4 里程碑达成）
+
+- 完成任务（A3 风控规则引擎，总控批准「共享规则以基座为准，M5 引用」）：
+  ① **精读 M5 `backend/ads/stop_loss.py` 全部规则**（S1~S8 + RuleVerdict/BudgetVerdict/EngineResult + normalize_diagnosis + StopLossEngine.evaluate），确认函数签名/语义/边界（S1 花费>0 且 0 成交且曝光≥500；S3 ROI<目标×80% 连续 2 周期、花费=0→ROI=0 命中边界、等于止损线不命中；S5 余额<阈值严格小于；S7 0=不限/严格大于/多超限取首个；S8 未识别字符串视为关防误触发）；
+  ② **实现 `backend/foundation/risk.py`**（通用风控层，与 M5 同签名同语义）：S7 `check_budget_triple` 预算三重硬约束 / S1 `rule_s1_stop_loss` / S3 `rule_s3_roi_floor` / S5 `rule_s5_balance` / S8 `kill_switch_enabled` / `normalize_diagnosis` / `RuleVerdict·BudgetVerdict·EngineResult` dataclass / `RiskEngine.evaluate`（S8 短路→S7→S5（halt_all）→S1→S3；halt_all=S8|S5 对齐 M5；S2/S4/S6 投放业务专属留 M5 不清除）；
+  ③ **测试 26 例**（test_foundation_risk.py）：诊断枚举映射/四层防线各规则命中与边界/预算三重全分支（单笔·日·计划·0 不限·多超限取首个·未超限）/全停开启形式与未识别防误触发/引擎短路·预算超限不 halt_all·余额 halt_all·S1+S3 组合·全过空·dict 预算输入；
+  ④ **验收**：foundation 全量 `python -m pytest tests/test_foundation_risk.py tests/test_foundation_scheduler.py tests/test_foundation_queue.py tests/test_foundation_tables.py -q --basetemp=".pytest-tmp-m0"` → **68 passed**（30+12+26，全绿）；修复 docstring `\d` 转义 SyntaxWarning；
+  ⑤ **文档落盘**：context/README.md +「风控与合规（A3）」小节（口径/四层防线/引擎/边界/代码位置）；progress.md A3-1~A3-3 勾选、完成度 **50%**、v0.4 里程碑；decisions.md +A3 落地决策（同签名对齐、S2/S4/S6 留 M5）。
+- 产出文件：`backend/foundation/risk.py`、`backend/tests/test_foundation_risk.py`（26 例）、`foundation/__init__.py`（+风控导出）；`context/README.md`、`progress.md`、`decisions.md`；本日志追加条目。
+- 里程碑：**v0.4 达成：风控规则引擎可跑**（预算三重/自动止损/余额/一键全停全链可测，与 M5 同口径，M5 引用由总控协调）。
+- 当前阻塞：无。**请总控提交备份（里程碑：v0.4 风控规则引擎验收通过）**；批准后推进 A4（工程基座：环境变量化/脱敏巡检/.env.example，默认库路径修正 data/db/）与 A5（SQLite→PostgreSQL 迁移脚本）。
+- 备注：未运行任何 git 命令；未读写其他模块库（M5 stop_loss.py 仅只读勘察）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m0`（P-001/P-011）。

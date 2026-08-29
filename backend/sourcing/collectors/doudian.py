@@ -151,8 +151,12 @@ class DoudianCollector(Collector):
             raise CollectorError(f"抖店罗盘采集失败（{board}）：{e}", "UNEXPECTED") from e
 
     def _locate_columns(self, page) -> dict[str, int]:
-        """按表头动态定位列索引；显式配置的 columns 优先。"""
-        configured = self.selectors.get("columns")
+        """按表头动态定位列索引；config 显式配置的 columns 优先。
+
+        A4：只认 config.selectors 里的 columns（config 为空 → 走动态表头定位）。
+        DEFAULT_SELECTORS 的 columns 仅作文档兜底，不再短路动态定位。
+        """
+        configured = self.config.selectors.get("columns")
         if configured:
             cols = {k: int(v) for k, v in configured.items()}
             cols.setdefault("pay", 3)

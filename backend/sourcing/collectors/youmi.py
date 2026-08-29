@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import re
+from datetime import date, timedelta
 
 from ..config import CollectorConfig
 from ..models import SourceItem
@@ -27,6 +28,26 @@ DEFAULT_SELECTORS = {
     "login_gate": ".login-modal, [class*='login']",
     "verify_gate": ".captcha, [class*='verify']",
 }
+
+
+def render_board_url(
+    template: str, lookback_days: int = 7, today: date | None = None
+) -> str:
+    """渲染榜单 URL：把 {start_date}/{end_date} 占位符替换为 YYYY-MM-DD。
+
+    - end = 当天（today，默认 date.today()）；start = end - lookback_days
+    - 模板不含占位符 → 原样返回（兼容其他来源/旧模板）
+    - 用 str.replace 而非 str.format，避免 URL 中其他花括号导致异常
+    """
+    if "{start_date}" not in template and "{end_date}" not in template:
+        return template
+    end = today or date.today()
+    start = end - timedelta(days=max(0, lookback_days))
+    return (
+        template.replace("{start_date}", start.isoformat()).replace(
+            "{end_date}", end.isoformat()
+        )
+    )
 
 
 def parse_num(text: str) -> float:
@@ -60,6 +81,8 @@ class YoumiCollector(Collector):
     def collect_board(self, board: str, limit: int = 200) -> list[SourceItem]:
         url = self.board_urls.get(board, "")
         if url:
+            # A2：url_template 含 {start_date}/{end_date} 占位符 → 按 lookback_days 动态生成日期
+            url = render_board_url(url, lookback_days=self.config.lookback_days)
             page = self.browser.page()
             try:
                 page.goto(url, timeout=45000, wait_until="domcontentloaded")
@@ -140,8 +163,12 @@ class YoumiCollector(Collector):
             raise CollectorError(f"有米云采集失败（{board}）：{e}", "UNEXPECTED") from e
 
     def _locate_columns(self, page) -> dict[str, int]:
-        """按表头动态定位列索引；显式配置的 columns 优先。"""
-        configured = self.selectors.get("columns")
+        """按表头动态定位列索引；config 显式配置的 columns 优先。
+
+        A4：只认 config.selectors 里的 columns（config 为空 → 走动态表头定位）。
+        DEFAULT_SELECTORS 的 columns 仅作文档兜底，不再短路动态定位。
+        """
+        configured = self.config.selectors.get("columns")
         if configured:
             return {k: int(v) for k, v in configured.items()}
         heads = page.locator(".el-table__header th").all_text_contents()

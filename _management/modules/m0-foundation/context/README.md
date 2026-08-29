@@ -69,6 +69,14 @@
 - **配置**（`M0_SCHEDULER_*` 前缀，`SchedulerConfig`）：`M0_SCHEDULER_POLL_INTERVAL_SECONDS`（30）/`M0_SCHEDULER_MAX_CLAIM_PER_ROUND`（10）/`M0_SCHEDULER_THROTTLE_BASE_SECONDS`（30）/`M0_SCHEDULER_THROTTLE_LEVELS`（5）/`M0_SCHEDULER_CIRCUIT_BREAKER_FAILURES`（2）。
 - **代码位置**：`backend/foundation/scheduler.py`（Worker/LoggingWorker/WorkflowScheduler/default_worker_id）、`backend/foundation/__main__.py`（init-db/scheduler CLI）、`backend/tests/test_foundation_scheduler.py`（12 例）。
 
+## 风控与合规（A3 风控规则引擎，v0.4）
+
+- **口径**：与 M5 `backend/ads/stop_loss.py` 同口径（总控裁决：共享规则以基座为准，M5 引用由总控协调）——金额一律「分」int、ROI 浮点倍数、枚举英文、纯函数/数据驱动（dict/ORM 兼容 `_get`）、结构化 `RuleVerdict`/`BudgetVerdict`/`EngineResult`。
+- **四层防线**（10 文档第一节）：S7 预算三重硬约束 `check_budget_triple`（单笔/日总/计划总同时生效，任一超限即停，0=不限，多超限取首个）；自动止损 S1 `rule_s1_stop_loss`（花费>0 且 0 成交且曝光≥500 → 暂停+标签）与 S3 `rule_s3_roi_floor`（连续 2 周期 ROI<目标×80% → 降档）；S5 `rule_s5_balance`（余额<¥100 → halt_new）；S8 `kill_switch_enabled`（最高优先级，未识别字符串视为关防误触发）。
+- **引擎**：`RiskEngine.evaluate(campaign, snapshots, *, account_balance_fen, ...)`——S8 短路（只返回 S8/halt_all）→ S7（有预算上下文）→ S5（halt_all）→ S1 → S3；halt_all = S8|S5（对齐 M5 语义，预算超限不触发 halt_all 仅停花钱动作）。
+- **边界**：S2/S4/S6（诊断优化记录/补贴统计/活跃上限）为投放业务专属规则，留在 M5 不清除。
+- **代码位置**：`backend/foundation/risk.py`（RiskEngine/rule_s1~s5/check_budget_triple/kill_switch_enabled/normalize_diagnosis）、`backend/tests/test_foundation_risk.py`（26 例）；M0 环境变量 `M0_KILL_SWITCH` + `app_config` 键（`risk.kill_switch`）为全停入口（A4 工程基座统一 .env.example）。
+
 ## 环境事实
 
 - **运行时**：Python 3.12、FastAPI、SQLAlchemy 2.0、Playwright、ffmpeg（11 文档前置清单）
