@@ -21,7 +21,13 @@ from typing import Optional
 from sqlalchemy import and_, or_, select
 
 from .db import Database
-from .tables import ErrorCode, LearningRuleDraft, WorkflowJob
+from .tables import (
+    AdminUserRow,
+    AuthSessionRow,
+    ErrorCode,
+    LearningRuleDraft,
+    WorkflowJob,
+)
 
 # 人工接管类错误码 → 任务状态映射（10 文档：验证码/登录人工处理，单任务暂停不阻塞队列）
 _MANUAL_STATUS: dict[str, str] = {
@@ -295,3 +301,47 @@ class WorkflowQueue:
                 }
                 for r in rows
             ]
+
+    # ================== M6 管理后台鉴权（REC：auth 表挂 M0，API 层只消费） ==================
+
+    def seed_admin_user(self, username: str, password_hash: str, role: str = "admin") -> bool:
+        """幂等播种管理员账号；已存在则跳过。"""
+        now = _utcnow().isoformat()
+        with self.database.session() as session:
+            if session.get(AdminUserRow, username) is not None:
+                return False
+            session.add(AdminUserRow(
+                username=username, password_hash=password_hash, role=role,
+                enabled=1, created_at=now, updated_at=now,
+            ))
+            return True
+
+    def verify_login(self, username: str, password_hash: str) -> bool:
+        """校验用户名+密码哈希（SHA-256 hex）且账号启用。"""
+        with self.database.session() as session:
+            row = session.get(AdminUserRow, username)
+            if row is None or not row.enabled:
+                return False
+            import hmac
+            return hmac.compare_digest(row.password_hash, password_hash)
+
+    def create_session(self, username: str, token: str, ttl_seconds: int = 43200) -> None:
+        """创建登录会话（默认 12h 过期）。"""
+        now = _utcnow()
+        with self.database.session() as session:
+            session.add(AuthSessionRow(
+                token=token, username=username,
+                expires_at=(now + timedelta(seconds=ttl_seconds)).isoformat(),
+                created_at=now.isoformat(),
+            ))
+
+    def validate_session(self, token: str) -> str | None:
+        """校验会话 token；有效返回 username，无效/过期返回 None。"""
+        with self.database.session() as session:
+            row = session.get(AuthSessionRow, token)
+            if row is None:
+                return None
+            if row.expires_at < _utcnow().isoformat():
+                session.delete(row)
+                return None
+            return row.username

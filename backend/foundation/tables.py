@@ -237,3 +237,33 @@ def seed_error_codes(session) -> int:
             session.add(ErrorCode(**spec))
             added += 1
     return added
+
+
+class AdminUserRow(Base):
+    """M6 管理后台用户（REC：鉴权会话表挂 M0，跨模块共享；API 层只消费）。
+
+    - password_hash = SHA-256 hex（M6 api/auth.py 约定，m0 模式由本表校验）；
+    - 默认管理员由环境变量 ADMIN_PASSWORD 播种（未设置→跳过并告警，生产必配）。
+    """
+
+    __tablename__ = "admin_users"
+    __table_args__ = (Index("idx_admin_users_enabled", "enabled"),)
+
+    username: Mapped[str] = mapped_column(String(80), primary_key=True)
+    password_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    role: Mapped[str] = mapped_column(String(30), nullable=False, default="admin")
+    enabled: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    created_at: Mapped[str] = mapped_column(String(40), nullable=False)
+    updated_at: Mapped[str] = mapped_column(String(40), nullable=False)
+
+
+class AuthSessionRow(Base):
+    """管理后台登录会话（token 主键，过期自动失效；M6 AuthStore m0 模式消费）。"""
+
+    __tablename__ = "auth_sessions"
+    __table_args__ = (Index("idx_auth_sessions_user", "username"),)
+
+    token: Mapped[str] = mapped_column(String(64), primary_key=True)
+    username: Mapped[str] = mapped_column(String(80), nullable=False)
+    expires_at: Mapped[str] = mapped_column(String(40), nullable=False)
+    created_at: Mapped[str] = mapped_column(String(40), nullable=False)

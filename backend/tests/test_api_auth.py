@@ -9,6 +9,7 @@ from __future__ import annotations
 import secrets
 
 import pytest
+from sqlalchemy import text
 
 from api.auth import AuthStoreConfigError, FixturesAuthStore, M0AuthStore
 from api.config import M6Config
@@ -108,13 +109,38 @@ def test_fixtures_store_no_plaintext_password_in_files():
 
 
 def test_m0_mode_requires_auth_tables(tmp_path):
-    """m0 模式：M0 foundation auth 表未落地 → 构造即抛明确错误（不静默降级）。"""
+    """m0 模式：M0 foundation auth 表已落地（REC 裁决后）→ 构造正常、登录闭环可用。"""
+    import hashlib
+    from foundation.config import load_config as m0_load_config
+    from foundation.db import Database
+    from foundation.repo import WorkflowQueue
+
+    cfg = m0_load_config(db_url=f"sqlite:///{tmp_path / 'm0-auth.db'}")
+    db = Database(cfg)
+    db.create_all()  # 含 admin_users/auth_sessions（auth 表落地）
+    db.seed()
+    store = M0AuthStore(db)
+    # 播种管理员 + 登录校验 + 会话闭环（verify_user 接收明文密码返回 AuthUser）
+    q = WorkflowQueue(db)
+    q.seed_admin_user("admin", hashlib.sha256(b"dev-pass").hexdigest())
+    user = store.verify_user("admin", "dev-pass")
+    assert user is not None
+    token = store.create_session(user)
+    assert store.get_session_user(token) is not None
+    assert store.get_session_user(token).username == "admin"
+
+
+def test_m0_mode_missing_tables_raises(tmp_path):
+    """m0 模式：auth 表被 DROP（异常部署）→ 构造抛明确错误（不静默降级）。"""
     from foundation.config import load_config as m0_load_config
     from foundation.db import Database
 
     cfg = m0_load_config(db_url=f"sqlite:///{tmp_path / 'm0-empty.db'}")
     db = Database(cfg)
-    db.create_all()  # 只建共享五表，无 auth 表
+    db.create_all()
+    with db.session() as s:
+        s.execute(text("DROP TABLE IF EXISTS admin_users"))
+        s.execute(text("DROP TABLE IF EXISTS auth_sessions"))
     with pytest.raises(AuthStoreConfigError) as exc:
         M0AuthStore(db)
     msg = str(exc.value)
@@ -123,15 +149,18 @@ def test_m0_mode_requires_auth_tables(tmp_path):
 
 
 def test_services_auth_mode_m0_raises_clear_error(tmp_path):
-    """Services 在 m0 模式下访问 auth_store → 抛 AuthStoreConfigError。"""
+    """Services 在 m0 模式下访问 auth_store（表缺失）→ 抛 AuthStoreConfigError。"""
     from foundation.config import load_config as m0_load_config
     from foundation.db import Database
 
     cfg = m0_load_config(db_url=f"sqlite:///{tmp_path / 'm0-empty2.db'}")
     db = Database(cfg)
     db.create_all()
+    with db.session() as s:
+        s.execute(text("DROP TABLE IF EXISTS admin_users"))
+        s.execute(text("DROP TABLE IF EXISTS auth_sessions"))
     services = Services(M6Config(api_auth_mode="m0"))
-    services._dbs["m0"] = db  # 注入空 m0 库
+    services._dbs["m0"] = db  # 注入无 auth 表的 m0 库
     with pytest.raises(AuthStoreConfigError):
         _ = services.auth_store
 
