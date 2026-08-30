@@ -147,3 +147,10 @@
 | ffmpeg | 素材规格校验依赖（时长/分辨率/大小），M3 产出规格锁定 |
 | 环境变量（仅列名，不含值） | `M5_ADS_CDP_PORT`、`M5_ADS_PROFILE_DIR`（浏览器资料目录）、`M5_ADS_MIN_BALANCE`（余额阈值分）、`M5_ADS_BATCH_SIZE`（默认50）、`M5_ADS_BATCH_INTERVAL`（批间隔秒）、`M5_ADS_REPORT_INTERVAL`（回读秒）、`M5_ADS_STOPLOSS_IMPRESSION`（曝光阈值）、`M5_ADS_TARGET_ROI_OVERRIDE`（ROI覆盖，可空）、`M5_ADS_DAILY_BUDGET` / `M5_ADS_PLAN_BUDGET` / `M5_ADS_SINGLE_BUDGET`（预算三重约束，分） |
 | 敏感信息 | 任何 API Key/Token/Cookie/密码**只走环境变量**，绝不在 md/代码/日志写明文；日志 `_redact_text` 脱敏 |
+
+## 枚举口径边界（DA-011 会签登记，2026-08-30）
+
+- **展示层**：ad_campaigns.status/diagnosis 存中文展示值（对齐投放后台界面：优秀/良好/N项待优化、投放中/已暂停/不可投放等）——前端直接消费。
+- **内部/跨模块**：经 eport.normalize_diagnosis/
+ormalize_status 转英文枚举（excellent/good/optimize_1/optimize_n、active/paused/not_eligible）——评分/止损/回写使用英文码。
+- 与 DA-001「枚举 snake_case 英文」的关系：**展示值例外登记**（平台界面原生中文），内部约定不变。

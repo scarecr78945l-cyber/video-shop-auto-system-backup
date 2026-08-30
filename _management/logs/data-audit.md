@@ -305,3 +305,7 @@
 - **口径对齐（REC-005/DA-001/DA-008，2026-08-29 总控裁决更新）**：金额**对外一律「元（float）」**——内部存储分不变，API 层 ÷100 换算输出（M1 元字段直接透传），前端只消费元；时间 UTC ISO8601；枚举原样透传不翻译（DA-008 码表 + 各模块枚举唯一源；M5 实际代码存英文枚举，前端 lib/enums.ts 翻译展示）。契约定稿版见 `_management/modules/m6-frontend/context/README.md` 第一节 + 差异登记（D1~D10）。
 - **校验结果（2026-08-29，M6 总工验收回填）**：API 层由 M6 子代理①交付（`backend/api/` FastAPI 应用，41 路径），验收复跑 **75 passed**（`python -X utf8 -m pytest tests/test_api_*.py -q --basetemp=".pytest-tmp-m6"`，17s）；金额换算断言覆盖（M4 1290分→12.9元、M5 50000分→500.0元、M1 ad_conversion 128000分→1280.0元）；鉴权闭环/错误格式/脱敏用例全绿；M0~M5 源码零修改；字段差异 D1~D10 已登记 `backend/api/REPORT.md` 并回填 M6 context。
 - **总控核对结论**：（待总控核对；建议转达 M0~M5 总工——①M0 auth 表契约 admin_users/auth_sessions（L1）②M5 context 枚举文档与代码漂移（D5/L3）③M4 tasks 列表 title/error_code 派生字段口径（D2/D3）④API 局部错误码 VALIDATION_ERROR/INVALID_STATE 备案（L4）⑤requirements.txt 补 fastapi/uvicorn/httpx（L2））。
+### DA-011 ｜ 会签回填（2026-08-30 ｜ 总控）
+
+- **结论：全部兑现 ✅**——M6 API 层（backend/api/）已实现并上线（v1.0/v1.1，FastAPI 43 路径 + 鉴权 + 前端控制台），DA-011 申请的 M0~M5 取数与人工闸门写操作全部落地并经联调验证（登录/8 页/6 类闸门闭环，全量 1380 测试）。
+- **M5 枚举口径边界登记（D-M5-08 确认）**：ad_campaigns.status / diagnosis **存储为中文展示值**（对齐投放后台真实界面：优秀/良好/N项待优化、投放中/已暂停/不可投放），**内部与跨模块传递经 normalize_diagnosis/normalize_status 转英文枚举**（excellent/good/optimize_1/optimize_n、active/paused/not_eligible）——展示中文、内部英文双层口径，写入 M5 context 数据字典，前端直接消费中文展示值。
