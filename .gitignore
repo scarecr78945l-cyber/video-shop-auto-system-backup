@@ -49,4 +49,3 @@ backend/.pytest-tmp*/
 backend/.pytest-tmp/
 
 # CI ���ã����ر������ workflow scope ��Ȩ��ָ��������ͣ�
-.github/workflows/ci.yml
