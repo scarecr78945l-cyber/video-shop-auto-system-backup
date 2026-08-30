@@ -47,3 +47,6 @@ backend/logs/
 # ===== pytest ç‹¬ç«‹ basetemp ç›®å½•ï¼ˆå„æ¨¡å—ä¸“å±ï¼Œä¸å…¥åº“ï¼‰=====
 backend/.pytest-tmp*/
 backend/.pytest-tmp/
+
+# CI ÅäÖÃ£¨±¾µØ±£Áô£»´ı workflow scope ÊÚÈ¨ºó»Ö¸´¸ú×ÙÍÆËÍ£©
+.github/workflows/ci.yml
