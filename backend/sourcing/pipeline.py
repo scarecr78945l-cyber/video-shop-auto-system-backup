@@ -39,6 +39,8 @@ class SourcingPipeline:
         self.compliance = ComplianceEngine(
             config, category_whitelist=self._load_category_whitelist()
         )
+        # S5 闸门放松配置（gate.relax.*，app_config 只读；默认 enabled=false 零变化）
+        self.gate_relax = self._load_gate_relax_config()
 
     # ------------------------------------------------------------ 运行时配置
     def _load_category_whitelist(self) -> Optional[list[str]]:
@@ -66,6 +68,47 @@ class SourcingPipeline:
         except Exception:
             log.warning("读取 app_config.category.whitelist 失败，回落 config 默认", exc_info=True)
         return None
+
+    def _load_gate_relax_config(self):
+        """从 app_config 读取闸门放松配置（gate.relax.*，S5）；失败/未配置回落默认（不放松）。"""
+        from .gate import DEFAULT_GATE_RELAX, load_gate_relax_config
+
+        if self.db is None:
+            return DEFAULT_GATE_RELAX
+        try:
+            with self.db.session() as session:
+                cfg = load_gate_relax_config(session)
+            if cfg.enabled:
+                log.info("app_config gate.relax.* 生效：%s", cfg.describe())
+            return cfg
+        except Exception:
+            log.warning("读取 app_config gate.relax.* 失败，回落默认（不放松）", exc_info=True)
+            return DEFAULT_GATE_RELAX
+
+    def _relax_manual_review(self, candidates) -> int:
+        """S5：人工闸门按达标自动放松（人工复核前生效点，默认 enabled=false 零变化）。
+
+        对 `state='manual_review'` 的候选，按窗口内该类目复核统计（通过率≥阈值 且
+        样本≥min_samples，gate.relax.* 配置）自动放行 pool；放行理由追加到
+        compliance.reasons（可解释纪律，随 compliance_reasons 落库审计）。
+        返回放行数。
+        """
+        if not self.gate_relax.enabled:
+            return 0
+        from .gate import should_relax_category
+
+        released = 0
+        for cand in candidates:
+            if cand.state != "manual_review":
+                continue
+            ok, reasons = should_relax_category(self.db, cand.category, self.gate_relax)
+            if ok:
+                cand.state = "pool"
+                cand.compliance.reasons.append(
+                    "gate.relax 自动放行：" + (reasons[0] if reasons else "达标")
+                )
+                released += 1
+        return released
 
     @staticmethod
     def _ad_data_usable(ad: dict, max_age_days: float) -> bool:
@@ -165,7 +208,7 @@ class SourcingPipeline:
         """
         quote_col = make_collector("alibaba", self.config, mode)
         for cand in candidates:
-            if not cand.is_candidate:
+            if cand.state != "pool":  # 数据补全只对入池候选执行（S5 放松后 manual_review→pool 同样补全）
                 continue
             quotes: list[Quote] = []
             seen_quote: set[tuple] = set()
@@ -249,6 +292,8 @@ class SourcingPipeline:
                 result.manual_review += 1
             candidates.append(cand)
         result.candidates = sum(1 for c in candidates if c.is_candidate)
+        # 3.5) S5 人工闸门按达标自动放松（默认 enabled=false 零变化；放行理由落 compliance.reasons）
+        result.gate_relaxed = self._relax_manual_review(candidates)
 
         # 4) 数据补全（询价/素材）——只对 candidate 执行
         if do_quotes:
@@ -275,8 +320,8 @@ class SourcingPipeline:
             cand.score = self.scorer.score(data)
             cand.ad_conversion = ad
 
-        # 6) 排序取 TopN → 入池（人工闸门项不自动入池）
-        pool_candidates = [c for c in candidates if c.is_candidate]
+        # 6) 排序取 TopN → 入池（人工闸门项不自动入池；S5 达标放松项 state=pool 参与）
+        pool_candidates = [c for c in candidates if c.state == "pool"]
         pool_candidates.sort(key=lambda c: c.score.total, reverse=True)
         entered = pool_candidates[:top_n]
         result.pool_entered = len(entered)
@@ -287,8 +332,9 @@ class SourcingPipeline:
             self._persist(candidates, entered, collected)
         result.finished_at = datetime.now(timezone.utc)
         log.info(
-            "流水线完成：采集 %d → 去重后 %d → 候选 %d → 入池 %d（%.1fs）",
+            "流水线完成：采集 %d → 去重后 %d → 候选 %d → 人工复核 %d(闸门放松 %d) → 入池 %d（%.1fs）",
             result.collected, result.after_dedup, result.candidates,
+            result.manual_review, result.gate_relaxed,
             result.pool_entered, result.elapsed_seconds(),
         )
         return result
@@ -340,6 +386,8 @@ class SourcingPipeline:
                 result.manual_review += 1
             candidates.append(cand)
         result.candidates = sum(1 for c in candidates if c.is_candidate)
+        # 3.5) S5 人工闸门按达标自动放松（默认 enabled=false 零变化；放行理由落 compliance.reasons）
+        result.gate_relaxed = self._relax_manual_review(candidates)
 
         if do_quotes:
             self.complete(candidates, mode)
@@ -364,7 +412,7 @@ class SourcingPipeline:
             cand.score = self.scorer.score(data)
             cand.ad_conversion = ad
 
-        pool_candidates = [c for c in candidates if c.is_candidate]
+        pool_candidates = [c for c in candidates if c.state == "pool"]  # S5 放松项 state=pool 参与 TopN
         pool_candidates.sort(key=lambda c: c.score.total, reverse=True)
         entered = pool_candidates[:top_n]
         result.pool_entered = len(entered)

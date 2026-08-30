@@ -15,9 +15,13 @@ DEFAULT_SELECTORS = {
     "search_input": "input[placeholder*='搜索'], input[class*='search']",
     "search_btn": "button[class*='search'], .search-btn",
     "image_upload": "input[type='file'], .upload-btn",
+    # A6（v1.1）：result_row 保留宽泛 [class*='offer'] li 作为兜底（改版检测与行遍历
+    # 只取前 max_suppliers 行，真实页面校准前不进一步收窄——登记「待真实页面校准」）
     "result_row": ".card-item, [class*='offer'] li",
     "result_title": ".title, [class*='title']",
-    "order_price": ".order-price, .price-box, [class*='price']",
+    # A6（v1.1）：order_price 默认收窄到精确类名（订单确认页读价用 .first，
+    # 宽泛 [class*='price'] 易误匹配导航/广告价格元素）；宽泛值保留在 quote() 兜底
+    "order_price": ".order-price, .price-box",
     "supplier_name": ".company-name, [class*='company']",
     "confirm_btn": ".confirm-btn, button:has-text('确认')",
     "login_gate": ".login-modal, [class*='login']",
@@ -76,7 +80,7 @@ class AlibabaQuoteCollector(QuoteCollector):
                     if confirm.count() > 0:
                         confirm.first.click(timeout=5000)
                         page.wait_for_timeout(1500)
-                    price_txt = page.locator(self.selectors["order_price"]).first.inner_text(timeout=3000)
+                    price_txt = self._read_order_price(page)
                     unit_cost = self._parse_price(price_txt)
                     if unit_cost > 0:
                         quotes.append(
@@ -107,6 +111,21 @@ class AlibabaQuoteCollector(QuoteCollector):
             return ok
         except Exception:
             return False
+
+    def _read_order_price(self, page) -> str:
+        """订单确认页读单价文本（A6：精确选择器优先，未命中回退宽泛 [class*='price']）。
+
+        宽泛兜底 = 旧 DEFAULT_SELECTORS 值（`.order-price, .price-box, [class*='price']`），
+        真实页面校准前保留，防精确类名改版失效导致丢价；两路都取不到时返回空串
+        （调用方 _parse_price 解析为 0.0，不阻断询价流程）。
+        """
+        loc = page.locator(self.selectors["order_price"])
+        if loc.count() == 0:
+            loc = page.locator("[class*='price']")
+        try:
+            return loc.first.inner_text(timeout=3000)
+        except Exception:
+            return ""
 
     @staticmethod
     def _parse_price(text: str) -> float:

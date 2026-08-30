@@ -1,6 +1,7 @@
 # M1 自动选品 · 选择器校准记录（selector-log）
 
 > 版本：v1.1 ｜ 初始撰写：S3a 子代理（fixtures 对照，不依赖登录态）｜ S3b 子代理（2026-08-29）实施 A1~A4 并更新状态
+> ｜ **A6 子代理（2026-08-29，v1.1 迭代）实施 A6 选择器收敛并更新状态**（youmi 图片 lazy 提取 + alibaba/taobao 防御性收敛）
 > 目的：对照 `backend/sourcing/config.py` 与采集器代码 `backend/sourcing/collectors/*.py`，
 > 校准 5 个来源的 URL 模板 / 选择器配置 / fixtures 字段映射，登记「待实测项」——
 > 登录态就绪后在真实页面用 `inspect-page` 验证的选择器清单。
@@ -72,6 +73,18 @@
 6. **新观察（需收敛）**：`_extract_images` **imgs=0**——行内 `<img>` 未提取到 http 开头的图片 URL（真实页面商品图可能 lazy 加载、data-src 非 http 或使用 blob/相对路径），与 fixtures 中带 image_urls 的样本不同。建议后续用 `inspect-page --source youmi` 检查商品图 DOM 结构（图片选择器收敛，本次未改代码）；
 7. 观察：youmi rank 列取值跳号（本次 rank=21/46 缺失，共 50 条 max rank=52）——因页面存在重复标题行被 `seen` 去重跳过，属正常去重行为，非缺陷。
 
+### A6 收敛（v1.1 迭代，2026-08-29 · 子代理 A6）
+
+> 针对上面第 6 点新观察的代码级修复（不依赖登录态，防御性实现 + 单测覆盖；真实 DOM 校准待登录态）。
+
+- **改动（`collectors/youmi.py`）**：
+  1. 新增模块级 `LAZY_IMG_ATTRS`（优先级：src → data-src → data-original → data-lazy-src → data-lazy → srcset → data-srcset）与纯函数 `_first_http_url(attrs)`：逐属性尝试，`data:`/`blob:`/空/相对路径/protocol-relative 一律过滤，只收 http(s) 真实 URL；srcset 取首个候选（1x 优先）。**修复 S3c imgs=0 根因**：旧实现 `src or data-src` 的 or 短路——src 为 data: 占位符（非空）时 data-src 永不读取；
+  2. `_extract_images(row, title_cell=None)` 重写：优先取 `cols["title"]` 指定 td（商品列容器）内的 img（避免收集排名/推广方式等非商品图），列容器未命中再回退行内 img（防御，行为与旧版一致）；去重 + 最多 4 张；任何异常返回空列表不阻断采集；
+  3. 采集行调用改为 `self._extract_images(r, cols.get("title"))`（title 列索引来自动态列定位/配置）。
+- **理由**：S3c 实测 imgs=0（selector-log 第 2 节第 6 点）；fixtures 中带 image_urls 的样本与真实行为不一致（R-25 漂移点）。收敛目标 = lazy 属性命中 + 占位过滤 + 商品图容器收窄，全部单测覆盖。
+- **测试**：新增 `backend/tests/test_youmi_image_extract.py` 15 用例（lazy 属性命中 data-src/data-original/data-lazy-src/srcset 取首个候选；blob:/data: 过滤含 data: SVG 内嵌 http 命名空间不误收；空图集兜底；容器收窄排除 logo；去重+封顶 4；异常兜底；合并逻辑不回归）。
+- **待实测项**（登录态就绪后 `inspect-page --source youmi`）：真实商品图 DOM 属性确认（src 占位符形态 / data-src 值是否为 http / 是否在 title 列 td 内）；若商品图在 title 列之外（如其他列），调整 `title_cell` 传参或补充列容器映射。
+
 ---
 
 ## 3. 抖店电商罗盘（doudian）
@@ -119,6 +132,13 @@
   5. 订单确认页 `order_price` 是否命中单价元素（不下单，仅读价）；
   6. `login_gate` 未登录页触发行为。
 
+### A6 防御性收敛（v1.1 迭代，2026-08-29 · 子代理 A6）
+
+- **改动**：
+  1. `DEFAULT_SELECTORS["order_price"]` 收窄为 `.order-price, .price-box`（config.py 同步，A1 逐键一致不回归）；宽泛 `[class*='price']` **移入代码兜底**——新增 `_read_order_price(page)`：精确选择器 `count()==0` 时回退 `[class*='price']`（旧默认值），两路都取不到返回空串（`_parse_price` 解析为 0.0，不阻断询价）。理由：订单确认页读价用 `.first`，宽泛 `[class*='price']` 在默认值中会让 CSS-or 任意命中页内首个 price 类元素（导航/广告/规格价格），防御性收窄 + 代码兜底保证「精确优先、宽泛保底」；
+  2. `result_row` 保留 `.card-item, [class*='offer'] li`（宽泛 `[class*='offer'] li` 作兜底）：行遍历只取前 max_suppliers 行且 title/link 提取失败即跳过，误匹配影响有限；**无把握不强改，登记「待真实页面校准」**。
+- **待实测项**（登录态就绪后）：订单确认页真实 DOM 中单价元素类名（决定 `order_price` 是否需进一步收窄/换精确类名）；`result_row` 真实 offer 卡片类名。
+
 ---
 
 ## 5. 淘宝参考素材（taobao）
@@ -136,6 +156,13 @@
   4. 未登录/滑块触发时 `login_gate`/`verify_gate` 是否可见（决定 AUTH_REQUIRED/VERIFICATION_REQUIRED 分类是否正确）；
   5. 搜索页 URL 变化是否需要 `home_url` 显式配置。
 
+### A6 防御性收敛（v1.1 迭代，2026-08-29 · 子代理 A6）
+
+- **改动**：
+  1. `DEFAULT_SELECTORS["image"]` 收窄为 `.items .item img, [class*='item'] img`（config.py 同步，A1 逐键一致不回归）——**解决「全页 `img` 抓图可能收集导航/广告图」**；全页 `img` 保留在 `quote()` 代码兜底：窄选择器 `count()==0`（页面改版/结构差异）时回退 `page.locator("img")`，保持原行为。理由：CSS-or 直接追加 `img` 兜底是无效收窄（全页匹配仍收集噪声），故用「窄选择器优先 + 代码回退」实现防御性收敛；
+  2. `result_row` 保留 `.items .item, [class*='item']`（宽泛 `[class*='item']` 作兜底）：该键仅用于 `detect_page_changed` 改版检测，宽泛可防改版误报 PAGE_CHANGED；**无把握不强改，登记「待真实页面校准」**。
+- **待实测项**（登录态就绪后）：搜索结果页真实 DOM 中结果条目容器与商品主图容器类名（决定 `image` 是否需进一步收窄/换精确类名）；`next_page` 真实翻页按钮。
+
 ---
 
 ## 6. 校准动作建议（S3b 已实施 A1~A4；S3c 已实测验证 A2/A4/A5 结论，A6 待后续）
@@ -144,6 +171,7 @@
 > 对应代码：`backend/sourcing/config.py`、`collectors/{youmi,doudian}.py`、`backend/fixtures/doudian.json`、
 > 新增测试 `backend/tests/test_collector_config.py`（17 用例，sourcing 域 108 全绿）。
 > **S3c（2026-08-29，真实采集联调）**：三源真实采集验证 A2（动态日期生效）/A4（动态列定位命中）/A5（恒空确认），新增 youmi 图片提取收敛建议（见 A6 行下方注）。
+> **A6（2026-08-29，v1.1 迭代）**：选择器收敛代码级完成——youmi 图片 lazy 提取（`_extract_images` 重写 + 纯函数 `_first_http_url`）+ alibaba/taobao 防御性收敛（精确优先、宽泛代码兜底），新增 `tests/test_youmi_image_extract.py` 15 用例 + test_collector_config.py A6 3 用例，**sourcing 域 17 文件 141 passed（123 基线 + 18 新增）全绿**；真实页面校准仍待登录态（各来源小节「待实测项」已更新）。
 
 | # | 动作 | 来源 | 状态 | 说明 |
 |---|---|---|---|---|
@@ -152,4 +180,4 @@
 | A3 | 飙升榜 URL 补全 | doudian | ✅ fixtures 样本已完成（S3b）/ 🔲 真实 URL 待登录态回填 | `fixtures/doudian.json` 已补「飙升榜」3 条样本（dd-101~103，字段与商品榜同构，fixtures 采集器可直接回放）；config.boards[1].url_template **保持空**——登录态就绪后从页面地址栏取真实地址回填（S3c 仅采商品榜，未回填，仍待总工安排） |
 | A4 | 动态列定位死代码 | youmi/doudian | ✅ 已完成（S3b）+ ✅ 实测命中（S3c） | `_locate_columns` 改为只认 `config.selectors.columns`（config 为空/缺键 → 走动态表头定位，DEFAULT_SELECTORS.columns 不再短路）；config 配置了 columns 时用配置值（保持现状）；mock 表头单测覆盖动态定位与配置覆盖。**S3c 实测**：youmi 与 doudian 均以动态定位成功取数（title/price/sales 列正确） |
 | A5 | 商机中心 price/sales/category 恒空 | opportunities | ✅ 实测确认（S3c，维持现状） | **S3c 实测**：真实样本 price=0/sales=0/category='' 恒空（表格列仍为 商品/商机来源/状态/操作，无价格/销量/类目列）→ 维持「该源只贡献 rank/board_count」设计；若后续想利用商机来源列信息可扩展 columns（本次未改） |
-| A6 | alibaba/taobao 宽泛选择器收敛 | alibaba/taobao | 🔲 待登录态实测 | 登录态就绪后按 inspect-page 结果收窄（优先级最高）。**S3c 新增观察（youmi 图片，非三源代码改动）**：有米云 `_extract_images` 在真实页面 **imgs=0**（行内 img 未取到 http URL，疑似 lazy/blob），建议后续 inspect-page 检查商品图 DOM 后收窄图片选择器；商机中心 imgs=2、抖店罗盘 imgs=2 均命中 |
+| A6 | 选择器收敛（youmi 图片 lazy 提取 + alibaba/taobao 防御性收敛） | youmi/alibaba/taobao | ✅ 代码级收敛完成（v1.1 迭代，2026-08-29）/ 🔲 真实页面校准待登录态 | **youmi 图片（必做，修复 S3c imgs=0）**：`_extract_images` 重写 + 新增 `LAZY_IMG_ATTRS`/`_first_http_url`——lazy 属性优先级 src→data-src→data-original→data-lazy-src→data-lazy→srcset→data-srcset，data:/blob:/空/相对路径一律过滤只收 http(s)（修复旧 `src or data-src` 短路）；收窄到商品列容器（`title_cell` 内 img，未命中回退行内）；去重+最多 4 张。**alibaba（做）**：`order_price` 默认收窄 `.order-price, .price-box`，宽泛 `[class*='price']` 移入 `_read_order_price` 代码兜底；`result_row` 保留宽泛待校准。**taobao（做）**：`image` 收窄 `.items .item img, [class*='item'] img`，全页 `img` 保留在 quote() 代码兜底；`result_row` 保留宽泛待校准。测试：`tests/test_youmi_image_extract.py` 15 用例 + test_collector_config.py A6 3 用例；sourcing 域 17 文件 **141 passed**（123 基线 + 18 新增，`.pytest-tmp-m1`）。待实测：有米云商品图真实 DOM 属性/位置、1688 订单确认页单价类名、淘宝结果行/主图容器类名（见第 2/4/5 节） |

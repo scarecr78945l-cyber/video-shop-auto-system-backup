@@ -13,9 +13,12 @@
 
 from __future__ import annotations
 
+import mimetypes
+from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
+from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 
 from ..auth import AuthUser
@@ -25,6 +28,23 @@ from ..schemas import ImageDecisionBody
 from ..services import Services
 
 router = APIRouter(prefix="/api/optimization", tags=["m3-optimization"])
+
+_IMAGE_CONTENT_TYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+}
+
+
+def _image_content_type(path: Path) -> str:
+    """按扩展名取图片 Content-Type（未知扩展回退 mime 探测）。"""
+    ext = path.suffix.lower()
+    if ext in _IMAGE_CONTENT_TYPES:
+        return _IMAGE_CONTENT_TYPES[ext]
+    guessed, _ = mimetypes.guess_type(str(path))
+    return guessed or "application/octet-stream"
 
 
 # ---------------------------------------------------------------- 批次列表
@@ -324,3 +344,31 @@ def list_copywrites(
             for r in rows
         ],
     }
+
+
+# ---------------------------------------------------------------- 媒体预览（v1.2）
+
+
+@router.get("/media/{image_id}")
+def media_preview(image_id: str, services: Services = Depends(get_services)) -> Response:
+    """M3 生图产物预览（v1.2，M6 遗留 V-L2）：OptImage 字符串 id → 图片媒体流。
+
+    - OptImage.file_path 为生成时的绝对路径；校验 is_file + 图片扩展名；
+    - 防路径穿越：resolve 后必须等于原始绝对路径（拒绝 `..`/符号链接逃逸）；
+    - 文件缺失/非法 → 404 NO_MATCH；不返回真实路径（FileResponse 不暴露）。
+    """
+    from optimization.tables import OptImage
+
+    with services.m3_db.session() as session:
+        row = session.get(OptImage, image_id)
+    if row is None:
+        raise not_found(f"图片 {image_id} 不存在")
+    raw = (row.file_path or "").strip()
+    if not raw:
+        raise not_found(f"图片 {image_id} 无文件记录")
+    path = Path(raw)
+    if not path.is_absolute():
+        raise not_found(f"图片路径非法（非绝对路径）: {image_id}")
+    if path.resolve() != Path(raw).resolve() or not path.is_file():
+        raise not_found(f"图片文件不存在或路径非法: {image_id}")
+    return FileResponse(str(path), media_type=_image_content_type(path))

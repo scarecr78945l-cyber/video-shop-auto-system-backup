@@ -3,13 +3,17 @@
 用法示例：
   python -m sourcing init-db
   python -m sourcing launch-browsers           # 为各来源启动独立浏览器（登录态隔离）
+  python -m sourcing zombie-clean --port 9223  # P-016：清理僵尸标签页（保留采集目标页，不碰登录态）
   python -m sourcing run-pipeline --mode auto  # 真实数据采集（需先启动浏览器并登录）
   python -m sourcing run-pipeline --mode fixtures --top-n 20   # 离线样本
   python -m sourcing collect --source doudian --board 商品榜 --mode auto
   python -m sourcing scheduler --loop --interval 60
   python -m sourcing pool --limit 20
   python -m sourcing score --product-id 3
+  python -m sourcing gate-relax                    # S5 闸门放松 dry-run：只报告不放行
+  python -m sourcing gate-relax --apply            # 实际放行达标类目 manual_review 商品
   python -m sourcing ad-sync --file ../_management/data-exchange/m5-ad-conversion.json
+  python -m sourcing report-daily --days 7 [--json-out report.json]  # S4 日有效候选度量
   python -m sourcing config-show
 """
 
@@ -131,10 +135,71 @@ def launch_browsers(config, chrome) -> None:
     click.echo("  python -m sourcing run-pipeline --mode auto")
 
 
+@cli.command("zombie-clean")
+@click.option("--port", type=int, default=9223, help="CDP 端口（默认 9223 共享浏览器；有米云 9555）")
+@click.option("--keep", "keep_frags", multiple=True, help="额外保留的 URL 片段（可多次，追加到该端口默认保留集）")
+def zombie_clean(port, keep_frags) -> None:
+    """P-016 防复发：清理共享浏览器僵尸标签页（保留采集目标页，不触碰登录态）。
+
+    默认保留（端口相关）：9223 → opprotunity/rank-product；9555 → console.youshu.youcloud.com；
+    --keep 追加保留片段；找不到任何可保留目标页时防御性不关闭任何页面（safe_aborted）。
+    """
+    from .zombie_clean import clean_zombie_targets, default_keep_fragments
+
+    frags: tuple[str, ...] | None = None
+    if keep_frags:
+        frags = tuple(default_keep_fragments(port)) + tuple(keep_frags)
+    stats = clean_zombie_targets(port, keep_url_fragments=frags)
+    click.echo(
+        f"CDP :{port} targets={stats['targets_seen']} 页面={stats['pages_seen']} "
+        f"保留={stats['kept']} 关闭={stats['closed']} "
+        f"关闭失败={stats['close_failed']} 跳过={stats['skipped']}"
+    )
+    for err in stats["errors"][:10]:
+        click.echo(f"  ⚠ {err}")
+    if not stats["ok"]:
+        click.echo(f"✗ 列表拉取失败（{stats['error']}）——浏览器可能未启动")
+        sys.exit(1)
+    if stats["safe_aborted"]:
+        click.echo("⚠ 未找到可保留的采集目标页，防御性未关闭任何页面（safe_aborted）")
+
+
 @cli.command()
 @click.pass_obj
 def probe_browsers(config) -> None:
-    """探测各来源浏览器端口：是否可连 + 当前页面（确认登录了哪个平台）。"""
+    """探测各来源浏览器端口：是否可连 + 当前页面（确认登录了哪个平台）。
+
+    P-016 防复发：探测前先对每个启用来源端口做僵尸标签页清理（保留采集目标页
+    opprotunity/rank-product、有米云 console.youshu.youcloud.com），避免
+    playwright connect_over_cdp 被僵尸页挂起；清理幂等容错，失败仅提示不中断。
+    """
+    from .zombie_clean import clean_zombie_targets
+
+    # --- P-016 前置：僵尸标签页清理（按端口去重，幂等/容错，失败不阻塞探测） ---
+    seen_ports: set[int] = set()
+    for name, label in [
+        ("opportunities", "视频号商机中心"),
+        ("youmi", "有米云"),
+        ("doudian", "抖店电商罗盘"),
+        ("alibaba", "1688"),
+        ("taobao", "淘宝"),
+    ]:
+        spec = getattr(config, name)
+        if not spec.enabled or spec.cdp_port in seen_ports:
+            continue
+        seen_ports.add(spec.cdp_port)
+        stats = clean_zombie_targets(spec.cdp_port)
+        if not stats["ok"]:
+            click.echo(f"[P-016 清理] CDP :{spec.cdp_port} ✗ 跳过（{stats['error']}）")
+        elif stats["safe_aborted"]:
+            click.echo(f"[P-016 清理] CDP :{spec.cdp_port} ⚠ 未找到采集目标页，防御性不关闭任何页面")
+        else:
+            click.echo(
+                f"[P-016 清理] CDP :{spec.cdp_port} targets={stats['targets_seen']} "
+                f"保留={stats['kept']} 关闭={stats['closed']} "
+                f"失败={stats['close_failed']} 跳过={stats['skipped']}"
+            )
+
     from playwright.sync_api import sync_playwright
 
     pw = sync_playwright().start()
@@ -354,6 +419,40 @@ def gate_confirm(config, product_id) -> None:
 
 
 @cli.command()
+@click.option("--apply", is_flag=True, help="实际放行达标类目 manual_review 商品（缺省 = --dry-run 只报告）")
+@click.option("--dry-run", "force_dry", is_flag=True, help="显式 dry-run：只报告不放行（默认）")
+@click.option("--category", "categories", multiple=True, help="类目子集过滤（可多次）；缺省用 gate.relax.categories")
+@click.option("--limit", type=int, default=None, help="最多处理 N 条 manual_review 商品（按 id 升序）")
+@click.pass_obj
+def gate_relax(config, apply, force_dry, categories, limit) -> None:
+    """人工闸门按达标自动放松（S5）：对存量 manual_review 商品判定并（可选）放行。
+
+    策略读 app_config `gate.relax.*`（enabled 默认 false=不放松）；达标=窗口内
+    该类目通过率 ≥ pass_rate 且样本 ≥ min_samples（10 文档第五节口径：95%×50 品）。
+    默认 dry-run 只报告不放行；--apply 才实际放行（达标类目 state → pool）。
+    """
+    from .db import Database
+    from .gate import relax_manual_review
+
+    dry_run = (not apply) or force_dry
+    db = Database(config)
+    db.create_all()  # 保险：表不存在时建表（读 app_config 需要），幂等
+    report = relax_manual_review(db, dry_run=dry_run, categories=categories, limit=limit)
+    cfg = report.config
+    click.echo(
+        f"[{'DRY-RUN 只报告' if report.dry_run else '已放行'}] gate.relax: {cfg.describe()}"
+    )
+    click.echo(
+        f"存量 manual_review {len(report.actions)} 条 → "
+        f"达标可放行 {report.relaxed_count} / 保持人工复核 {report.kept_count}"
+    )
+    for a in report.actions:
+        mark = "→pool" if a.relaxed else "保持  "
+        reason = a.reasons[0] if a.reasons else ""
+        click.echo(f"  #{a.product_id} [{mark}] {a.category or '(空类目)'}: {reason}")
+
+
+@cli.command()
 @click.pass_obj
 def config_show(config) -> None:
     """打印生效配置（类目白名单/打分权重/调度参数）。"""
@@ -413,6 +512,30 @@ def ad_sync(config, file_path) -> None:
         f" / 新增 {stats['inserted']} / 更新 {stats['upserted']}"
         f" / 跳过 {stats['skipped']} / 载入 {stats['rows_loaded']}"
     )
+
+
+@cli.command("report-daily")
+@click.option("--days", type=int, default=7, help="统计最近 N 天（UTC 日粒度），默认 7")
+@click.option("--json-out", type=click.Path(dir_okay=False), default=None, help="将结果写为 JSON 文件")
+@click.pass_obj
+def report_daily(config, days, json_out) -> None:
+    """S4 日有效候选度量：每日 采集事件/运行/有效候选，≥200 达标判定（只读查询）。
+
+    口径（context README「S4 日有效候选度量」小节）：
+    有效候选 = products.state ∈ (pool, manual_review) 按 created_at UTC 日分组；
+    target_met = effective_candidates ≥ 200；gap = max(0, 200 - 数)；空数据 daily=[]。
+    """
+    from .db import Database
+    from .report import SourcingReport
+
+    db = Database(config)
+    data = SourcingReport(db).daily_effective_candidates(days=days)
+    if json_out:
+        Path(json_out).write_text(
+            json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        click.echo(f"JSON 已写入 {json_out}")
+    click.echo(json.dumps(data, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

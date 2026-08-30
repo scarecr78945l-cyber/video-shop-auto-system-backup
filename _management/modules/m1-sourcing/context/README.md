@@ -87,7 +87,7 @@
 ### C-1 类目口径（锚点）
 - 本模块 `products.category` 为类目锚点；白名单 9 类（`config.DEFAULT_CATEGORY_WHITELIST`）。
 - 规则：平台类目与白名单做**包含匹配**；M5 回写按「与 `products.category` 完全一致」的类目名聚合。
-- **app_config 键名（REC-010/DA-008 定稿）**：运行时白名单经 app_config 键 **`category.whitelist`**（list[str]）覆盖 config 默认，读取入口 `pipeline._load_category_whitelist`（点分隔命名空间，与 M0 基准一致）；`config.category_whitelist` 为代码配置字段（环境变量 SOURCING_CATEGORY_WHITELIST 可覆盖），两者语义不同勿混淆。`scoring.weights`（打分权重 app_config 键）后续迭代接入，当前权重走 `config.scoring`。
+- **app_config 键名（REC-010/DA-008 定稿）**：运行时白名单经 app_config 键 **`category.whitelist`**（list[str]）覆盖 config 默认，读取入口 `pipeline._load_category_whitelist`（点分隔命名空间，与 M0 基准一致）；`config.category_whitelist` 为代码配置字段（环境变量 SOURCING_CATEGORY_WHITELIST 可覆盖），两者语义不同勿混淆。`scoring.weights`（打分权重 app_config 键）后续迭代接入，当前权重走 `config.scoring`。**S5 闸门放松键 `gate.relax.*`（enabled/min_samples/pass_rate/window_days/categories）同为点分隔命名空间（DA-008 纪律），键名权威见 `backend/sourcing/gate.py`，口径/用法见本文第七节**。
 - 待总控确认：类目名统一表放 `_management/data-exchange/category-registry.json`（D-3 决策）。
 
 ### C-2 M5 → M1：投放转化回写（输入契约草案）
@@ -168,6 +168,44 @@
 | 脱敏 | 临时库 raw_json 裁剪干净，日志无明文 cookie/token/session/password/secret/authorization（脱敏验证 PASS） |
 | 安全边界 | 未点击验证码/滑块、未重试风控源、未下单、未读取 cookie/localStorage/凭据；临时库 s3c.db 保留在 `.pytest-tmp-m1/`（不入 git，供验收） |
 | 选择器实测明细 | 详见 `selector-log.md` 各来源「实测结果（S3c）」小节；A2（动态日期）✅、A4（动态列定位）✅、A5（恒空确认）✅、A3（飙升榜 URL）仍待回填、A6（alibaba/taobao）待后续 |
+
+### P-016 防复发：僵尸标签页清理（v1.1-③，zombie_clean）
+- **背景**：CDP 9223 共享浏览器长期挂机积累僵尸标签页（渲染进程无响应，如商机中心 home `store.weixin.qq.com/shop/home`、罗盘核心数据页 `compass.jinritemai.com/shop`），playwright `connect_over_cdp` 初始化逐个 target Page.enable/Network.enable 时被卡死（HTTP /json 正常但 ws 无响应）——pitfall-log P-016。
+- **能力**：`backend/sourcing/zombie_clean.py::clean_zombie_targets(port, keep_url_fragments=None)`——CDP HTTP `GET /json/list` 拉取 target 列表（短超时 4s），`GET /json/close/<id>` 关闭**非采集目标**的 http(s) 页面；幂等、容错（任何失败返回统计 dict 不抛异常）；全程不触碰登录态/凭据（cookie 在 profile，非页面内）。
+- **保留规则**：
+  - 9223 共享浏览器默认保留：`opprotunity`（商机中心机会品）、`rank-product`（罗盘商品榜）；
+  - 9555 有米云默认保留：`console.youshu.youcloud.com`；
+  - `--keep <片段>` 追加额外保留片段；browser_ui/devtools 等非页面 target 与 chrome:// about:blank devtools:// 等非 http(s) 页面一律跳过不报错；`/json/close` 对 browser_ui 返回 404 → 计数跳过不阻塞；
+  - **防御**：找不到任何可保留的采集目标页（保留集为空）→ `safe_aborted=True`，不关闭任何页面；绝不触碰凭据/登录态。
+- **用法**：
+  ```bash
+  python -m sourcing zombie-clean --port 9223            # 共享浏览器（默认）
+  python -m sourcing zombie-clean --port 9555            # 有米云
+  python -m sourcing zombie-clean --port 9223 --keep console.youshu.youcloud.com  # 追加保留
+  python -m sourcing probe-browsers                      # 已内置 P-016 前置清理（探测前自动执行）
+  ```
+- **返回统计**：`{ok, port, targets_seen, pages_seen, kept, closed, close_failed, skipped, safe_aborted, closed_ids, errors, error}`。
+- **测试**：`backend/tests/test_zombie_clean.py`（纯 mock CDP HTTP 层，**绝不真实连接 9223/9555**；覆盖列表解析/保留规则/404 与 browser_ui 跳过/幂等/防御性中止/失败容错）。
+
+### S4 日有效候选度量（口径+用法，2026-09-01 实施）
+- **目的**：对齐 04 文档验收标准「日有效候选 ≥200」的联调度量；实现于 `backend/sourcing/report.py::SourcingReport.daily_effective_candidates(days=N)`（只读查询）。
+- **口径（实现内明确，测试锁定）**：
+  - 「有效候选」= `products.state ∈ (pool, manual_review)`，按 `created_at` 的 **UTC 日期（YYYY-MM-DD）** 分组计数；`rejected` 及未知状态**不计**。
+  - 每日采集事件数 = `source_collection_events.created_at` 按 UTC 日计数；每日运行 = `source_runs.started_at` 按 UTC 日计数（`ok_runs` 为 `ok=True` 数）。
+  - 达标判定：`effective_candidates >= DAILY_EFFECTIVE_TARGET(200)` → `target_met=True`；`gap = max(0, 200 - effective_candidates)`（达标日 `gap=0`）。
+  - 窗口：最近 N 天滚动窗口（切点 `>= now - N 天`，与 `weekly()` 一致）；**首/末日可为不完整日**（UTC 日粒度对齐，非自然日对齐）。
+  - **空数据 → `daily=[]`，不抛异常**。
+- **输出结构**：
+```json
+{"period_days": 7, "generated_at": "2026-09-01T00:00:00Z",
+ "daily": [{"date": "2026-08-31", "collected_events": 101, "runs": 3,
+            "ok_runs": 3, "effective_candidates": 205,
+            "target_met": true, "gap": 0}]}
+```
+- **用法**：
+  - Python：`SourcingReport(db).daily_effective_candidates(days=7)`（时间 UTC）。
+  - CLI：`python -m sourcing report-daily --days 7 [--json-out PATH]`（backend 目录下）。
+  - 测试：`backend/tests/test_report_daily.py`（跨日分组 / state 过滤 / 达标边界与 gap / 空数据 / CLI 冒烟）。
 
 ## 五、本目录文件索引
 - `README.md`（本文）

@@ -67,6 +67,40 @@ def parse_num(text: str) -> float:
     return v
 
 
+# A6（v1.1 迭代，2026-08-29）：S3c 真实采集实测 _extract_images imgs=0——
+# 真实页面商品图疑似 lazy 加载：src 常为占位符（data:/blob:/空/相对路径），
+# 旧实现 `src or data-src` 的 or 短路导致 data-src 永不读取。
+# 按优先级读取 lazy 属性；data:/blob:/空/相对路径一律过滤，只收 http(s) 真实 URL。
+LAZY_IMG_ATTRS: tuple[str, ...] = (
+    "src",
+    "data-src",
+    "data-original",
+    "data-lazy-src",
+    "data-lazy",
+    "srcset",
+    "data-srcset",
+)
+
+
+def _first_http_url(attrs: dict[str, str | None]) -> str:
+    """从一组图片属性中取第一个 http(s) URL；srcset 取首个候选；无则空串。
+
+    - 按 LAZY_IMG_ATTRS 优先级逐个尝试，data:/blob: 占位符直接跳过（不短路），
+      空值跳过——避免 `src=data:...` 占位导致 data-src/srcset 永不读取（S3c imgs=0 根因）；
+    - srcset 形如 "https://a.jpg 1x, https://b.jpg 2x" → 取第一个候选；
+    - 只收 http:// 与 https://（data:/blob:/相对路径/protocol-relative 均过滤；
+      data: SVG 可能内嵌 http 命名空间，故先按前缀整值跳过，不扫描）。
+    """
+    for key in LAZY_IMG_ATTRS:
+        raw = (attrs.get(key) or "").strip()
+        if not raw or raw.startswith(("data:", "blob:")):
+            continue
+        m = re.search(r"https?://[^\s,]+", raw)
+        if m:
+            return m.group(0)
+    return ""
+
+
 class YoumiCollector(Collector):
     source = "youmi"
     default_boards = ["商品榜"]
@@ -143,7 +177,7 @@ class YoumiCollector(Collector):
                             price=round(parse_num(cell(cols["price"])), 2),
                             sales=int(parse_num(cell(cols["sales"]))),
                             rank=int(parse_num(cell(cols["rank"])) or len(items) + 1),
-                            image_urls=self._extract_images(r),
+                            image_urls=self._extract_images(r, cols.get("title")),
                             raw={"board": board},
                         )
                     )
@@ -206,13 +240,34 @@ class YoumiCollector(Collector):
             return False
 
     @staticmethod
-    def _extract_images(row) -> list[str]:
-        urls = []
+    def _extract_images(row, title_cell: int | None = None) -> list[str]:
+        """提取行内商品图 URL（A6 收敛：lazy 属性 + 收窄到商品列容器）。
+
+        - lazy 加载兼容：src 为占位（data:/blob:/空/相对路径）时继续读
+          data-src / data-original / data-lazy-src / data-lazy / srcset / data-srcset；
+        - 收窄：优先取 title_cell 指定 td（商品列）内的 img（避免收集排名/推广方式
+          等非商品图），该容器未命中再回退行内 img（防御，不依赖真实 DOM 结构——
+          列容器取不到时行为与旧版一致）；
+        - 只收 http(s) 真实 URL，去重，最多 4 张；任何异常返回空列表，不阻断采集。
+        """
         try:
-            for img in row.locator("img").all()[:4]:
-                src = img.get_attribute("src") or img.get_attribute("data-src")
-                if src and src.startswith("http"):
-                    urls.append(src)
+            locators: list = []
+            if title_cell is not None:
+                locators.append(row.locator("td").nth(title_cell).locator("img"))
+            locators.append(row.locator("img"))  # 兜底：列容器未命中时回退行内（含 title_cell=None）
+        except Exception:
+            return []
+        urls: list[str] = []
+        seen: set[str] = set()
+        try:
+            for loc in locators:
+                for img in loc.all()[:4]:
+                    url = _first_http_url({k: img.get_attribute(k) for k in LAZY_IMG_ATTRS})
+                    if url and url not in seen:
+                        seen.add(url)
+                        urls.append(url)
+                if urls:
+                    break  # 精确容器命中即止，不再取兜底行内
         except Exception:
             pass
-        return urls
+        return urls[:4]

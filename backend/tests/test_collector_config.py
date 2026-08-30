@@ -279,3 +279,40 @@ def test_a4_doudian_config_columns_override():
     cfg = load_config(doudian={"selectors": {"columns": {"title": 1, "sales": 5}}})
     col = DoudianCollector(cfg.doudian)
     assert col._locate_columns(object()) == {"title": 1, "sales": 5, "pay": 3}
+
+
+# --------------------------------------------------------------------------- A6
+# 选择器防御性收敛（v1.1 迭代）：alibaba/taobao 宽泛选择器收窄 + 兜底保留
+
+
+def test_a6_alibaba_taobao_narrowed_defaults_kept_in_sync():
+    """A6：alibaba/taobao 收窄后的 config.selectors 与 DEFAULT_SELECTORS 仍逐键一致（A1 不回归）。"""
+    cfg = load_config()
+    assert cfg.alibaba.selectors == ALIBABA_DEFAULTS
+    assert cfg.taobao.selectors == TAOBAO_DEFAULTS
+
+
+def test_a6_alibaba_order_price_narrowed_with_broad_fallback_registered():
+    """A6：alibaba order_price 默认收窄为精确类名，宽泛 [class*='price'] 移入代码兜底。"""
+    assert ALIBABA_DEFAULTS["order_price"] == ".order-price, .price-box"
+    assert "[class*='price']" not in ALIBABA_DEFAULTS["order_price"]
+    # 兜底保留在采集器实现内（_read_order_price 未命中时回退宽泛选择器）
+    import inspect
+    from sourcing.collectors.alibaba import AlibabaQuoteCollector
+
+    src = inspect.getsource(AlibabaQuoteCollector._read_order_price)
+    assert "[class*='price']" in src
+    # result_row 无把握不强改：宽泛兜底仍在默认值中（登记「待真实页面校准」）
+    assert ALIBABA_DEFAULTS["result_row"] == ".card-item, [class*='offer'] li"
+
+
+def test_a6_taobao_image_narrowed_with_img_fallback_registered():
+    """A6：taobao image 收窄到结果行内图片，全页 img 兜底保留在采集器内。"""
+    assert TAOBAO_DEFAULTS["image"] == ".items .item img, [class*='item'] img"
+    import inspect
+    from sourcing.collectors.taobao import TaobaoReferenceCollector
+
+    src = inspect.getsource(TaobaoReferenceCollector.quote)
+    assert 'page.locator("img")' in src  # 窄选择器未命中时回退全页 img
+    # result_row 仅用于改版检测，宽泛 [class*='item'] 保留防误报（登记「待真实页面校准」）
+    assert TAOBAO_DEFAULTS["result_row"] == ".items .item, [class*='item']"

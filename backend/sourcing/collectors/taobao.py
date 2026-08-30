@@ -10,9 +10,13 @@ from .browser import SharedBrowser, detect_page_changed
 DEFAULT_SELECTORS = {
     "search_input": "input[placeholder*='搜索'], input[class*='search']",
     "search_btn": "button[class*='search'], .search-btn",
+    # A6（v1.1）：result_row 仅用于改版检测（detect_page_changed），
+    # 保留宽泛 [class*='item'] 兜底防改版误报 PAGE_CHANGED——登记「待真实页面校准」
     "result_row": ".items .item, [class*='item']",
     "result_title": ".title, [class*='title']",
-    "image": "img",
+    # A6（v1.1）：image 收窄到结果行内图片，避免全页 img 收集导航/广告图；
+    # 窄选择器未命中时 quote() 回退全页 img（原行为，见代码注释）
+    "image": ".items .item img, [class*='item'] img",
     "next_page": ".next, [class*='next']",
     "login_gate": ".login-modal, [class*='login']",
     "verify_gate": ".captcha, [class*='verify']",
@@ -43,8 +47,12 @@ class TaobaoReferenceCollector(QuoteCollector):
 
             urls: list[str] = []
             seen: set[str] = set()
+            img_loc = page.locator(self.selectors["image"])
+            if img_loc.count() == 0:
+                # A6 兜底：窄选择器未命中（页面改版/结构差异）时回退全页 img，保持原行为
+                img_loc = page.locator("img")
             for _ in range(5):
-                for img in page.locator(self.selectors["image"]).all():
+                for img in img_loc.all():
                     src = img.get_attribute("src") or img.get_attribute("data-src") or ""
                     if src.startswith("http") and src not in seen:
                         seen.add(src)

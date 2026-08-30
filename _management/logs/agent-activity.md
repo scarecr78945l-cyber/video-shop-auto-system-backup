@@ -1515,3 +1515,31 @@
 - 产出文件：`progress.md`（v1.1 ✅）、`decisions.md`（+2 条）、本日志追加条目。未改动任何代码。
 - 当前阻塞：无。v1.1 迭代完成；等总控备份标签 + 协调遗留（M3 预览端点 v1.2 / MATERIALS_STORAGE_DIR 生产配置 / 素材 id 对齐 / v1.0 L1~L9）。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM（宪法第 11 节）；本回合仅验收未改代码。
+
+---
+
+### 2026-08-29 ｜ M1 总工程师（新任） ｜ M1 自动选品（m1-sourcing） ｜ 角色：总工（P2-6/P2-7 数据知识吸收完成）
+
+- 任务来源：总控派发 P2 数据知识吸收任务（小步执行，每完成一项落盘）。
+- 完成任务：
+  ① **P2-6 榜单目录补全**：`config.py` 新增 `kaogujia` 第四源备胎 CollectorConfig（5 榜 URL 照旧系统 `kaogujia_board_catalog.py`：实时销量榜/视频热推荐榜/商品热销榜/商品数据大盘/往年爆款，全部 `enabled=False` 不参与采集/调度，selectors 留空待校准）；doudian.boards 扩展 4 个旧系统罗盘榜单（商品卡榜/短视频榜/同行低退榜 static + 实时爆品挖掘榜 realtime，`enabled=False` + url_template 留空——旧系统 3 类目×3 时间窗×3 静态榜+1 实时榜=30 组合，URL 同为 rank-product 页内 tab 切换）；context/README 外部契约表考古加行更新 + 第六节知识档案；
+  ② **P2-7 契约字段对照**：对照旧系统 `contracts.py`（SourcedProduct/AlibabaMatch/UploadResult）——决策 D-10：**以新系统命名为准不实际改名**（108+ 测试与库 schema 稳定）；models.py SourceItem/Quote 加对照注释（image_url→image_urls、name→title、sales_rank→rank、price_range→price、purchase_price→unit_cost、missing_fields→missing_attrs 等）；旧系统独有未建模字段（score/material/dropshipping_supported/product_attrs/customer_service_*/image_offer_candidates）登记；UploadResult 属 M4 边界；
+  ③ **decisions.md 登记 D-10/D-11**；context/README 第六节（P2-6 知识档案 + P2-7 映射表）；
+  ④ **验收**：sourcing 域测试 **123 passed**（`.pytest-tmp-m1`，16 文件，7.36s）全绿，fixtures 无回归。
+- 产出文件：`backend/sourcing/config.py`（+kaogujia +doudian 扩展 4 榜）、`backend/sourcing/models.py`（+对照注释）、`_management/modules/m1-sourcing/decisions.md`（+D-10/D-11）、`context/README.md`（+第六节）、`progress.md`（+P2 小节）、本日志追加条目。
+- 当前阻塞：无。全量回归观察：`test_materials_archive.py` ×2（Windows 冒号路径 `1688:55`）+ `test_ads_fixtures.py` ×1（AttributeError）均非 M1 域，提请总控转达 M2/M5。
+- 备注：未运行任何 git 命令；未读写其他模块库（旧系统源码仅只读对照 `contracts.py`/`*_board_catalog.py`）；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m1`（P-001/P-011）。
+
+---
+
+### 2026-08-29 ｜ M1 总工程师（新任） ｜ M1 自动选品（m1-sourcing） ｜ 角色：总工（v1.1+ 迭代三项验收通过）
+
+- 任务来源：总控派发 v1.1+ 迭代 5 项（A3/A6/僵尸页/S4/S5），子代理并行执行；本回合验收已完成的 3 项。
+- 完成任务：
+  ① **v1.1-② A6 选择器收敛（子代理 a85a109f，验收通过）**：youmi `_extract_images` 重写——LAZY_IMG_ATTRS（src→data-src→data-original→data-lazy-src→data-lazy→srcset→data-srcset）+ `_first_http_url`（data:/blob:/相对路径过滤，srcset 取首候选）收窄到商品列容器（修复 S3c imgs=0 根因：旧 `src or data-src` 短路）；alibaba order_price 收窄 `.order-price, .price-box`（宽泛 `[class*='price']` 移入 `_read_order_price` 代码兜底）、taobao image 收窄 `.items .item img`（全页 img 保留代码兜底）；test_youmi_image_extract.py 15 用例 + test_collector_config +3；selector-log 各来源小节 + A6 行 ✅/🔲；
+  ② **v1.1-③ 9223 僵尸页清理（子代理 c77f21c7 中断零回报，产出落盘后总工验收通过）**：`zombie_clean.py::clean_zombie_targets(port, keep)`——CDP HTTP /json/list+/json/close，只关非采集目标 http(s) 页、跳过 browser_ui/devtools/chrome://、保留集空防御性中止、幂等容错、只连 127.0.0.1、短超时 4s、不碰登录态；cli `zombie-clean` 命令 + `probe-browsers` 前置接线；context README「P-016 防复发」小节；test_zombie_clean.py 纯 mock 不连真实浏览器；子代理失败原因=测试顺序污染调试中被中断（合并回归证明无污染）；
+  ③ **v1.1-④ S4 日有效候选度量（subagent 2 次零产出失败后改投 workflow m1-s4-daily-metric，验收通过）**：`report.py::daily_effective_candidates(days)`——按日聚合有效候选（state∈pool/manual_review）/采集事件/运行批次 + **≥200 target_met/gap 达标标志** + 空数据容错；cli `report-daily --days N [--json-out]`；test_report_daily.py 6 用例（跨日分组/state 过滤/达标边界/空数据/CLI 冒烟）；context「S4 日有效候选度量」口径小节；
+  ④ **合并验收**：sourcing 域 **19 文件 159 passed**（`.pytest-tmp-m1`，9.81s）全绿（123 基线 + A6 18 + S4 6 + 僵尸页 12），fixtures 无回归。
+- 产出文件：`backend/sourcing/collectors/youmi.py`/`alibaba.py`/`taobao.py`、`backend/sourcing/config.py`（+收窄）、`backend/sourcing/zombie_clean.py`（新）、`backend/sourcing/report.py`（+daily 度量）、`backend/sourcing/cli.py`（+zombie-clean/+report-daily）、`backend/tests/test_youmi_image_extract.py`/`test_zombie_clean.py`/`test_report_daily.py`（新）+ test_collector_config.py（+3）、`_management/modules/m1-sourcing/context/README.md`（P-016 防复发 + S4 口径小节）、`selector-log.md`（A6 更新）、`progress.md`（v1.1+ 看板勾选 3 项 + 中间验收记录）、本日志追加条目。
+- 当前阻塞：无。A3（39e20fe1）与 S5（44e9f768）仍在运行，完成后继续验收；A6 待实测项（有米云真实 DOM 图片属性/1688 单价类名/淘宝主图容器类名）登记 selector-log，登录态就绪后校准。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m1`（P-001/P-011）。

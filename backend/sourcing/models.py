@@ -189,6 +189,7 @@ class PipelineResult(BaseModel):
     candidates: int = 0
     quoted: int = 0
     pool_entered: int = 0
+    gate_relaxed: int = 0  # S5：人工闸门按达标自动放行的 manual_review 数（默认 0，enabled=false 零变化）
     pool: list[ProductCandidate] = Field(default_factory=list)
     skipped_sources: list[str] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)

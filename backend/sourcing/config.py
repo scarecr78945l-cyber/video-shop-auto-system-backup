@@ -320,13 +320,18 @@ class SourcingConfig(BaseSettings):
             cdp_port=9223,
             profile_dir="shared",
             # A1：与 alibaba.py DEFAULT_SELECTORS 逐键一致
+            # A6（v1.1，2026-08-29）防御性收敛：
+            #   order_price 收窄为精确类名（宽泛 [class*='price'] 保留在 alibaba.py
+            #   _read_order_price 兜底，避免订单确认页 .first 误读导航/广告价格元素）；
+            #   result_row 保留宽泛 [class*='offer'] li 兜底（真实页面校准前不强改，
+            #   待登录态就绪后 inspect-page --source alibaba 实测收窄）。
             selectors={
                 "search_input": "input[placeholder*='搜索'], input[class*='search']",
                 "search_btn": "button[class*='search'], .search-btn",
                 "image_upload": "input[type='file'], .upload-btn",
                 "result_row": ".card-item, [class*='offer'] li",
                 "result_title": ".title, [class*='title']",
-                "order_price": ".order-price, .price-box, [class*='price']",
+                "order_price": ".order-price, .price-box",
                 "supplier_name": ".company-name, [class*='company']",
                 "confirm_btn": ".confirm-btn, button:has-text('确认')",
                 "login_gate": ".login-modal, [class*='login']",
@@ -339,12 +344,17 @@ class SourcingConfig(BaseSettings):
             cdp_port=9223,
             profile_dir="shared",
             # A1：与 taobao.py DEFAULT_SELECTORS 逐键一致
+            # A6（v1.1，2026-08-29）防御性收敛：
+            #   image 收窄到结果行内图片（`.items .item img, [class*='item'] img`），
+            #   避免全页 img 收集导航/广告图；窄选择器未命中时 taobao.py quote()
+            #   回退全页 img（原行为兜底）；
+            #   result_row 保留宽泛 [class*='item'] 兜底（仅改版检测用，真实页面校准前不强改）。
             selectors={
                 "search_input": "input[placeholder*='搜索'], input[class*='search']",
                 "search_btn": "button[class*='search'], .search-btn",
                 "result_row": ".items .item, [class*='item']",
                 "result_title": ".title, [class*='title']",
-                "image": "img",
+                "image": ".items .item img, [class*='item'] img",
                 "next_page": ".next, [class*='next']",
                 "login_gate": ".login-modal, [class*='login']",
                 "verify_gate": ".captcha, [class*='verify']",

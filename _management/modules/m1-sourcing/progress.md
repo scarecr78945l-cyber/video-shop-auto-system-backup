@@ -67,3 +67,36 @@
   6. C1 迁移（hard-block-policy.json 等 old-system-assets）由独立子代理执行中，与本模块无冲突。
 - **当前迭代**：v1.0（模块级验收完成，95%）｜ **本回合动作**：恢复确认 + 台账登记，无代码改动。
 - **后续动作**：等总控派发下一批任务（v1.1+ 迭代或 S4 联调排期）。
+
+---
+
+## P2 数据知识吸收（2026-08-29 · P2-6/P2-7 完成）
+
+| 任务 | 内容 | 状态 |
+|---|---|---|
+| [x] P2-6 榜单目录补全 | 考古加第四源备胎登记（config.py `kaogujia`，5 榜 URL 照旧系统 kaogujia_board_catalog.py，`enabled=False`）；抖店罗盘旧榜单目录登记（doudian.boards 扩展 4 榜：商品卡榜/短视频榜/同行低退榜/实时爆品挖掘榜，`enabled=False` + url_template 留空）；context/README 第六节知识档案 | ✅ 完成（D-11） |
+| [x] P2-7 契约字段对照 | 对照旧系统 contracts.py（SourcedProduct/AlibabaMatch/UploadResult）统一字段命名：**以新系统命名为准不实际改名**；models.py SourceItem/Quote 加对照注释；差异登记 decisions.md D-10；context/README 第六节映射表 | ✅ 完成（D-10） |
+
+- **验收**：sourcing 域测试 **123 passed**（`.pytest-tmp-m1`，16 文件，7.36s）全绿，fixtures 无回归。
+- **全量回归观察（提请总控）**：误跑全量 `python -m pytest tests` 得 1212 passed / 3 failed / 2 skipped——3 个失败均与 M1 无关：`test_materials_archive.py` ×2（NotADirectoryError：Windows 文件名含冒号 `1688:55`，M2 域既有环境问题）、`test_ads_fixtures.py` ×1（AttributeError，M5 域）——建议总控全量回归时以 `.pytest-tmp-verify` 复跑确认，若仍失败转达 M2/M5 总工。
+
+---
+
+## v1.1+ 迭代看板（2026-08-29 派发 · 5 个子代理并行）
+
+| 任务 | 子代理 | 状态 |
+|---|---|---|
+| [ ] v1.1-① A3 飙升榜 URL 回填（config.py doudian.boards[1] url_template + kind=realtime，真实 URL 探测） | 39e20fe1 | 🔄 执行中 |
+| [x] v1.1-② A6 选择器收敛（youmi 图片 lazy 提取收敛 + alibaba/taobao 防御性收敛 + 单测） | a85a109f | ✅ 验收通过（159 合并回归内） |
+| [x] v1.1-③ 9223 僵尸页清理（P-016 防复发：zombie_clean 能力 + CLI 接线 + mock 单测） | c77f21c7（中断，产出落盘后总工验收） | ✅ 验收通过（159 合并回归内） |
+| [x] v1.1-④ S4 日有效候选度量（report.py daily_effective_candidates ≥200 达标标志 + CLI + 单测） | workflow m1-s4-daily-metric（subagent 2 次零产出后改投 workflow） | ✅ 验收通过（159 合并回归内） |
+| [ ] v1.1-⑤ S5 闸门放松配置（app_config 键 gate.relax.* + should_relax_category + dry-run CLI + 单测） | 44e9f768 | 🔄 执行中 |
+
+- 验收标准：sourcing 域测试全绿（`.pytest-tmp-m1`）+ fixtures 无回归；每项完成后总工验收并落盘本看板与台账。
+
+## v1.1+ 中间验收记录（2026-08-29 · 三项通过）
+
+- **合并回归**：`python -m pytest`（19 文件 = 16 基线 + test_youmi_image_extract + test_report_daily + test_zombie_clean）→ **159 passed**（`.pytest-tmp-m1`，9.81s）全绿，fixtures 无回归。
+- **v1.1-② A6**：youmi `_extract_images` 重写（LAZY_IMG_ATTRS src→data-src→…→srcset，`_first_http_url` 过滤 data:/blob:/相对路径，收窄商品列容器，修复 S3c imgs=0）；alibaba/taobao 精确优先 + 宽泛代码兜底收敛；test_youmi_image_extract.py 15 用例 + test_collector_config +3；selector-log A6 行 ✅/🔲。
+- **v1.1-③ 僵尸页**：`zombie_clean.py`（clean_zombie_targets：CDP HTTP /json/list+/json/close，幂等/容错/防御性中止/只连本机/短超时 4s/不碰凭据）+ cli `zombie-clean` 命令 + probe-browsers 前置接线 + context README P-016 防复发小节；test_zombie_clean.py 纯 mock 不连真实浏览器。
+- **v1.1-④ S4**：`report.py::daily_effective_candidates(days)`（日有效候选 state∈pool/manual_review、事件/运行计数、≥200 target_met+gap、空数据容错）+ cli `report-daily` + test_report_daily.py 6 用例 + context「S4 日有效候选度量」口径小节。
