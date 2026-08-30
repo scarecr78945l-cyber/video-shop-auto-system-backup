@@ -192,3 +192,9 @@
 - **现象与根因**：登录成功（200 + Set-Cookie）但随后 `/api/auth/me` 401 → 前端弹回登录页。根因：Set-Cookie 为 SameSite=Lax，前端 localhost:3000 fetch **127.0.0.1:8001 属跨站**（Chrome 将 localhost 与 127.0.0.1 视为不同站点），Lax cookie 在跨站 fetch 中不携带。
 - **解决方案**：前后端统一 **localhost**（同站点跨端口，Lax 正常携带）：API 监听 `localhost:8001` + 前端 `NEXT_PUBLIC_API_BASE=http://localhost:8001`。验证：登录→me 完整闭环 200。
 - **防复发**：① 本地联调一律用 localhost（不用 127.0.0.1）；② 若必须跨站（不同域名），后端 Set-Cookie 需 `SameSite=None; Secure`（要求 HTTPS）；③ 生产推荐 Next.js rewrites 同源代理（/api → 后端），彻底消除跨站与 CORS。
+## P-024 ｜ next build 与 next dev 共享 .next 目录 → 运行时 Cannot find module chunk
+
+- **出现时间**：2026-08-30 ｜ **模块**：M6 前端 ｜ **代理**：总控（联调值守）
+- **现象与根因**：dev 服务器运行中执行 `npm run build`（M6 v1.1 验收）→ build 重建/清理 .next → dev 服务器仍引用旧 chunk → 浏览器报 `Cannot find module './611.js'`（webpack runtime）。
+- **解决方案**：停 dev → 清 .next → 重启 dev（编译完成后正常）。
+- **防复发**：① build 与 dev 严禁同时运行（同一 .next 目录冲突）；② 验收流程固定：先停 dev → build → 再启 dev 或直接 start 生产构建；③ 前端 README 注明「build 前停 dev、dev 前清 .next」。
