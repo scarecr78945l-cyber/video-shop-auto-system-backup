@@ -86,17 +86,20 @@
 
 | 任务 | 子代理 | 状态 |
 |---|---|---|
-| [ ] v1.1-① A3 飙升榜 URL 回填（config.py doudian.boards[1] url_template + kind=realtime，真实 URL 探测） | 39e20fe1 | 🔄 执行中 |
-| [x] v1.1-② A6 选择器收敛（youmi 图片 lazy 提取收敛 + alibaba/taobao 防御性收敛 + 单测） | a85a109f | ✅ 验收通过（159 合并回归内） |
-| [x] v1.1-③ 9223 僵尸页清理（P-016 防复发：zombie_clean 能力 + CLI 接线 + mock 单测） | c77f21c7（中断，产出落盘后总工验收） | ✅ 验收通过（159 合并回归内） |
-| [x] v1.1-④ S4 日有效候选度量（report.py daily_effective_candidates ≥200 达标标志 + CLI + 单测） | workflow m1-s4-daily-metric（subagent 2 次零产出后改投 workflow） | ✅ 验收通过（159 合并回归内） |
-| [ ] v1.1-⑤ S5 闸门放松配置（app_config 键 gate.relax.* + should_relax_category + dry-run CLI + 单测） | 44e9f768 | 🔄 执行中 |
+| [x] v1.1-① A3 飙升榜 URL 回填（config.py doudian.boards[1] url_template + kind=realtime，真实 URL 探测） | 39e20fe1 | ✅ 验收通过（175 合并回归内） |
+| [x] v1.1-② A6 选择器收敛（youmi 图片 lazy 提取收敛 + alibaba/taobao 防御性收敛 + 单测） | a85a109f | ✅ 验收通过（175 合并回归内） |
+| [x] v1.1-③ 9223 僵尸页清理（P-016 防复发：zombie_clean 能力 + CLI 接线 + mock 单测） | c77f21c7（中断，产出落盘后总工验收） | ✅ 验收通过（175 合并回归内） |
+| [x] v1.1-④ S4 日有效候选度量（report.py daily_effective_candidates ≥200 达标标志 + CLI + 单测） | workflow m1-s4-daily-metric（subagent 2 次零产出后改投 workflow） | ✅ 验收通过（175 合并回归内） |
+| [x] v1.1-⑤ S5 闸门放松配置（app_config 键 gate.relax.* + should_relax_category + dry-run CLI + 单测） | 44e9f768 | ✅ 验收通过（175 合并回归内） |
 
 - 验收标准：sourcing 域测试全绿（`.pytest-tmp-m1`）+ fixtures 无回归；每项完成后总工验收并落盘本看板与台账。
 
-## v1.1+ 中间验收记录（2026-08-29 · 三项通过）
+## v1.1+ 验收记录（2026-08-29 · 五项全部通过 · v1.1 迭代收官）
 
-- **合并回归**：`python -m pytest`（19 文件 = 16 基线 + test_youmi_image_extract + test_report_daily + test_zombie_clean）→ **159 passed**（`.pytest-tmp-m1`，9.81s）全绿，fixtures 无回归。
+- **最终合并回归**：`python -m pytest`（20 文件 = 16 基线 + test_youmi_image_extract + test_report_daily + test_zombie_clean + test_gate_relax，含 A3 doudian 改动）→ **175 passed**（`.pytest-tmp-m1`，11.76s）全绿，fixtures 无回归。
+- **v1.1-① A3（本轮验收）**：飙升榜真实 URL 回填 `https://compass.jinritemai.com/shop/chance/rank-shop`（CDP 9223 登录态实测：店铺榜单页内「飙升榜」tab，与商品榜 rank-product 不同页、店铺维度榜单，kind=realtime）；doudian.py 新增 BOARD_TABS + `_ensure_board_tab`（精确文本 dispatchEvent 点 tab、未命中 PAGE_CHANGED、等待 3s 防首载竞态）+ `_locate_columns` 店铺榜表头适配（排除「商品曝光人数/点击/TOP」指标列、成交订单数→sales）+ 跳过「未上榜」占位行 + raw.shop 动态列（原硬编码 2）；真实冒烟 collect_board("飙升榜", limit=5) → 5 条店铺数据（title=店铺名/price=用户支付金额/sales=成交订单数/imgs=1）无风控；P-016 处理：playwright 挂起后经 CDP /json/close 非目标页 + node 原生 WebSocket CDP Target.createTarget 新建罗盘页探测成功（未动原 rank-product 页）；遗留：原 rank-product 目标页渲染进程无响应，建议人工刷新/关闭重开。
 - **v1.1-② A6**：youmi `_extract_images` 重写（LAZY_IMG_ATTRS src→data-src→…→srcset，`_first_http_url` 过滤 data:/blob:/相对路径，收窄商品列容器，修复 S3c imgs=0）；alibaba/taobao 精确优先 + 宽泛代码兜底收敛；test_youmi_image_extract.py 15 用例 + test_collector_config +3；selector-log A6 行 ✅/🔲。
 - **v1.1-③ 僵尸页**：`zombie_clean.py`（clean_zombie_targets：CDP HTTP /json/list+/json/close，幂等/容错/防御性中止/只连本机/短超时 4s/不碰凭据）+ cli `zombie-clean` 命令 + probe-browsers 前置接线 + context README P-016 防复发小节；test_zombie_clean.py 纯 mock 不连真实浏览器。
 - **v1.1-④ S4**：`report.py::daily_effective_candidates(days)`（日有效候选 state∈pool/manual_review、事件/运行计数、≥200 target_met+gap、空数据容错）+ cli `report-daily` + test_report_daily.py 6 用例 + context「S4 日有效候选度量」口径小节。
+- **v1.1-⑤ S5**：`gate.py`（gate.relax.* 五键点分隔命名空间、load_gate_relax_config 类型回落不抛、decide_relax 纯判定 reasons 可解释、should_relax_category、relax_manual_review dry-run 默认）+ pipeline 接线（_relax_manual_review 放行理由落 compliance.reasons 审计、PipelineResult.gate_relaxed）+ cli `gate-relax` + models.py 加法字段 + test_gate_relax.py 16 用例 + context 第七节 + decisions D-12；口径对齐 R-54/10 文档第五节（95%×50，窗口 30 天）。
+- **v1.1 迭代收官**：模块完成度 **95% → 97%**（v1.1+ 五项全部落地：A3/A6 实测落地、僵尸页防复发工具化、S4/S5 工具化完成）；剩余：S4 联调实测验收（依赖真实数据积累、日有效候选≥200 需运行期验证）、A6 真实页面校准（登录态）、S5 闸门放松运行期启用（数据达标后 app_config 开闸）。

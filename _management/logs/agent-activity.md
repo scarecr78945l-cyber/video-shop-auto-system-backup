@@ -1543,3 +1543,30 @@
 - 产出文件：`backend/sourcing/collectors/youmi.py`/`alibaba.py`/`taobao.py`、`backend/sourcing/config.py`（+收窄）、`backend/sourcing/zombie_clean.py`（新）、`backend/sourcing/report.py`（+daily 度量）、`backend/sourcing/cli.py`（+zombie-clean/+report-daily）、`backend/tests/test_youmi_image_extract.py`/`test_zombie_clean.py`/`test_report_daily.py`（新）+ test_collector_config.py（+3）、`_management/modules/m1-sourcing/context/README.md`（P-016 防复发 + S4 口径小节）、`selector-log.md`（A6 更新）、`progress.md`（v1.1+ 看板勾选 3 项 + 中间验收记录）、本日志追加条目。
 - 当前阻塞：无。A3（39e20fe1）与 S5（44e9f768）仍在运行，完成后继续验收；A6 待实测项（有米云真实 DOM 图片属性/1688 单价类名/淘宝主图容器类名）登记 selector-log，登录态就绪后校准。
 - 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m1`（P-001/P-011）。
+
+---
+
+### 2026-08-29 ｜ M1 总工程师（新任） ｜ M1 自动选品（m1-sourcing） ｜ 角色：总工（v1.1+ 迭代 A3 验收 · 五项收官）
+
+- 任务来源：总控派发 v1.1+ 迭代 5 项；本回合验收 A3（子代理 39e20fe1 完成），v1.1+ 五项全部收官。
+- 完成任务：
+  ① **A3 验收（通过）**：读 a3 结论与改动——config.py 飙升榜 url_template 回填 `https://compass.jinritemai.com/shop/chance/rank-shop`（CDP 9223 登录态实测：店铺榜单页内「飙升榜」tab，与商品榜 rank-product **不同页**、店铺维度榜单，kind=realtime）；doudian.py BOARD_TABS + `_ensure_board_tab`（精确文本 dispatchEvent 点 tab、未命中 PAGE_CHANGED、3s 防首载竞态）+ `_locate_columns` 店铺榜表头适配（排除「商品曝光人数/点击/TOP」指标列、成交订单数→sales）+ 跳过「未上榜」占位行 + raw.shop 动态列（原硬编码 2）；真实冒烟 collect_board("飙升榜", limit=5) → 5 条店铺数据（title=店铺名/price=用户支付金额/sales=成交订单数/imgs=1）无风控；selector-log A3 行 ✅；
+  ② **P-016 处理确认**：playwright 挂起（rank-product 目标页渲染进程无响应）→ CDP /json/close 非目标页 + node 原生 WebSocket 浏览器级 CDP Target.createTarget 新建罗盘页探测成功（未动原页/登录态）；遗留建议：原 rank-product 目标页需人工刷新/关闭重开；
+  ③ **最终合并回归**：sourcing 域 **20 文件 175 passed**（`.pytest-tmp-m1`，11.76s）全绿，fixtures 无回归；
+  ④ **v1.1+ 收官落盘**：progress.md（v1.1-① 勾选 ✅、验收记录更新为五项全通过、完成度 **95%→97%**、里程碑 v1.1 迭代收官 + 剩余运行期事项）；本日志追加条目。
+- 产出文件：`backend/sourcing/config.py`（+飙升榜回填）、`backend/sourcing/collectors/doudian.py`（+tab 切换/表头适配）、`_management/modules/m1-sourcing/context/selector-log.md`（A3 ✅）、`progress.md`（五项收官）、本日志追加条目。
+- 当前阻塞：无。**v1.1+ 迭代五项全部验收通过**（A3/A6/僵尸页/S4/S5），175 passed 全绿。剩余运行期事项：①S4 联调实测验收（日有效候选≥200 需真实数据积累，`report-daily` 工具已就绪）；②A6 真实页面校准（有米云商品图 DOM/1688 单价类名/淘宝主图容器类名，登录态就绪后）；③S5 闸门放松运行期启用（数据达标后 app_config 开 `gate.relax.enabled=true`）；④rank-product 目标页人工刷新；⑤商机中心多筛选遍历（增采集量）。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m1`（P-001/P-011）。
+
+---
+
+### 2026-08-29 ｜ M1 总工程师（新任） ｜ M1 自动选品（m1-sourcing） ｜ 角色：总工（v1.1+ 迭代 S5 验收通过 · 四项收官，A3 待）
+
+- 任务来源：总控派发 v1.1+ 迭代 5 项；本回合验收 S5（子代理 44e9f768 完成）。
+- 完成任务：
+  ① **S5 验收（通过）**：读 `gate.py`（333 行，质量合格：`gate.relax.*` 五键点分隔命名空间对齐 REC-010/DA-008；`load_gate_relax_config` 类型校验逐键回落默认绝不抛异常；`decide_relax` 纯判定 + reasons 逐条可解释；`relax_manual_review` 默认 dry-run 只报告；`should_relax_category` 核心判定；口径对齐 R-54/10 文档第五节 95%×50/窗口 30 天）+ pipeline 接线（`_relax_manual_review` 达标 manual_review→pool，放行理由落 compliance.reasons 审计，`PipelineResult.gate_relaxed` 计数；补全/打分/TopN 过滤改 `state=='pool'`，默认 enabled=false 语义等价零变化）+ cli `gate-relax`（dry-run/--apply/--category/--limit）+ models 加法字段 + test_gate_relax.py 16 用例 + context 第七节 + decisions D-12；
+  ② **独立复跑验收**：sourcing 域 **20 文件 175 passed**（`.pytest-tmp-m1`，13.23s）全绿（123 基线 + A6 18 + S4 6 + 僵尸页 12 + gate_relax 16），fixtures 无回归；
+  ③ **文档落盘**：progress.md（v1.1-⑤ 勾选 ✅ + 中间验收记录更新为四项、175 passed）；s5_report.md 已存档 `backend/s5_report_v11_archive.md`（pytest basetemp 会清空 tmp 产物，P-014 落盘纪律延续）。
+- 产出文件：`backend/sourcing/gate.py`（新）、`pipeline.py`（+放松接线）、`cli.py`（+gate-relax）、`models.py`（+gate_relaxed）、`backend/tests/test_gate_relax.py`（新 16 用例）、`_management/modules/m1-sourcing/context/README.md`（+第七节）、`decisions.md`（+D-12）、`progress.md`（勾选）、`backend/s5_report_v11_archive.md`（存档）；本日志追加条目。
+- 当前阻塞：无。**v1.1+ 5 项中 4 项验收通过**（A6/僵尸页/S4/S5），仅 A3 飙升榜 URL 回填（39e20fe1）仍在运行，完成后验收收官；A6 待实测项（真实 DOM 图片属性/1688 单价类名/淘宝主图容器类名）登记 selector-log 待登录态校准。
+- 备注：未运行任何 git 命令；未读写其他模块库；未写明文密钥；全部文件经 write/edit 工具 UTF-8 无 BOM；pytest 全程 `.pytest-tmp-m1`（P-001/P-011）。

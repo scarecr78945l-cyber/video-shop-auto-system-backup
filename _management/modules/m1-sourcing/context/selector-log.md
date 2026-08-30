@@ -89,18 +89,18 @@
 
 ## 3. 抖店电商罗盘（doudian）
 
-- **URL 模板**（config.boards）：商品榜=`https://compass.jinritemai.com/shop/chance/rank-product`；**飙升榜=`""`（空，未配置）** → 采集飙升榜时回退 `current_page("compass.jinritemai.com")` 读当前页
+- **URL 模板**（config.boards）：商品榜=`https://compass.jinritemai.com/shop/chance/rank-product`；**飙升榜=`https://compass.jinritemai.com/shop/chance/rank-shop`（A3 已实测回填 2026-08-29）** → 店铺榜单页内「飙升榜」tab，与总榜同 URL（页内切换，地址栏不变）
 - **config.selectors 键清单**：`（空）`
 - **采集器实际使用键**（`collectors/doudian.py` DEFAULT_SELECTORS）：`home_url`、`row`=`.aurora-table-tbody tr`、`columns`={title:1, sales:5}、`next_page`=`.aurora-pagination-next, [class*='pagination'] [class*='next']`、`login_gate`、`verify_gate`
 - **实际取数逻辑**：查 login/verify gate → 改版检测用 **`row.count() < 2`（Aurora 首行是隐藏表头，不能用 is_visible，故未用 detect_page_changed）** → `_locate_columns`（同 youmi，默认 columns 短路动态定位，另 `setdefault("pay", 3)`）→ 逐行：跳过表头行（head0=="排名"）、title 取 col1、`price` 优先 `price_from_title`（标题「价格带 ¥XX」）否则 `parse_num(pay 列)`、sales=col5（成交件数，区间取最小）。
 - **fixtures 字段映射**：全字段直接映射（doudian.json；含「商品榜」+「飙升榜」——**飙升榜 3 条样本已由 S3b/A3 补齐**，fixtures 采集器可回放）。
-- **现状评估**：商品榜配置齐全（代码默认）；**飙升榜 fixtures 数据已补全（S3b/A3），真实 URL 模板仍待登录态回填**（board 存在时 url_template 为空 → 回退 current_page 读当前页）；Aurora 表格选择器 `.aurora-table-tbody tr` 为代码注释实测值，需真实验证；动态列定位已启用（A4）。
+- **现状评估**：商品榜配置齐全（代码默认）；**飙升榜真实 URL 已回填（A3，2026-08-29 实测）**——真实入口为店铺榜单页（rank-shop）内 tab（与商品榜不同页；店铺维度榜单）；采集器新增 `BOARD_TABS`（飙升榜→点击「飙升榜」tab）与店铺榜表头适配（`_locate_columns` 排除「商品曝光人数」等指标列、店铺信息列作 title 兜底、raw.shop 用动态列）；Aurora 表格选择器 `.aurora-table-tbody tr` 商品榜实测命中（S3c）、店铺榜实测命中（A3 冒烟 5 条真实店铺数据）；动态列定位已启用（A4）。
 - **待实测项**（`inspect-page --source doudian`）：
   1. 商品榜页 `.aurora-table-tbody tr` count ≥ 2（含隐藏表头行）；
   2. 列索引 title=1 / sales=5 与真实表头顺序（排名/商品/店铺/支付金额/点击/成交件数/转化率）；
   3. 「价格带 ¥XX」是否仍在标题文本中（price_from_title 依赖）；
   4. `next_page` 选择器可点性；
-  5. **飙升榜 URL 模板补全**（登录态就绪后从页面地址栏取真实 URL 回填 config.boards[1].url_template）；
+  5. ~~**飙升榜 URL 模板补全**~~ **✅ 已回填（A3，2026-08-29）**：config.boards[1].url_template=`https://compass.jinritemai.com/shop/chance/rank-shop`，kind=`realtime`；采集链路（导航→切 tab→店铺榜表头解析）真实冒烟通过（5 条真实店铺数据）；
   6. `login_gate`/`verify_gate` 触发行为。
 
 ### 实测结果（S3c · 真实采集，子代理 S3c）
@@ -110,7 +110,7 @@
 2. **动态列定位 `_locate_columns` 命中**（config 无 columns → 表头动态定位；title=商品列、sales=成交件数列正确，shop=店铺列写入 raw）✓；
 3. 「价格带 ¥XX」解析 **50/50 命中、0 失败**（price_from_title 完全生效：price 范围 15.0~1580.0 元，均来自标题价格带）✓；
 4. `next_page` 翻页 **可点且生效**（50 条跨多页，到达 limit 后停止）✓；
-5. **飙升榜 URL 模板未验证**（本次仅采商品榜；config.boards[1].url_template 仍为空，**A3 待总工安排**：登录态就绪后从页面地址栏取真实 URL 回填）；
+5. **飙升榜 URL 已回填（A3 子代理，2026-08-29 另行实测）**：真实入口为店铺榜单页（rank-shop）内「飙升榜」tab（与商品榜不同页）；采集链路真实冒烟通过（见第 6 节 A3 行）；
 6. `login_gate`/`verify_gate` **未触发** ✓；
 7. 观察：真实样本 category 恒空（罗盘页面无类目列）；imgs=2（行内图片提取命中）；rank 1~50 连续（无跳号）。
 
@@ -172,12 +172,13 @@
 > 新增测试 `backend/tests/test_collector_config.py`（17 用例，sourcing 域 108 全绿）。
 > **S3c（2026-08-29，真实采集联调）**：三源真实采集验证 A2（动态日期生效）/A4（动态列定位命中）/A5（恒空确认），新增 youmi 图片提取收敛建议（见 A6 行下方注）。
 > **A6（2026-08-29，v1.1 迭代）**：选择器收敛代码级完成——youmi 图片 lazy 提取（`_extract_images` 重写 + 纯函数 `_first_http_url`）+ alibaba/taobao 防御性收敛（精确优先、宽泛代码兜底），新增 `tests/test_youmi_image_extract.py` 15 用例 + test_collector_config.py A6 3 用例，**sourcing 域 17 文件 141 passed（123 基线 + 18 新增）全绿**；真实页面校准仍待登录态（各来源小节「待实测项」已更新）。
+> **A3（2026-08-29，v1.1 迭代，真实回填）**：飙升榜真实 URL 已回填（店铺榜单页 rank-shop 内 tab，kind=realtime），doudian.py 配套 BOARD_TABS 切 tab + 店铺榜表头适配，真实冒烟 5 条店铺数据 ✓；验收三文件 29 passed + sourcing 域 16 文件 133 passed 全绿（`.pytest-tmp-m1`）。详见 A3 行。
 
 | # | 动作 | 来源 | 状态 | 说明 |
 |---|---|---|---|---|
 | A1 | config.selectors 迁移 | 全部 | ✅ 已完成（S3b） | 5 来源 DEFAULT_SELECTORS 逐键迁入 `config.py` 各来源 `selectors`（键值一致，R-23 落地）；youmi/doudian 刻意**不含 columns**（见 A4）；`CollectorConfig.selectors` 类型改为 `dict[str, Any]`（承载 columns int 值）；代码内 DEFAULT_SELECTORS 保留兜底，合并 `{**DEFAULT_SELECTORS, **config.selectors}` 不变 → 行为零变化（测试验证合并结果与纯默认一致） |
 | A2 | 有米云 URL 日期动态化 | youmi | ✅ 已完成（S3b）+ ✅ 实测生效（S3c） | config.boards[0].url_template 改为 `startDate={start_date}&endDate={end_date}` 占位符；采集器导航时 `render_board_url` 替换（end=当天、start=当天-lookback_days，`CollectorConfig.lookback_days` 默认 7 可配）；无占位符模板原样使用。**S3c 实测**：真实页面 URL 显示 `startDate=2026-08-23&endDate=2026-08-29`（lookback_days=7 生效） |
-| A3 | 飙升榜 URL 补全 | doudian | ✅ fixtures 样本已完成（S3b）/ 🔲 真实 URL 待登录态回填 | `fixtures/doudian.json` 已补「飙升榜」3 条样本（dd-101~103，字段与商品榜同构，fixtures 采集器可直接回放）；config.boards[1].url_template **保持空**——登录态就绪后从页面地址栏取真实地址回填（S3c 仅采商品榜，未回填，仍待总工安排） |
+| A3 | 飙升榜 URL 补全 | doudian | ✅ fixtures 样本（S3b）+ ✅ 真实 URL 已回填（2026-08-29 A3 子代理实测） | fixtures 侧：`fixtures/doudian.json`「飙升榜」3 条样本（dd-101~103，字段与商品榜同构，fixtures 采集器可直接回放）。**真实回填（A3 实测）**：config.boards[1].url_template=`https://compass.jinritemai.com/shop/chance/rank-shop`、kind=`realtime`——真实入口为「市场 → 市场排行 → **店铺榜单**」页内「飙升榜」tab（**与商品榜 rank-product 不同页**；与总榜/搜索榜/同行低退榜同 URL，页内切换、地址栏不变，点击后表头由「用户支付金额」切为「订单提升量」，`.aurora-table-tbody tr` 实测命中 22 行）；采集器 doudian.py 新增 `BOARD_TABS`（导航后点击「飙升榜」tab）+ `_locate_columns` 店铺榜表头适配（排除「商品曝光人数/商品点击人数」等指标列、店铺信息列作 title 兜底、raw.shop 改动态列、跳过「未上榜」行）；真实冒烟 `collect_board("飙升榜", limit=5)` 返回 5 条真实店铺数据（title=店铺名、price=用户支付金额、sales=成交订单数）✓；验收 pytest 三文件 29 passed + sourcing 域 16 文件 133 passed 全绿（`.pytest-tmp-m1`） |
 | A4 | 动态列定位死代码 | youmi/doudian | ✅ 已完成（S3b）+ ✅ 实测命中（S3c） | `_locate_columns` 改为只认 `config.selectors.columns`（config 为空/缺键 → 走动态表头定位，DEFAULT_SELECTORS.columns 不再短路）；config 配置了 columns 时用配置值（保持现状）；mock 表头单测覆盖动态定位与配置覆盖。**S3c 实测**：youmi 与 doudian 均以动态定位成功取数（title/price/sales 列正确） |
 | A5 | 商机中心 price/sales/category 恒空 | opportunities | ✅ 实测确认（S3c，维持现状） | **S3c 实测**：真实样本 price=0/sales=0/category='' 恒空（表格列仍为 商品/商机来源/状态/操作，无价格/销量/类目列）→ 维持「该源只贡献 rank/board_count」设计；若后续想利用商机来源列信息可扩展 columns（本次未改） |
 | A6 | 选择器收敛（youmi 图片 lazy 提取 + alibaba/taobao 防御性收敛） | youmi/alibaba/taobao | ✅ 代码级收敛完成（v1.1 迭代，2026-08-29）/ 🔲 真实页面校准待登录态 | **youmi 图片（必做，修复 S3c imgs=0）**：`_extract_images` 重写 + 新增 `LAZY_IMG_ATTRS`/`_first_http_url`——lazy 属性优先级 src→data-src→data-original→data-lazy-src→data-lazy→srcset→data-srcset，data:/blob:/空/相对路径一律过滤只收 http(s)（修复旧 `src or data-src` 短路）；收窄到商品列容器（`title_cell` 内 img，未命中回退行内）；去重+最多 4 张。**alibaba（做）**：`order_price` 默认收窄 `.order-price, .price-box`，宽泛 `[class*='price']` 移入 `_read_order_price` 代码兜底；`result_row` 保留宽泛待校准。**taobao（做）**：`image` 收窄 `.items .item img, [class*='item'] img`，全页 `img` 保留在 quote() 代码兜底；`result_row` 保留宽泛待校准。测试：`tests/test_youmi_image_extract.py` 15 用例 + test_collector_config.py A6 3 用例；sourcing 域 17 文件 **141 passed**（123 基线 + 18 新增，`.pytest-tmp-m1`）。待实测：有米云商品图真实 DOM 属性/位置、1688 订单确认页单价类名、淘宝结果行/主图容器类名（见第 2/4/5 节） |

@@ -231,3 +231,50 @@
 - `AlibabaMatch` ↔ `Quote`（匹配 vs 询价语义）：url→raw_url、purchase_price→unit_cost、missing_fields→missing_attrs（REC-迁移-02）、sku_summary→sku_name（近似）；旧系统独有未建模：score/material/dropshipping_supported/product_attrs/customer_service_questions/targets（归 M4 C2）/image_offer_candidates。
 - `UploadResult` 属 M4 上架边界，M1 不建模。
 - 结论：**以新系统命名为准**，不实际改名（108 测试 + 库 schema 稳定），差异仅登记防漂移。
+
+## 七、S5 人工闸门按达标自动放松（v1.1+，gate.relax）
+
+> 背景：R-54 人工闸门失效风险（全自动误放行高合规风险品）——高风险类目强制 `manual_review`；
+> 10 文档第五节「选品复核」闸门可放松条件 = **该类目通过率连续达标（如 95% × 50 品）**。
+> 本迭代将其落地为**配置化放松策略**（读 app_config 不写；默认不放松，行为零变化）。
+
+### 7.1 app_config 键名表（点分隔命名空间，REC-010/DA-008 纪律，与 `category.whitelist` 同约定）
+| 键 | 类型 | 默认 | 口径 |
+|---|---|---|---|
+| `gate.relax.enabled` | bool | `false` | 总开关；`false`=不放松（默认行为零变化，既有测试不回归） |
+| `gate.relax.min_samples` | int | `50` | 最小样本数（窗口内 通过+拒绝 合计 ≥ 该值才可放行） |
+| `gate.relax.pass_rate` | float | `0.95` | 通过率阈值（通过/(通过+拒绝) ≥ 该值才可放行，取值 (0,1]） |
+| `gate.relax.window_days` | int | `30` | 统计窗口（天）：按 `products.created_at >= now - window_days` 计样本 |
+| `gate.relax.categories` | list[str] | `[]` | 类目子集；空=全部类目参与，非空=仅这些类目可放松 |
+
+> 键名权威实现：`backend/sourcing/gate.py`（`KEY_ENABLED` 等常量 + `load_gate_relax_config`）；
+> 键缺失/类型非法/越界/异常 → 逐键回落默认（绝不抛异常，对齐 `_load_category_whitelist` 纪律）。
+
+### 7.2 复核统计口径（10 文档第五节「通过率」落地）
+- 窗口内该类目 `products`：**通过数 = `state='pool'`、拒绝数 = `state='rejected'`**（在途 `manual_review` 与 `hard_reject` 不计）；
+- 样本数 = 通过 + 拒绝；通过率 = 通过 / 样本数（无样本 → 0）；
+- **放行条件（全部满足）**：`enabled 且 样本数 ≥ min_samples 且 通过率 ≥ pass_rate 且 类目命中 categories 子集`；
+- **保守边界**：空类目（未归类）一律不放松（无法按类目统计，R-54 兜底）。
+
+### 7.3 实现与接线
+- `backend/sourcing/gate.py`（新增）：
+  - `should_relax_category(db, category, config) -> (bool, reasons)`——S5 核心判定（reasons 逐条可解释，对齐打分可解释纪律）；
+  - `decide_relax(stats, category, config, subset=None)`——纯判定（无 IO）；
+  - `compute_category_stats(db, category, config)` / `_stats_in_session`——复核统计；
+  - `load_gate_relax_config(session)`——app_config 只读解析（含类型校验回落）；
+  - `relax_manual_review(db, config=None, dry_run=True, categories=None, limit=None) -> RelaxReport`——存量 `manual_review` 商品判定/放行（dry-run 默认只报告）；
+- `backend/sourcing/pipeline.py`：构造时读 `gate.relax.*`（`self.gate_relax`）；`run()`/`run_from_items()` 在人工复核前调用 `_relax_manual_review`——达标 manual_review 候选 `state → pool`（放行理由追加 `compliance.reasons` 落库审计），计数 `PipelineResult.gate_relaxed`；补全/打分/TopN 以 `state=='pool'` 为准（默认 enabled=false 时与 `is_candidate` 等价，零变化）；
+- `backend/sourcing/cli.py`：`gate-relax`（缺省 dry-run 只报告）`/ --apply`（实际放行）`/ --category`（子集覆盖）`/ --limit`；
+- `backend/sourcing/models.py`：`PipelineResult.gate_relaxed: int = 0`。
+
+### 7.4 用法
+```bash
+# 1) 总控在 app_config 写入（本模块只读）：
+#    gate.relax.enabled=true, min_samples=50, pass_rate=0.95, window_days=30, categories=[]
+python -m sourcing gate-relax                        # dry-run：只报告不放行
+python -m sourcing gate-relax --apply                # 实际放行达标类目 manual_review 商品
+python -m sourcing gate-relax --category 家居日用     # 仅该子集
+python -m sourcing run-pipeline --mode fixtures      # 新一批 manual_review 候选达标自动入池
+```
+- 测试：`backend/tests/test_gate_relax.py`（16 用例：未启用/样本不足/通过率不足/达标放行/dry-run/类目过滤/app_config 注入/类型回落/窗口过滤/空类目保守/pipeline 接线/CLI）。
+- 回归：sourcing 域 17 文件 130 基线 + 16 新增 = 146 passed（`.pytest-tmp-m1`，2026-09-01 实测）。
