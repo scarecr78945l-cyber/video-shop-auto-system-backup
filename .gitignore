@@ -48,5 +48,5 @@ backend/logs/
 backend/.pytest-tmp*/
 backend/.pytest-tmp/
 
-# CI ÅäÖÃ£¨±¾µØ±£Áô£»´ý workflow scope ÊÚÈ¨ºó»Ö¸´¸ú×ÙÍÆËÍ£©
+# CI ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ workflow scope ï¿½ï¿½È¨ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½
 .github/workflows/ci.yml
