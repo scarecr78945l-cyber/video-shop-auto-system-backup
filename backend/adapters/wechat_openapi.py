@@ -8,6 +8,7 @@
 
 import hashlib
 import logging
+import os
 import time
 
 import requests  # live 模式预留（T1/T2 核对后接入）
@@ -126,6 +127,8 @@ class WechatOpenApiAdapter:
     def __init__(self, config: WechatOpenApiConfig | None = None, **overrides):
         self.config = config or WechatOpenApiConfig(**overrides)
         self._buckets: dict[str, TokenBucket] = {}
+        self._token_cache: str | None = None
+        self._token_cache_expires_at: int | None = None
 
     # ---------- 基础能力 ----------
 
@@ -141,11 +144,46 @@ class WechatOpenApiAdapter:
         return {"timestamp": timestamp, "sign": sign}
 
     def _get_token(self) -> str:
-        """mock 模式返回固定 token；live 模式 TODO（待核对 T1）。"""
+        """获取 access_token：mock 返回固定 token；live 走官方 cgi-bin/token（T1 已核对）。
+
+        T1 核对（2026-08-30）：官方接口 `cgi-bin/token?grant_type=client_credential&appid=APPID&secret=SECRET`
+        （developers.weixin.qq.com/doc/store/shop/API/apimgnt/common/api_getaccesstoken.html），
+        access_token 有效期约 7200s——缓存 + 提前 5min 预刷新（R2）。
+        """
         if self.config.mode == "mock":
             return "mock-token"
-        # TODO(T1): live 模式 access_token 获取与 token_cache_path 缓存，待核对官方契约
-        raise WechatApiError("UNEXPECTED", "live mode token acquisition not implemented yet")
+        appid = (os.environ.get("WECHAT_APPID") or self.config.appid or "").strip()
+        secret = (os.environ.get("WECHAT_APPSECRET") or self.config.secret or "").strip()
+        if not appid or not secret:
+            raise WechatApiError(
+                "AUTH_REQUIRED",
+                "live 模式需配置 WECHAT_APPID/WECHAT_APPSECRET 环境变量",
+            )
+        # 缓存：有效期内复用（预刷新窗口 300s）
+        now = int(time.time())
+        if self._token_cache and self._token_cache_expires_at and now < self._token_cache_expires_at - 300:
+            return self._token_cache
+        import requests
+
+        url = (
+            "https://api.weixin.qq.com/cgi-bin/token"
+            f"?grant_type=client_credential&appid={appid}&secret={secret}"
+        )
+        try:
+            resp = requests.get(url, timeout=15)
+            data = resp.json()
+        except Exception as exc:
+            raise WechatApiError("TIMEOUT", f"access_token 获取失败: {type(exc).__name__}") from exc
+        if "access_token" not in data:
+            code = data.get("errcode", "UNKNOWN")
+            msg = data.get("errmsg", "")
+            # 40001=invalid credential → AUTH_REQUIRED 人工接管
+            if code in (40001, 42001):
+                raise WechatApiError("AUTH_REQUIRED", f"凭据无效或过期（{code}: {msg}）")
+            raise WechatApiError("UNEXPECTED", f"access_token 获取失败（{code}: {msg}）")
+        self._token_cache = str(data["access_token"])
+        self._token_cache_expires_at = now + int(data.get("expires_in", 7200))
+        return self._token_cache
 
     def _backoff_delay(self, error_code: str) -> float:
         return _BACKOFF_SECONDS.get(error_code, _DEFAULT_BACKOFF_SECONDS)
