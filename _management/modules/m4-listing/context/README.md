@@ -264,3 +264,10 @@
   - 获取店铺基本信息（merchant/get_basic_info）40066 invalid url——接口路径名待核对（非阻塞）。
 - **安全**：只读验证，未提交/未修改任何商品；凭据仅环境变量。
 - **T1 销项完成**；**T3 部分销项**（商品列表/类目接口实际路径已确认）；T2 签名/T4 字段/T7 错误码待官方文档逐页核对。
+## 旧系统上架案例库（2026-08-30 提取，真实资产）
+
+- **旧系统 10 次真实上架尝试**（wechat_upload_logs）：多次进入发品流程（传图/填标题/进类目步骤），创建过**真实草稿**（wechat-draft-7 伴手礼篮收纳篮 等）；**无一完成上架**——卡点：① needs_1688_customer_service（客服补参未完成）；② cross_product_form_contamination（SPA 表单复用串页，作废 2 次）；③ category_blocked（鞋靴类目权限）。
+- **LLM 选类目真实路径**（旧脚本 + 日志）：家居日用>收纳用品（product 7）、玩具乐器>益智玩（product 3）、鞋靴>鞋配件（product 14，被拒）。
+- **旧发品脚本**（backend/app/scripts/open_wechat_upload_product.py 181KB，55 函数）：	ry_select_category_from_package（类目选择）/ click_save_draft_if_possible（**保存草稿**）/ wait_category_generation / ill_product_detail_fields / extract_wechat_product_id_from_row / open_new_product_page ——**新系统 M4 ui_fallback 兜底链路的现成参考实现**。
+- **上架 payload 快照**：wechat_upload_payload.json + 2 个 incident（商品数据/事故现场）。
+- **结论**：旧系统证明「UI 创建草稿可行」（非 API）；新系统 M4 的 UI 兜底链路应迁移旧脚本核心函数（保存草稿/类目选择），API add 的 schema（T4）继续用抓包或官方文档对齐——**双轨制互为兜底**。
