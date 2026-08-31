@@ -21,6 +21,15 @@ from ..config import M3Config, load_config
 
 DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
 DEEPSEEK_MODEL = "deepseek-chat"
+# 第三方兼容服务商接入（OpenAI 兼容 /chat/completions）：
+#   LLM_BASE_URL 覆盖接口地址（如 OpenRouter/硅基流动/中转，形如 https://…/v1）
+#   LLM_MODEL    覆盖模型名（如 deepseek-chat / deepseek-v3 / 任意兼容模型）
+def _base_url() -> str:
+    return (os.environ.get("LLM_BASE_URL") or "").strip() or DEEPSEEK_URL
+
+
+def _model_name(default: str) -> str:
+    return (os.environ.get("LLM_MODEL") or "").strip() or default
 
 # 传输函数签名：(url, headers, payload, timeout) -> (status_code, body_str)
 PostFn = Callable[[str, dict[str, str], dict[str, Any], float], tuple[int, str]]
@@ -91,11 +100,12 @@ class DeepSeekClient:
         self,
         config: Optional[M3Config] = None,
         post: Optional[PostFn] = None,
-        model: str = DEEPSEEK_MODEL,
+        model: Optional[str] = None,
     ):
         self.config = config or load_config()
         self._post = post or _default_post
-        self.model = model
+        # 模型名：构造参数 > 环境变量 LLM_MODEL > 默认 deepseek-chat
+        self.model = model or _model_name(DEEPSEEK_MODEL)
         self.last_error: str = ""  # 最近一次失败原因（不含密钥），供调用方记录
 
     # ---------- 密钥 ----------
@@ -152,7 +162,7 @@ class DeepSeekClient:
         for _ in range(self.config.llm.max_retries + 1):
             try:
                 status, body = self._post(
-                    DEEPSEEK_URL, headers, payload, self.config.llm.timeout_seconds
+                    _base_url(), headers, payload, self.config.llm.timeout_seconds
                 )
             except Exception as exc:  # 网络/连接/超时：可恢复，重试
                 last_error = f"transport:{type(exc).__name__}"
