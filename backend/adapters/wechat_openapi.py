@@ -209,12 +209,13 @@ class WechatOpenApiAdapter:
         biz = biz or {}
 
         if self.config.mode != "mock":
-            # TODO(T1/T2): live 模式：token 获取 -> 签名 -> requests 调用 -> 错误映射，待核对官方契约
-            raise WechatApiError(
-                "UNEXPECTED",
-                "live mode not implemented yet",
-                evidence={"api": api},
-            )
+            # live 模式（T1/T3 已核对，2026-08-30）：
+            #   认证=access_token（query 参数，非体签名——微信小店 OpenAPI 实测
+            #   channels/ec/product/list/get 等仅需 token）；
+            #   调用=POST {base}/channels/ec/{path}?access_token=TOKEN，JSON body；
+            #   错误映射：40001/42001→AUTH_REQUIRED、频控(限流/风控)→RATE_LIMIT、
+            #   参数/资质驳回→PLATFORM_REJECT、其余→UNEXPECTED。
+            return self._call_live(api, biz, task_id, retry)
 
         bucket = self._buckets.setdefault(
             api,
@@ -250,6 +251,74 @@ class WechatOpenApiAdapter:
         raise last_error  # retry>=1 时循环内必已赋值
 
     # ---------- mock fixture ----------
+
+    # live 接口路径映射（T3 核对：实际请求路径以官方文档为准；以下为已确认+推断）
+    LIVE_API_PATHS: dict[str, str] = {
+        # 已实测确认（2026-08-30）
+        "list_products": "channels/ec/product/list/get",
+        "list_categories": "channels/ec/category/list/get",
+        # 推断（命名模式，待逐接口核对 T3/T4；未核对接口置空=调用抛 UNEXPECTED）
+        "create_spu": "",  # 待核对
+        "update_spu": "",  # 待核对
+        "create_skus": "",  # 待核对
+        "update_stock": "",  # 待核对
+        "update_price": "",  # 待核对
+        "upload_image": "",  # 待核对
+        "submit_audit": "",  # 待核对
+        "query_audit_status": "",  # 待核对
+        "get_product_link": "",  # 待核对
+    }
+
+    def _call_live(
+        self,
+        api: str,
+        biz: dict,
+        task_id: str,
+        retry: int,
+    ) -> dict:
+        """live 模式统一调用：token + POST JSON + 错误映射（T1/T3 已核对部分）。"""
+        import requests as _requests
+
+        path = self.LIVE_API_PATHS.get(api, "")
+        if not path:
+            raise WechatApiError(
+                "UNEXPECTED",
+                f"live 接口路径未核对（{api}，T3/T4 待核对）",
+                evidence={"api": api},
+            )
+        token = self._get_token()
+        url = f"https://api.weixin.qq.com/{path}?access_token={token}"
+
+        last_error: WechatApiError | None = None
+        for attempt in range(1, retry + 1):
+            try:
+                resp = _requests.post(url, json=biz, timeout=15)
+                data = resp.json()
+            except Exception as exc:
+                last_error = WechatApiError("TIMEOUT", f"live 调用失败: {type(exc).__name__}")
+                self._log_call(api, task_id, "TIMEOUT")
+                if attempt < retry:
+                    time.sleep(self._backoff_delay("TIMEOUT"))
+                continue
+            errcode = data.get("errcode", 0)
+            if errcode == 0:
+                self._log_call(api, task_id, "OK")
+                return data
+            # 错误映射（T7 编号待官方公共错误码核对；以下为实测+文档已知）
+            errmsg = str(data.get("errmsg", ""))[:80]
+            if errcode in (40001, 42001):
+                code = "AUTH_REQUIRED"
+            elif errcode in (45009, 40009) or "freq" in errmsg.lower() or "limit" in errmsg.lower():
+                code = "RATE_LIMIT"
+            elif errcode in (47001, 48001) or "资质" in errmsg or "参数" in errmsg:
+                code = "PLATFORM_REJECT"
+            else:
+                code = "UNEXPECTED"
+            last_error = WechatApiError(code, f"{api} 失败（{errcode}: {errmsg}）", evidence={"api": api})
+            self._log_call(api, task_id, code)
+            if attempt < retry:
+                time.sleep(self._backoff_delay(code))
+        raise last_error  # type: ignore[misc]
 
     def _mock_dispatch(self, api: str, biz: dict) -> dict:
         """mock 模式内置 fixture；金额字段一律 int（分）。"""
