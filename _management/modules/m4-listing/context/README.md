@@ -255,3 +255,12 @@
 - **待用户确认**：① 主体类型（企业/个体户）；② 已开通类目（对照白名单 9 类）；③ AppID + AppSecret（OpenAPI access_token 凭据，稍后提供）。
 - **官方接口核对**（web_fetch）：商品管理/上架/库存/上传/类目/资金接口目录已确认（见 external-contracts.md v0.60）；**添加商品接口字段为 JS 动态渲染，正文待用户环境/其他途径核对（T4）**。
 - **live 就绪路径**：凭据就绪 → 配置 WECHAT_MODE=live + AppID/Secret 环境变量 → 适配器 _get_token/_sign 按官方契约落地 → 只读验证（不提交真实商品）。
+## M4 live 只读验证（2026-08-30 ｜ 总控，真实凭据）
+
+- **凭据验证**：AppID/Secret 有效（access_token 获取成功，137 字符/7200s）。
+- **live 通道打通**（WECHAT_MODE=live）：
+  - 获取商品列表（channels/ec/product/list/get）✅ errcode=0——**店铺真实商品 56 个**（product_ids/next_key/total_num 分页机制确认）；
+  - 获取所有类目（channels/ec/category/list/get）✅ errcode=0——官方全量 1229 类目可读（可用于白名单核对）；
+  - 获取店铺基本信息（merchant/get_basic_info）40066 invalid url——接口路径名待核对（非阻塞）。
+- **安全**：只读验证，未提交/未修改任何商品；凭据仅环境变量。
+- **T1 销项完成**；**T3 部分销项**（商品列表/类目接口实际路径已确认）；T2 签名/T4 字段/T7 错误码待官方文档逐页核对。
