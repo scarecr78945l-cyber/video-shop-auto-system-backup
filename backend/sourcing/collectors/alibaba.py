@@ -6,6 +6,8 @@ fixtures 模式见 fixtures.FixtureQuoteCollector。
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from ..config import CollectorConfig
 from ..models import Quote, SourceItem
 from .base import CollectorError, QuoteCollector
