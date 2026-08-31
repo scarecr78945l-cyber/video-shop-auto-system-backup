@@ -1,0 +1,5566 @@
+{
+  "started_at": "2026-08-31T11:35:37.843390Z",
+  "finished_at": "2026-08-31T11:40:09.773722Z",
+  "collected": 310,
+  "after_dedup": 301,
+  "hard_rejected": 233,
+  "manual_review": 0,
+  "candidates": 68,
+  "quoted": 0,
+  "pool_entered": 50,
+  "gate_relaxed": 0,
+  "pool": [
+    {
+      "fingerprint": "e435d3e37438f2cb239421efb2eb66b8ea23e9172e92d5bf42748a4a85b61072",
+      "image_phash": "98565f705b273513",
+      "title": "佳厨小当家空气炸锅锡纸盘烤箱耐高温防粘免洗圆形加厚抖店",
+      "sanitized_title": "佳厨小当家空气炸锅锡纸盘烤箱耐高温防粘免洗圆形加厚抖店",
+      "category": "厨房用品",
+      "platform_price": 9.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 1210000,
+      "rank_best": 1,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:佳厨小当家空气炸锅锡纸盘烤箱耐高温防粘免洗圆形加厚抖店",
+          "title": "佳厨小当家空气炸锅锡纸盘烤箱耐高温防粘免洗圆形加厚抖店",
+          "price": 9.9,
+          "sales": 1210000,
+          "rank": 1,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/4d00c059633d852632fb72f987b8bb7d/material.jpeg?auth_key=1788190309-c5e99acddd2b46b2b3fa2455aefa8463-0-0ca27b7bb09b23106070c64c5be3105a"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:46.517527Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "佳厨小当家空气炸锅锡纸盘烤箱耐高温防粘免洗圆形加厚抖店",
+        "category": "厨房用品",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 68.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 33.0,
+            "weight": 0.35,
+            "weighted": 33.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 1",
+              "销量 1210000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 9.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.229152Z"
+    },
+    {
+      "fingerprint": "b6153b8ba34745d12e810b9a27892ed753addcf20f12a9523759bf02fccbb0f9",
+      "image_phash": "0a9991f3557b502f",
+      "title": "【猫猫熊】大号增强型暖宝宝贴热帖暖身贴自发热暖贴防寒保暖姨妈用抖店",
+      "sanitized_title": "【猫猫熊】大号增强型暖宝宝贴热帖暖身贴自发热暖贴防寒保暖姨妈用抖店",
+      "category": "宠物用品",
+      "platform_price": 11.7,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 500000,
+      "rank_best": 2,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【猫猫熊】大号增强型暖宝宝贴热帖暖身贴自发热暖贴防寒保暖姨妈用抖店",
+          "title": "【猫猫熊】大号增强型暖宝宝贴热帖暖身贴自发热暖贴防寒保暖姨妈用抖店",
+          "price": 11.7,
+          "sales": 500000,
+          "rank": 2,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/002de54f76aa575a0569cbca60288022/material.jpeg?auth_key=1788190309-33d4c888cf264fd888b66a0b2b809ee9-0-292f6e310377f9701874a56a99fca93f"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:46.554313Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【猫猫熊】大号增强型暖宝宝贴热帖暖身贴自发热暖贴防寒保暖姨妈用抖店",
+        "category": "宠物用品",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 68.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 33.0,
+            "weight": 0.35,
+            "weighted": 33.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 2",
+              "销量 500000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 11.7 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.229255Z"
+    },
+    {
+      "fingerprint": "1891800022a7088baa8574b89b7cdf4adc992ea7bbece541b037258f749565ae",
+      "image_phash": "b76383d3906e449b",
+      "title": "公仔牌顽渍净洗衣粉轻松搓洗去污渍除菌除螨3倍洁净去渍家用去黄抖店",
+      "sanitized_title": "公仔牌顽渍净洗衣粉轻松搓洗去污渍除菌除螨3倍洁净去渍家用去黄抖店",
+      "category": "个护清洁",
+      "platform_price": 29.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 500000,
+      "rank_best": 4,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:公仔牌顽渍净洗衣粉轻松搓洗去污渍除菌除螨3倍洁净去渍家用去黄抖店",
+          "title": "公仔牌顽渍净洗衣粉轻松搓洗去污渍除菌除螨3倍洁净去渍家用去黄抖店",
+          "price": 29.9,
+          "sales": 500000,
+          "rank": 4,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/40581f9b2372faafc52d0c02bcc495e4/material.jpeg?auth_key=1788190309-369cb5c690c24206bb4bc26465da4370-0-cfd851d350fa2982f46906360b94d871"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:46.631847Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "公仔牌顽渍净洗衣粉轻松搓洗去污渍除菌除螨3倍洁净去渍家用去黄抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 4",
+              "销量 500000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 29.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.229451Z"
+    },
+    {
+      "fingerprint": "e652ab01a0b8142e5d130582cf615a20412a1fcd3fc2ba0257781dcc14d16ee2",
+      "image_phash": "6dd693ce6409db03",
+      "title": "笑宠流浪猫猫粮全价猫粮宠物食品猫咪粮食营养猫猫食物主食推荐抖店",
+      "sanitized_title": "笑宠流浪猫猫粮全价猫粮宠物食品猫咪粮食营养猫猫食物主食推荐抖店",
+      "category": "宠物用品",
+      "platform_price": 12.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 250000,
+      "rank_best": 9,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:笑宠流浪猫猫粮全价猫粮宠物食品猫咪粮食营养猫猫食物主食推荐抖店",
+          "title": "笑宠流浪猫猫粮全价猫粮宠物食品猫咪粮食营养猫猫食物主食推荐抖店",
+          "price": 12.9,
+          "sales": 250000,
+          "rank": 9,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/8f56229eccf4af767791de7f3291ebff/material.jpeg?auth_key=1788190309-0f9a642099404c06a8f771954300f915-0-b137da88b5cec8e2532f1a4406d849bb"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:46.839905Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "笑宠流浪猫猫粮全价猫粮宠物食品猫咪粮食营养猫猫食物主食推荐抖店",
+        "category": "宠物用品",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 9",
+              "销量 250000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 12.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.229863Z"
+    },
+    {
+      "fingerprint": "45a9d3c5a0c606d0bf654919f5d68c6e682454c4ea3e9b53926ee859986f3b73",
+      "image_phash": "5ad8ad85561352eb",
+      "title": "【蔡徐坤代言】BUV绿泥洗面奶控油深层清洁细腻毛孔去闭口男女通用抖店",
+      "sanitized_title": "【蔡徐坤代言】BUV绿泥洗面奶控油深层清洁细腻毛孔去闭口男女通用抖店",
+      "category": "个护清洁",
+      "platform_price": 49.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 250000,
+      "rank_best": 10,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【蔡徐坤代言】BUV绿泥洗面奶控油深层清洁细腻毛孔去闭口男女通用抖店",
+          "title": "【蔡徐坤代言】BUV绿泥洗面奶控油深层清洁细腻毛孔去闭口男女通用抖店",
+          "price": 49.9,
+          "sales": 250000,
+          "rank": 10,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/acff9bf4c1337171becd1bb1b75c26a2/material.jpeg?auth_key=1788190309-8d732e442cdd4df8970287a7a6c4269f-0-bd5c7947e6f1853e87b245494c0876be"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:46.875342Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【蔡徐坤代言】BUV绿泥洗面奶控油深层清洁细腻毛孔去闭口男女通用抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 10",
+              "销量 250000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 49.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.229947Z"
+    },
+    {
+      "fingerprint": "604f48288868c3ee20480bced45eb78a5d89d8b022b19fa9fd497dc1f84dddef",
+      "image_phash": "b33b89c9700b87e5",
+      "title": "奇古堂巨无霸保温杯女生高颜值可爱吸管大容量车载学生冰霸水杯子抖店",
+      "sanitized_title": "奇古堂巨无霸保温杯女生高颜值可爱吸管大容量车载学生冰霸水杯子抖店",
+      "category": "厨房用品",
+      "platform_price": 29.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 250000,
+      "rank_best": 16,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:奇古堂巨无霸保温杯女生高颜值可爱吸管大容量车载学生冰霸水杯子抖店",
+          "title": "奇古堂巨无霸保温杯女生高颜值可爱吸管大容量车载学生冰霸水杯子抖店",
+          "price": 29.9,
+          "sales": 250000,
+          "rank": 16,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/cb433f194c5544fe75eabce8979c522e/material.jpeg?auth_key=1788190309-7be047bba3374f459804199582f7c795-0-aab2447fa2117e42a76c001b4581418e"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:47.103161Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "奇古堂巨无霸保温杯女生高颜值可爱吸管大容量车载学生冰霸水杯子抖店",
+        "category": "厨房用品",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 58.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 23.0,
+            "weight": 0.35,
+            "weighted": 23.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 16",
+              "销量 250000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 29.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.230364Z"
+    },
+    {
+      "fingerprint": "30ace3264165ee2d08919442d2cce57700d24fc24c430ac5dfb23c286f0d95cc",
+      "image_phash": "b1d6d60faa0d29a9",
+      "title": "袋鼠妈妈内衣洗衣液内裤专用去血渍去渍抑菌除螨母婴可用好物大瓶抖店",
+      "sanitized_title": "袋鼠妈妈内衣洗衣液内裤专用去血渍去渍抑菌除螨母婴可用好物大瓶抖店",
+      "category": "个护清洁",
+      "platform_price": 24.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 250000,
+      "rank_best": 17,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:袋鼠妈妈内衣洗衣液内裤专用去血渍去渍抑菌除螨母婴可用好物大瓶抖店",
+          "title": "袋鼠妈妈内衣洗衣液内裤专用去血渍去渍抑菌除螨母婴可用好物大瓶抖店",
+          "price": 24.9,
+          "sales": 250000,
+          "rank": 17,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/1a2fac7ff1c0f137ce8fd42e25a3b611/material.jpeg?auth_key=1788190309-8636895260c24912853f887188b62026-0-040028522c531b82dfe941f51c35bf63"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:47.138982Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "袋鼠妈妈内衣洗衣液内裤专用去血渍去渍抑菌除螨母婴可用好物大瓶抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 58.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 23.0,
+            "weight": 0.35,
+            "weighted": 23.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 17",
+              "销量 250000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 24.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.230448Z"
+    },
+    {
+      "fingerprint": "94a823423152d189b0a4f20eedf02c1c4e0b4b6cfd40a8a5a30c5cfd8964e350",
+      "image_phash": "9e709af055d2f04b",
+      "title": "【官方正品】水卫士浴室清洁剂去污除菌玻璃去黄渍除垢卫浴家用抖店",
+      "sanitized_title": "【 】水卫士浴室清洁剂去污除菌玻璃去黄渍除垢卫浴家用抖店",
+      "category": "个护清洁",
+      "platform_price": 29.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 250000,
+      "rank_best": 23,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【官方正品】水卫士浴室清洁剂去污除菌玻璃去黄渍除垢卫浴家用抖店",
+          "title": "【官方正品】水卫士浴室清洁剂去污除菌玻璃去黄渍除垢卫浴家用抖店",
+          "price": 29.9,
+          "sales": 250000,
+          "rank": 23,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/91ab2a255a862acc9a77a8ee534124f2/material.jpeg?auth_key=1788190547-3a0eefb9571840a8a7a720fe03caab98-0-8f69f7b974015900e04a2d1e8056b1cd"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:48.367295Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【 】水卫士浴室清洁剂去污除菌玻璃去黄渍除垢卫浴家用抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 58.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 23.0,
+            "weight": 0.35,
+            "weighted": 23.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 23",
+              "销量 250000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 29.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.231159Z"
+    },
+    {
+      "fingerprint": "ca733c9f71385d4dc6c64d9db79faa0d0fd1c17fc902952a745afc2396dc6806",
+      "image_phash": "69f6f56ca49e008b",
+      "title": "【开学必备】德佑婴儿湿巾小包便携学生儿童用加厚一次性手口湿纸巾抖店",
+      "sanitized_title": "【开学必备】德佑婴儿湿巾小包便携学生儿童用加厚一次性手口湿纸巾抖店",
+      "category": "家居日用",
+      "platform_price": 19.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 28,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【开学必备】德佑婴儿湿巾小包便携学生儿童用加厚一次性手口湿纸巾抖店",
+          "title": "【开学必备】德佑婴儿湿巾小包便携学生儿童用加厚一次性手口湿纸巾抖店",
+          "price": 19.9,
+          "sales": 100000,
+          "rank": 28,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/bd5119e8c0115d0e67536ee6b7dc0073/material.jpeg?auth_key=1788190547-2994635812a3432b825bbe2437443c13-0-645f9b2bf00765d75fc83cb45c58e371"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:48.537263Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【开学必备】德佑婴儿湿巾小包便携学生儿童用加厚一次性手口湿纸巾抖店",
+        "category": "家居日用",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 58.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 23.0,
+            "weight": 0.35,
+            "weighted": 23.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 28",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 19.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.231830Z"
+    },
+    {
+      "fingerprint": "7bb41e4f309ed865d4a8e7d766538896ab726708b5573b450984835ddeedb7b8",
+      "image_phash": "16c3499ef06b86b9",
+      "title": "【精选5副】KAMIYA半年抛美瞳水润自然清透显色百搭学生隐形眼镜抖店",
+      "sanitized_title": "【精选5副】KAMIYA半年抛美瞳水润自然清透显色百搭学生隐形眼镜抖店",
+      "category": "服饰配件",
+      "platform_price": 29.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 30,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【精选5副】KAMIYA半年抛美瞳水润自然清透显色百搭学生隐形眼镜抖店",
+          "title": "【精选5副】KAMIYA半年抛美瞳水润自然清透显色百搭学生隐形眼镜抖店",
+          "price": 29.9,
+          "sales": 100000,
+          "rank": 30,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/f2e31a880077b2f5385a6382a40e91e2/material.jpeg?auth_key=1788190547-c64f3c6551384b3291f28efbebf60c84-0-9fa8b4edbb384a7cd28cf3d37935e6ab"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:48.603116Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【精选5副】KAMIYA半年抛美瞳水润自然清透显色百搭学生隐形眼镜抖店",
+        "category": "服饰配件",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 58.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 23.0,
+            "weight": 0.35,
+            "weighted": 23.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 30",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 29.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.232159Z"
+    },
+    {
+      "fingerprint": "d94b701c1a65c0daf1a20eb9a3fda0ad26f7014ef0678965879906874da24d6f",
+      "image_phash": "5c2f0713919c3c7d",
+      "title": "贝德美儿童洗发水氨基酸无硅油宝宝专用洗发露蓬松去油柔顺留香抖店",
+      "sanitized_title": "贝德美儿童洗发水氨基酸无硅油宝宝专用洗发露蓬松去油柔顺留香抖店",
+      "category": "个护清洁",
+      "platform_price": 39.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 31,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:贝德美儿童洗发水氨基酸无硅油宝宝专用洗发露蓬松去油柔顺留香抖店",
+          "title": "贝德美儿童洗发水氨基酸无硅油宝宝专用洗发露蓬松去油柔顺留香抖店",
+          "price": 39.0,
+          "sales": 100000,
+          "rank": 31,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/407b443681361fabf0249010a99188b2/material.jpeg?auth_key=1788190547-7e82213f11964095b343493cd362504b-0-2c80adb9860b6fee65ede62563988dbc"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:48.637461Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "贝德美儿童洗发水氨基酸无硅油宝宝专用洗发露蓬松去油柔顺留香抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 31",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 39.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.232333Z"
+    },
+    {
+      "fingerprint": "094d9f2a1ed10f7725b432f75a24cd5219b826584f9e1ff24548df1931408450",
+      "image_phash": "afa5b00da5a95a53",
+      "title": "【跑者美学】必迈远征者Pure2.0减震透气运动跳操舒适防滑跑步鞋抖店",
+      "sanitized_title": "【跑者美学】必迈远征者Pure2.0减震透气运动跳操舒适防滑跑步鞋抖店",
+      "category": "户外运动",
+      "platform_price": 309.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 34,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【跑者美学】必迈远征者Pure2.0减震透气运动跳操舒适防滑跑步鞋抖店",
+          "title": "【跑者美学】必迈远征者Pure2.0减震透气运动跳操舒适防滑跑步鞋抖店",
+          "price": 309.0,
+          "sales": 100000,
+          "rank": 34,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/38fbd348337cde2be0bdf10bdc370b58/material.jpeg?auth_key=1788190547-459c35b6ed534bd5b79222e1be5d07d8-0-beb75776ba6353b2ddd7db5243da5f2a"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:48.740179Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【跑者美学】必迈远征者Pure2.0减震透气运动跳操舒适防滑跑步鞋抖店",
+        "category": "户外运动",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 34",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 309.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.232572Z"
+    },
+    {
+      "fingerprint": "2fd2f38f9db09af16219626f652622af815416afb4924616d33511fc39e11932",
+      "image_phash": "24a636954f4eb8d3",
+      "title": "索邦洗脸巾拖把免手洗拖地干湿两用家用室内浴室自动夹布平板拖把抖店",
+      "sanitized_title": "索邦洗脸巾拖把免手洗拖地干湿两用家用室内浴室自动夹布平板拖把抖店",
+      "category": "家居日用",
+      "platform_price": 29.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 36,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:索邦洗脸巾拖把免手洗拖地干湿两用家用室内浴室自动夹布平板拖把抖店",
+          "title": "索邦洗脸巾拖把免手洗拖地干湿两用家用室内浴室自动夹布平板拖把抖店",
+          "price": 29.9,
+          "sales": 100000,
+          "rank": 36,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/ecb04fbc269348389c8c741c9ae40516/material.jpeg?auth_key=1788190547-5b5f1e1445c642929686a99417c4910c-0-1ca7e305275ec976fb1bf0962f271c77"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:48.812323Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "索邦洗脸巾拖把免手洗拖地干湿两用家用室内浴室自动夹布平板拖把抖店",
+        "category": "家居日用",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 36",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 29.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.232652Z"
+    },
+    {
+      "fingerprint": "ccfa25bb660ee5000a9197203e4e08d4657ef4cd7f3f5c2629c30c3b0c49233a",
+      "image_phash": "c319346c8fc37b25",
+      "title": "学生隐形错题胶带透明隐形胶带可书写无痕不留胶修补胶带装饰胶布抖店",
+      "sanitized_title": "学生隐形错题胶带透明隐形胶带可书写无痕不留胶修补胶带装饰胶布抖店",
+      "category": "办公文具",
+      "platform_price": 5.55,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 37,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:学生隐形错题胶带透明隐形胶带可书写无痕不留胶修补胶带装饰胶布抖店",
+          "title": "学生隐形错题胶带透明隐形胶带可书写无痕不留胶修补胶带装饰胶布抖店",
+          "price": 5.55,
+          "sales": 100000,
+          "rank": 37,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/7f9e0e22525182cfc4751bf32b22a24a/material.jpeg?auth_key=1788190547-ba63b4a6967347ef97f803c23f6d2888-0-fe9244b02b22ceb124d3f8ab4eb04c4d"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:48.850007Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "学生隐形错题胶带透明隐形胶带可书写无痕不留胶修补胶带装饰胶布抖店",
+        "category": "办公文具",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 37",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 5.5 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.232733Z"
+    },
+    {
+      "fingerprint": "fdf6c4deadc25d7f12d72272813b923c13b5101f1bf03fc7740d4869f360eb49",
+      "image_phash": "4d5e54ba6ad2245b",
+      "title": "免胶假睫毛犬系狗狗眼自然卷翘浓密无需胶水仿真分段式新手假睫毛抖店",
+      "sanitized_title": "免胶假睫毛犬系狗狗眼自然卷翘浓密无需胶水仿真分段式新手假睫毛抖店",
+      "category": "宠物用品",
+      "platform_price": 1.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 41,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:免胶假睫毛犬系狗狗眼自然卷翘浓密无需胶水仿真分段式新手假睫毛抖店",
+          "title": "免胶假睫毛犬系狗狗眼自然卷翘浓密无需胶水仿真分段式新手假睫毛抖店",
+          "price": 1.9,
+          "sales": 100000,
+          "rank": 41,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/0027de12af501cab16997d3d7b1e2f70/material.jpeg?auth_key=1788190549-4759140df4b74b1caeb0f13c02f34e28-0-106f0eac3c918fb0cc87e44dce9fcf38"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:50.035312Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "免胶假睫毛犬系狗狗眼自然卷翘浓密无需胶水仿真分段式新手假睫毛抖店",
+        "category": "宠物用品",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 41",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 1.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.233068Z"
+    },
+    {
+      "fingerprint": "47fb81c7fe26872ffd47e3c7634ae56c0eb4b0d1fc012855e72c38fa5fd09aff",
+      "image_phash": "69f506b781057b53",
+      "title": "【涂鸦袋袋猫】免撕抽绳垃圾袋手提式办公室加厚大卷厨房便捷清洁袋抖店",
+      "sanitized_title": "【涂鸦袋袋猫】免撕抽绳垃圾袋手提式办公室加厚大卷厨房便捷清洁袋抖店",
+      "category": "厨房用品",
+      "platform_price": 4.99,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 42,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【涂鸦袋袋猫】免撕抽绳垃圾袋手提式办公室加厚大卷厨房便捷清洁袋抖店",
+          "title": "【涂鸦袋袋猫】免撕抽绳垃圾袋手提式办公室加厚大卷厨房便捷清洁袋抖店",
+          "price": 4.99,
+          "sales": 100000,
+          "rank": 42,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/e9fa353f463ce418f17ddd148e40f857/material.jpeg?auth_key=1788190549-bdc15b8e57de43b9b09aa83c766a10a6-0-98cc0bc521bfbb1b63bd85bc24062098"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:50.075842Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【涂鸦袋袋猫】免撕抽绳垃圾袋手提式办公室加厚大卷厨房便捷清洁袋抖店",
+        "category": "厨房用品",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 42",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 5.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.233240Z"
+    },
+    {
+      "fingerprint": "6f76a592e42934443023c16680a379169d68404a5c47cd4eeefa060ec9676701",
+      "image_phash": "4a9a311b6688d7eb",
+      "title": "ILSO一苏黑头导出液控油去黑头深层清洁收敛毛孔黑头水夏抖店",
+      "sanitized_title": "ILSO一苏黑头导出液控油去黑头深层清洁收敛毛孔黑头水夏抖店",
+      "category": "个护清洁",
+      "platform_price": 99.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 46,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:ILSO一苏黑头导出液控油去黑头深层清洁收敛毛孔黑头水夏抖店",
+          "title": "ILSO一苏黑头导出液控油去黑头深层清洁收敛毛孔黑头水夏抖店",
+          "price": 99.0,
+          "sales": 100000,
+          "rank": 46,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/99a9ca763af2d610f5fca0d45e1d80eb/material.jpeg?auth_key=1788190549-76c9bbdd428d4a6794dd3236571e2770-0-4b6ec6411852717e3fd01c0a05b23850"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:50.241002Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "ILSO一苏黑头导出液控油去黑头深层清洁收敛毛孔黑头水夏抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 46",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 99.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.233545Z"
+    },
+    {
+      "fingerprint": "e4eda08843a7c2b6c01d7722d45733f4e5aabcfa8772c03157a02039bdb553fe",
+      "image_phash": "47f3f6bc834001af",
+      "title": "活力28四季繁花洗衣液除菌除螨花香留香持久家用深层去污无荧光剂抖店",
+      "sanitized_title": "活力28四季繁花洗衣液除菌除螨花香留香持久家用深层去污无荧光剂抖店",
+      "category": "个护清洁",
+      "platform_price": 9.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 47,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:活力28四季繁花洗衣液除菌除螨花香留香持久家用深层去污无荧光剂抖店",
+          "title": "活力28四季繁花洗衣液除菌除螨花香留香持久家用深层去污无荧光剂抖店",
+          "price": 9.9,
+          "sales": 100000,
+          "rank": 47,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/ef9d29d0ddca8800302caf18ace8af8a/material.jpeg?auth_key=1788190549-69d3b068839e4187b49f57496cec9be0-0-32763f8d6ad82c7800a4800ba10d162d"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:50.287342Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "活力28四季繁花洗衣液除菌除螨花香留香持久家用深层去污无荧光剂抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 47",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 9.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.233624Z"
+    },
+    {
+      "fingerprint": "9ab8e693910b9e2d165c6ee5881ee4a06c39f30fe5a3efe5e733e44af01b26d3",
+      "image_phash": "4650b1a7ab2baaab",
+      "title": "【25周年庆】自然堂洗面奶水润焕亮洁面洗卸合一不紧绷清洁控油抖店",
+      "sanitized_title": "【25周年庆】自然堂洗面奶水润焕亮洁面洗卸合一不紧绷清洁控油抖店",
+      "category": "个护清洁",
+      "platform_price": 39.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 48,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【25周年庆】自然堂洗面奶水润焕亮洁面洗卸合一不紧绷清洁控油抖店",
+          "title": "【25周年庆】自然堂洗面奶水润焕亮洁面洗卸合一不紧绷清洁控油抖店",
+          "price": 39.0,
+          "sales": 100000,
+          "rank": 48,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/88ae4571125286f9b04f72ea8def937d/material.jpeg?auth_key=1788190549-fb608e78f1e64cf1aeabd6ebf2ac33ef-0-2ed6be143144a7d6f0ab7abef28c6b2c"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:50.333063Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【25周年庆】自然堂洗面奶水润焕亮洁面洗卸合一不紧绷清洁控油抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 48",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 39.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.233701Z"
+    },
+    {
+      "fingerprint": "8c88cbbb02b3e5142a621b28b7e6549694076ffd33bf33dde36660aee86b25b6",
+      "image_phash": "2b48ad5d56970997",
+      "title": "【3.0锌升级送护发素】赫系轻盈洗发水控油去屑留香洗护发洗护套装抖店",
+      "sanitized_title": "【3.0锌升级送护发素】赫系轻盈洗发水控油去屑留香洗护发洗护套装抖店",
+      "category": "个护清洁",
+      "platform_price": 59.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 49,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【3.0锌升级送护发素】赫系轻盈洗发水控油去屑留香洗护发洗护套装抖店",
+          "title": "【3.0锌升级送护发素】赫系轻盈洗发水控油去屑留香洗护发洗护套装抖店",
+          "price": 59.9,
+          "sales": 100000,
+          "rank": 49,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/b639b1a1b34b4587d397429c3fd5faf1/material.jpeg?auth_key=1788190549-72bce95e848b4f0d8dc1a7907424a194-0-9fde7bb6aa39f338c2ee13a767dcc25e"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:50.375651Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【3.0锌升级送护发素】赫系轻盈洗发水控油去屑留香洗护发洗护套装抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 49",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 59.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.233791Z"
+    },
+    {
+      "fingerprint": "5ec6bc32979738c9940fac5fa68e792bd2f63dd81b7ec9be3580b70198fedc50",
+      "image_phash": "e08fd3d8c30c2779",
+      "title": "沫檬除霉啫喱厨房浴室冰箱胶条胶圈全屋强效除霉防霉通用去霉点抖店",
+      "sanitized_title": "沫檬除霉啫喱厨房浴室冰箱胶条胶圈全屋强效除霉防霉通用去霉点抖店",
+      "category": "厨房用品",
+      "platform_price": 19.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 52,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:沫檬除霉啫喱厨房浴室冰箱胶条胶圈全屋强效除霉防霉通用去霉点抖店",
+          "title": "沫檬除霉啫喱厨房浴室冰箱胶条胶圈全屋强效除霉防霉通用去霉点抖店",
+          "price": 19.9,
+          "sales": 100000,
+          "rank": 52,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/4ca4fe50469d382d0b3518f3fa0dc783/material.jpeg?auth_key=1788190549-2e2a7645d503472b906d747ff6b69549-0-3f0f8667058586cab903656105781a5a"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:50.485330Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "沫檬除霉啫喱厨房浴室冰箱胶条胶圈全屋强效除霉防霉通用去霉点抖店",
+        "category": "厨房用品",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 52",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 19.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.234011Z"
+    },
+    {
+      "fingerprint": "e108ffe0aaaacb0bc2f616a2827c47150dcccb05463b3a6c3d2faf48e0cc9fe5",
+      "image_phash": "956fb2170b0e31e3",
+      "title": "New【升级版】异味克星防返臭神器厨房下水管厕所地漏防臭抖店",
+      "sanitized_title": "New【升级版】异味克星防返臭神器厨房下水管厕所地漏防臭抖店",
+      "category": "厨房用品",
+      "platform_price": 9.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 54,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:New【升级版】异味克星防返臭神器厨房下水管厕所地漏防臭抖店",
+          "title": "New【升级版】异味克星防返臭神器厨房下水管厕所地漏防臭抖店",
+          "price": 9.9,
+          "sales": 100000,
+          "rank": 54,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/cab85b311fbe4deaeffaee2b10fb3047/material.jpeg?auth_key=1788190549-cd8272b1b2d348d2ba54191ab609d2a2-0-d8fa2294815b310d0c298e71331ddfa7"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:50.552906Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "New【升级版】异味克星防返臭神器厨房下水管厕所地漏防臭抖店",
+        "category": "厨房用品",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 54",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 9.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.234183Z"
+    },
+    {
+      "fingerprint": "893b5911dc40d855b1f9506df59ffbf4cb04f440984630cbc7ae8e1d3b315165",
+      "image_phash": "aa3ada54bcb4ab81",
+      "title": "【迪丽热巴同款】BOP色修美白牙膏去黄去渍持久留香口臭热销官方zb抖店",
+      "sanitized_title": "【迪丽热巴 】BOP色修美白牙膏去黄去渍持久留香口臭 zb抖店",
+      "category": "个护清洁",
+      "platform_price": 59.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 56,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【迪丽热巴同款】BOP色修美白牙膏去黄去渍持久留香口臭热销官方zb抖店",
+          "title": "【迪丽热巴同款】BOP色修美白牙膏去黄去渍持久留香口臭热销官方zb抖店",
+          "price": 59.9,
+          "sales": 100000,
+          "rank": 56,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/9e21b5033992fadef90e2254bd11a379/material.jpeg?auth_key=1788190549-51c435f18ef44a4d934bb1ae51bcfbe3-0-6877f20b2caf598204f8058bdaea7e94"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:50.624796Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【迪丽热巴 】BOP色修美白牙膏去黄去渍持久留香口臭 zb抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 56",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 59.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.234352Z"
+    },
+    {
+      "fingerprint": "c66bf937154d909a2ee2d3f8ab4ead509957a1ba977184d6894d85558cd50ae0",
+      "image_phash": "bb7e198ccc0248ef",
+      "title": "活力28山茶花香留香洗衣液2kg*1袋持久香氛去污去渍家用洗涤清洁抖店",
+      "sanitized_title": "活力28山茶花香留香洗衣液2kg*1袋持久香氛去污去渍家用洗涤清洁抖店",
+      "category": "个护清洁",
+      "platform_price": 9.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 63,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:活力28山茶花香留香洗衣液2kg*1袋持久香氛去污去渍家用洗涤清洁抖店",
+          "title": "活力28山茶花香留香洗衣液2kg*1袋持久香氛去污去渍家用洗涤清洁抖店",
+          "price": 9.9,
+          "sales": 100000,
+          "rank": 63,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/b09b5a9371180eb3395ea33eb00eb213/material.jpeg?auth_key=1788190550-a5268c155aae457bbad3b8f22f153eb4-0-aad376d7436983ad6f93f1c9d1a73917"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:51.894317Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "活力28山茶花香留香洗衣液2kg*1袋持久香氛去污去渍家用洗涤清洁抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 63",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 9.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.234932Z"
+    },
+    {
+      "fingerprint": "e4a5ab30e28fd3b2df7689b7dbb5d9dc6d06450cd97b05225465b74366b2d33d",
+      "image_phash": "237ce6360b603eab",
+      "title": "雨萃抽纸纸巾开学必备随身便携小包抽纸整箱家用实惠装面巾纸抽抖店",
+      "sanitized_title": "雨萃抽纸纸巾开学必备随身便携小包抽纸整箱家用实惠装面巾纸抽抖店",
+      "category": "家居日用",
+      "platform_price": 9.99,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 65,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:雨萃抽纸纸巾开学必备随身便携小包抽纸整箱家用实惠装面巾纸抽抖店",
+          "title": "雨萃抽纸纸巾开学必备随身便携小包抽纸整箱家用实惠装面巾纸抽抖店",
+          "price": 9.99,
+          "sales": 100000,
+          "rank": 65,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/007334d0c0ff8fc43595496aabc763ec/material.jpeg?auth_key=1788190550-7f2f9188a46447b69e77b9c5f9766fd6-0-7912540abc1116a0d57d33216ed64b8e"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:51.962124Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "雨萃抽纸纸巾开学必备随身便携小包抽纸整箱家用实惠装面巾纸抽抖店",
+        "category": "家居日用",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 65",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 10.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.235093Z"
+    },
+    {
+      "fingerprint": "3998baa6f7e081e2cb830ac289ccb1a96a4cb82831491021dad231da0b265c72",
+      "image_phash": "f90a8cfb8e807b23",
+      "title": "2026新款随身wifi官方正品移动无线网络户外车载上网路由器抖店",
+      "sanitized_title": "2026 随身wifi 移动无线网络户外车载上网路由器抖店",
+      "category": "数码配件",
+      "platform_price": 35.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 67,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:2026新款随身wifi官方正品移动无线网络户外车载上网路由器抖店",
+          "title": "2026新款随身wifi官方正品移动无线网络户外车载上网路由器抖店",
+          "price": 35.0,
+          "sales": 100000,
+          "rank": 67,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/545ab9d146bca115a1f1d817254ece61/material.jpeg?auth_key=1788190550-12f5708378c6457cbe2bdc683740fb4d-0-3b5fcfac24c8bb9dfdfc4d06d3bd6b4d"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:52.032528Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "2026 随身wifi 移动无线网络户外车载上网路由器抖店",
+        "category": "数码配件",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 67",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 35.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.235237Z"
+    },
+    {
+      "fingerprint": "93d1e50272f7343e6fbddd7cabed6c4091ab9cf88f42ee93dadcc10ea04aa44c",
+      "image_phash": "69a5f43fd621280f",
+      "title": "清风挂抽10提卡皮巴拉纸巾整箱悬挂式抽纸4层加厚250抽家用卫生纸抖店",
+      "sanitized_title": "清风挂抽10提卡皮巴拉纸巾整箱悬挂式抽纸4层加厚250抽家用卫生纸抖店",
+      "category": "家居日用",
+      "platform_price": 29.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 68,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:清风挂抽10提卡皮巴拉纸巾整箱悬挂式抽纸4层加厚250抽家用卫生纸抖店",
+          "title": "清风挂抽10提卡皮巴拉纸巾整箱悬挂式抽纸4层加厚250抽家用卫生纸抖店",
+          "price": 29.9,
+          "sales": 100000,
+          "rank": 68,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/4cf5955105efa8d67d6f9c496a31873b/material.jpeg?auth_key=1788190550-8785b8cbb1764b1fa1e79e8604ea13ad-0-52baa504507caf86c919e4bef46b6291"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:52.068956Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "清风挂抽10提卡皮巴拉纸巾整箱悬挂式抽纸4层加厚250抽家用卫生纸抖店",
+        "category": "家居日用",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 68",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 29.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.235311Z"
+    },
+    {
+      "fingerprint": "d618b849ff6dc1f4c623f2e482d3da49338b806d259be684413d715e8d089b7a",
+      "image_phash": "91991909ca6f67a7",
+      "title": "【爱心消消乐】舒客宝贝彩色心情抗糖防蛀锁钙儿童牙膏青含氟少年抖店",
+      "sanitized_title": "【爱心消消乐】舒客宝贝彩色心情抗糖防蛀锁钙儿童牙膏青含氟少年抖店",
+      "category": "个护清洁",
+      "platform_price": 24.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 71,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【爱心消消乐】舒客宝贝彩色心情抗糖防蛀锁钙儿童牙膏青含氟少年抖店",
+          "title": "【爱心消消乐】舒客宝贝彩色心情抗糖防蛀锁钙儿童牙膏青含氟少年抖店",
+          "price": 24.9,
+          "sales": 100000,
+          "rank": 71,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/1fb28d8c229d5f5490dbd8c4731d3167/material.jpeg?auth_key=1788190550-c8484b2d256b4dc292f8ac07e4f3e64a-0-a1ccc8306778c8753e31e25f49bf44af"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:52.177867Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【爱心消消乐】舒客宝贝彩色心情抗糖防蛀锁钙儿童牙膏青含氟少年抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 71",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 24.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.235638Z"
+    },
+    {
+      "fingerprint": "781a1db93b1c3e47a9397eddaa88b4e9eac24873e1375b70019ab208f1d53799",
+      "image_phash": "6619a6b2b5869573",
+      "title": "七绿七子白洗脸皂【品牌正品】清洁洗脸新体验七子白椰油皂抖店",
+      "sanitized_title": "七绿七子白洗脸皂【品牌 】清洁洗脸新体验七子白椰油皂抖店",
+      "category": "个护清洁",
+      "platform_price": 39.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 73,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:七绿七子白洗脸皂【品牌正品】清洁洗脸新体验七子白椰油皂抖店",
+          "title": "七绿七子白洗脸皂【品牌正品】清洁洗脸新体验七子白椰油皂抖店",
+          "price": 39.9,
+          "sales": 100000,
+          "rank": 73,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/5240ec9c4142f34153169771cc8266a9/material.jpeg?auth_key=1788190550-029868f7a5c94318b02c089f78bf2b4d-0-1125581ef9991fd2eb03809846280623"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:52.250746Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "七绿七子白洗脸皂【品牌 】清洁洗脸新体验七子白椰油皂抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 73",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 39.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.235775Z"
+    },
+    {
+      "fingerprint": "deb7f01fd64af6f632011b9e11b46a0865b58492a80b41e4266fd824bbbfd4b6",
+      "image_phash": "4743691d0e0ff0f5",
+      "title": "【poompoom&可啦啦半年抛三副加购】学生清透舒适美瞳隐形眼镜zbsp抖店",
+      "sanitized_title": "【poompoom&可啦啦半年抛三副加购】学生清透舒适美瞳隐形眼镜zbsp抖店",
+      "category": "服饰配件",
+      "platform_price": 79.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 74,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【poompoom&可啦啦半年抛三副加购】学生清透舒适美瞳隐形眼镜zbsp抖店",
+          "title": "【poompoom&可啦啦半年抛三副加购】学生清透舒适美瞳隐形眼镜zbsp抖店",
+          "price": 79.9,
+          "sales": 100000,
+          "rank": 74,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/7cbe2a9e68bba797e075b332e4675065/material.jpeg?auth_key=1788190550-c55064930ac64ff2a0e695384e338b18-0-484d29d9681ac8dd9cd29270f3ff447d"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:52.285265Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【poompoom&可啦啦半年抛三副加购】学生清透舒适美瞳隐形眼镜zbsp抖店",
+        "category": "服饰配件",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 74",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 79.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.235884Z"
+    },
+    {
+      "fingerprint": "71a0ef0f149a0c95a9b072a4b21a7a5cbb5af17f9134b968ca4e2d50394366c0",
+      "image_phash": "c84c6632390bfae7",
+      "title": "【床品除味杀菌】滴露香氛消毒喷雾380ml鞋袜马桶床品消毒灭活hpv16抖店",
+      "sanitized_title": "【床品除味杀菌】滴露香氛消毒喷雾380ml鞋袜马桶床品消毒灭活hpv16抖店",
+      "category": "家居日用",
+      "platform_price": 59.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 77,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【床品除味杀菌】滴露香氛消毒喷雾380ml鞋袜马桶床品消毒灭活hpv16抖店",
+          "title": "【床品除味杀菌】滴露香氛消毒喷雾380ml鞋袜马桶床品消毒灭活hpv16抖店",
+          "price": 59.0,
+          "sales": 100000,
+          "rank": 77,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/e741dabb44af05ceb0bc0237307f7ccc/material.jpeg?auth_key=1788190550-aaf244ad7e2c445a9ed475ef7e909cc9-0-bdb237a00610a02c883a440be7c530e2"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:52.405945Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【床品除味杀菌】滴露香氛消毒喷雾380ml鞋袜马桶床品消毒灭活hpv16抖店",
+        "category": "家居日用",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 77",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 59.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.236189Z"
+    },
+    {
+      "fingerprint": "9dac0973cf60f25ce7d643625ad29fdab7b01b4eed9983a2cb9f59c643c9bf84",
+      "image_phash": "8d65e3384819b3b7",
+      "title": "丝飘草丛密语系列抽纸家用实惠装箱装加厚抽取式面巾纸餐巾纸sp抖店",
+      "sanitized_title": "丝飘草丛密语系列抽纸家用实惠装箱装加厚抽取式面巾纸餐巾纸sp抖店",
+      "category": "家居日用",
+      "platform_price": 8.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 80,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:丝飘草丛密语系列抽纸家用实惠装箱装加厚抽取式面巾纸餐巾纸sp抖店",
+          "title": "丝飘草丛密语系列抽纸家用实惠装箱装加厚抽取式面巾纸餐巾纸sp抖店",
+          "price": 8.9,
+          "sales": 100000,
+          "rank": 80,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/6f504c54f3d213bde5aedb4347b7e13f/material.jpeg?auth_key=1788190550-01165df4f18c4f2f9f1ed250fc2d204c-0-8ba3d350c4b23caa85dc0d2fdd0a39e3"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:52.512083Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "丝飘草丛密语系列抽纸家用实惠装箱装加厚抽取式面巾纸餐巾纸sp抖店",
+        "category": "家居日用",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 80",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 8.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.236444Z"
+    },
+    {
+      "fingerprint": "005d74fd285cd38dfb32938dcb239088e6af342ee2cfc3ed03df695fb1f709d2",
+      "image_phash": "880f64849737f9e3",
+      "title": "小学生专用姓名贴标签贴纸防水耐磨幼儿园名字贴自粘撕膜转印定制抖店",
+      "sanitized_title": "小学生专用姓名贴标签贴纸防水耐磨幼儿园名字贴自粘撕膜转印定制抖店",
+      "category": "办公文具",
+      "platform_price": 9.99,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 87,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:小学生专用姓名贴标签贴纸防水耐磨幼儿园名字贴自粘撕膜转印定制抖店",
+          "title": "小学生专用姓名贴标签贴纸防水耐磨幼儿园名字贴自粘撕膜转印定制抖店",
+          "price": 9.99,
+          "sales": 100000,
+          "rank": 87,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/a9b34329d982c1f640e43301fcd71820/material.jpeg?auth_key=1788190552-689b1bf73f41421dab34df37102eda49-0-242351e09f2aad1c8e1fb72565f8e412"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:53.759597Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "小学生专用姓名贴标签贴纸防水耐磨幼儿园名字贴自粘撕膜转印定制抖店",
+        "category": "办公文具",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 87",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 10.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.236965Z"
+    },
+    {
+      "fingerprint": "cdab7b375246c95c84a1530c74af70da4ad790ac6de00cb34f9550a1b85bcf7c",
+      "image_phash": "11b8780caefeb8a9",
+      "title": "晨光可擦彩色铅笔绘画小学生专用水溶性彩笔画笔橡皮儿童彩铅绘画抖店",
+      "sanitized_title": "晨光可擦彩色铅笔绘画小学生专用水溶性彩笔画笔橡皮儿童彩铅绘画抖店",
+      "category": "办公文具",
+      "platform_price": 7.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 93,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:晨光可擦彩色铅笔绘画小学生专用水溶性彩笔画笔橡皮儿童彩铅绘画抖店",
+          "title": "晨光可擦彩色铅笔绘画小学生专用水溶性彩笔画笔橡皮儿童彩铅绘画抖店",
+          "price": 7.9,
+          "sales": 100000,
+          "rank": 93,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/0f3e037d900c3307af91259aa3bd87aa/material.jpeg?auth_key=1788190552-ade3da563f5d43b78aba32f34cf9452f-0-c1b4dd95ac089b9d93053ca982093d97"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:54.019064Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "晨光可擦彩色铅笔绘画小学生专用水溶性彩笔画笔橡皮儿童彩铅绘画抖店",
+        "category": "办公文具",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 93",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 7.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.237374Z"
+    },
+    {
+      "fingerprint": "3626a4469e23943c9b71181ccb8b874a7ccaaf210ee199a6bc1f017601f5e622",
+      "image_phash": "038fb9c911ee0779",
+      "title": "【自选6副】冰糖果美瞳半年抛高颜值素颜学生日常大小直径隐形眼镜1抖店",
+      "sanitized_title": "【自选6副】冰糖果美瞳半年抛高颜值素颜学生日常大小直径隐形眼镜1抖店",
+      "category": "服饰配件",
+      "platform_price": 29.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 94,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【自选6副】冰糖果美瞳半年抛高颜值素颜学生日常大小直径隐形眼镜1抖店",
+          "title": "【自选6副】冰糖果美瞳半年抛高颜值素颜学生日常大小直径隐形眼镜1抖店",
+          "price": 29.9,
+          "sales": 100000,
+          "rank": 94,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/d8fbd0c205a77558e782321752d5f363/material.jpeg?auth_key=1788190552-91f75b7cb462430b909c8ea0d8c4e003-0-83c0dc345dfdca8abc3137d62d464e8a"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:54.055854Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【自选6副】冰糖果美瞳半年抛高颜值素颜学生日常大小直径隐形眼镜1抖店",
+        "category": "服饰配件",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 94",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 29.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.237462Z"
+    },
+    {
+      "fingerprint": "25499bc7c2579f687288d6db85cab7395d0269c1ab4263f614de52f2ccaf1509",
+      "image_phash": "669b9a69270ab46d",
+      "title": "依牧升级版提花系列超柔软高弹耐用面膜肌肤感发圈韩版超宽发绳抖店",
+      "sanitized_title": "依牧升级版提花系列超柔软高弹耐用面膜肌肤感发圈韩版超宽发绳抖店",
+      "category": "服饰配件",
+      "platform_price": 6.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 99,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:依牧升级版提花系列超柔软高弹耐用面膜肌肤感发圈韩版超宽发绳抖店",
+          "title": "依牧升级版提花系列超柔软高弹耐用面膜肌肤感发圈韩版超宽发绳抖店",
+          "price": 6.9,
+          "sales": 100000,
+          "rank": 99,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/7182ddffba120a0ced92ed35c6cb4d50/material.jpeg?auth_key=1788190552-ff6dcd1218a4435abf1aaf53f4aeae53-0-a01368b0a3245d1d84eaeb4472decb7c"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:54.233290Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "依牧升级版提花系列超柔软高弹耐用面膜肌肤感发圈韩版超宽发绳抖店",
+        "category": "服饰配件",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 99",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 6.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.237877Z"
+    },
+    {
+      "fingerprint": "45c2177819d32863180498f461d71289db5f22c292a8b388d02bceadff0d9558",
+      "image_phash": "a64ccfc139925b69",
+      "title": "跃风跳绳儿童小学生专用绳全新式竞速中考考试破风运动绳子不打结抖店",
+      "sanitized_title": "跃风跳绳儿童小学生专用绳全新式竞速中考考试破风运动绳子不打结抖店",
+      "category": "户外运动",
+      "platform_price": 24.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 100,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:跃风跳绳儿童小学生专用绳全新式竞速中考考试破风运动绳子不打结抖店",
+          "title": "跃风跳绳儿童小学生专用绳全新式竞速中考考试破风运动绳子不打结抖店",
+          "price": 24.9,
+          "sales": 100000,
+          "rank": 100,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/169225b55288ad1269f19974849a947c/material.jpeg?auth_key=1788190552-0ae693532c274deb9b9006fe7793bace-0-be4b802292ba8168bd7e9b688f35e095"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:54.266969Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "跃风跳绳儿童小学生专用绳全新式竞速中考考试破风运动绳子不打结抖店",
+        "category": "户外运动",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 51.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 16.0,
+            "weight": 0.35,
+            "weighted": 16.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 100",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 24.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.237961Z"
+    },
+    {
+      "fingerprint": "df48116b2277005dafd297f517926498a22caece31605fe2d256305a8e4e02ea",
+      "image_phash": "0e4f06f8be2ef025",
+      "title": "【自选6副】UniCent美瞳半年抛大小直径高颜值日常素颜隐形眼镜自然抖店",
+      "sanitized_title": "【自选6副】UniCent美瞳半年抛大小直径高颜值日常素颜隐形眼镜自然抖店",
+      "category": "服饰配件",
+      "platform_price": 29.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 102,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【自选6副】UniCent美瞳半年抛大小直径高颜值日常素颜隐形眼镜自然抖店",
+          "title": "【自选6副】UniCent美瞳半年抛大小直径高颜值日常素颜隐形眼镜自然抖店",
+          "price": 29.9,
+          "sales": 100000,
+          "rank": 102,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/29629ba40dacb64c3ccd259e6822f89d/material.jpeg?auth_key=1788190554-c2994b6286c341b3acd5fdf030322a41-0-b6f5b9c480fa4ec6e0fd23c5d6b47357"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:55.344344Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【自选6副】UniCent美瞳半年抛大小直径高颜值日常素颜隐形眼镜自然抖店",
+        "category": "服饰配件",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 102",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 29.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.238102Z"
+    },
+    {
+      "fingerprint": "5bf80b7d41893b7026d45b9b3332ebca5ccc40b4cdcb893bc87f45c276ed203e",
+      "image_phash": "0edd800f61335fe9",
+      "title": "幼儿园防水姓名贴小学生文具开学透明名字贴入园准备用品定制必备抖店",
+      "sanitized_title": "幼儿园防水姓名贴小学生文具开学透明名字贴入园准备用品定制必备抖店",
+      "category": "办公文具",
+      "platform_price": 3.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 103,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:幼儿园防水姓名贴小学生文具开学透明名字贴入园准备用品定制必备抖店",
+          "title": "幼儿园防水姓名贴小学生文具开学透明名字贴入园准备用品定制必备抖店",
+          "price": 3.9,
+          "sales": 100000,
+          "rank": 103,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/def74cc02e12743d66bf8d2b3c03ce93/material.jpeg?auth_key=1788190554-bbf486968b7a48879e0ebe98b31c6031-0-2ee1e76648dbd8512e831353a70100f0"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:55.376968Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "幼儿园防水姓名贴小学生文具开学透明名字贴入园准备用品定制必备抖店",
+        "category": "办公文具",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 103",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 3.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.238181Z"
+    },
+    {
+      "fingerprint": "6351041ffa99b5667d1c55effa6600be742a94454d60b0a8214bc0f786e7a332",
+      "image_phash": "cda3e36334c9911b",
+      "title": "【开学季专属】水卫士校服净免手搓活氧去污增白家用去黄留香洗衣粉抖店",
+      "sanitized_title": "【开学季专属】水卫士校服净免手搓活氧去污增白家用去黄留香洗衣粉抖店",
+      "category": "个护清洁",
+      "platform_price": 29.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 104,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【开学季专属】水卫士校服净免手搓活氧去污增白家用去黄留香洗衣粉抖店",
+          "title": "【开学季专属】水卫士校服净免手搓活氧去污增白家用去黄留香洗衣粉抖店",
+          "price": 29.9,
+          "sales": 100000,
+          "rank": 104,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/acd5ce1156ea46dc438be2cbfed9985a/material.jpeg?auth_key=1788190554-8db1bf0acdaf4de2a434355b7b8c8934-0-dd4217d2ace7554e30796795935c1c10"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:55.411017Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【开学季专属】水卫士校服净免手搓活氧去污增白家用去黄留香洗衣粉抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 104",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 29.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.238261Z"
+    },
+    {
+      "fingerprint": "198299a363c70a5ee0ba7fd70eacb386bec289916b5771b3bfabca941876e847",
+      "image_phash": "93b0396b2e43623f",
+      "title": "【迪丽热巴同款】BOP溶菌酶清新牙膏香水美白去黄官方口臭热销ko抖店",
+      "sanitized_title": "【迪丽热巴 】BOP溶菌酶清新牙膏香水美白去黄 口臭 ko抖店",
+      "category": "个护清洁",
+      "platform_price": 39.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 105,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【迪丽热巴同款】BOP溶菌酶清新牙膏香水美白去黄官方口臭热销ko抖店",
+          "title": "【迪丽热巴同款】BOP溶菌酶清新牙膏香水美白去黄官方口臭热销ko抖店",
+          "price": 39.9,
+          "sales": 100000,
+          "rank": 105,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/f87d40b4d05afe3754fe436404cfc107/material.jpeg?auth_key=1788190554-49ab95199b144ea48e4813d0dd395bc9-0-fdb3f01691f1a2d619e943431d9d3756"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:55.446446Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【迪丽热巴 】BOP溶菌酶清新牙膏香水美白去黄 口臭 ko抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 105",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 39.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.238340Z"
+    },
+    {
+      "fingerprint": "cdb92376e84e5a34589caf9351be1642b6e2e3f1257c488f30c064c753f27cc6",
+      "image_phash": "7af20e398ac79a0d",
+      "title": "科净威【聪哥同款】云山香薰轻奢质感车载香薰杯架香膏除味空气清新抖店",
+      "sanitized_title": "科净威【聪哥 】云山香薰轻奢质感车载香薰杯架香膏除味空气清新抖店",
+      "category": "家居日用",
+      "platform_price": 39.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 114,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:科净威【聪哥同款】云山香薰轻奢质感车载香薰杯架香膏除味空气清新抖店",
+          "title": "科净威【聪哥同款】云山香薰轻奢质感车载香薰杯架香膏除味空气清新抖店",
+          "price": 39.9,
+          "sales": 100000,
+          "rank": 114,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/b9aa82717433f37c589779b6e6b124bd/material.jpeg?auth_key=1788190554-bbe7d3d2846f43689b753ef82995b943-0-090b69a1135f654420539f4003ccd805"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:55.756121Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "科净威【聪哥 】云山香薰轻奢质感车载香薰杯架香膏除味空气清新抖店",
+        "category": "家居日用",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 114",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 39.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.238984Z"
+    },
+    {
+      "fingerprint": "aa6b950e0be927fe1d43fb12fb2b8242ca5a76f9bd607f23551e35b5961895a2",
+      "image_phash": "85cdf8b1030391ff",
+      "title": "寓吉开学季海绵宝宝卡通印花抽纸面巾纸便捷小包装柔软加厚不易破抖店",
+      "sanitized_title": "寓吉开学季海绵宝宝卡通印花抽纸面巾纸便捷小包装柔软加厚不易破抖店",
+      "category": "家居日用",
+      "platform_price": 11.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 117,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:寓吉开学季海绵宝宝卡通印花抽纸面巾纸便捷小包装柔软加厚不易破抖店",
+          "title": "寓吉开学季海绵宝宝卡通印花抽纸面巾纸便捷小包装柔软加厚不易破抖店",
+          "price": 11.9,
+          "sales": 100000,
+          "rank": 117,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/16757cecba79079e3970195e73ca026a/material.jpeg?auth_key=1788190554-c48ccb98550544a4963dd5aa95d30a66-0-2b9039ad87c4f39fef7b0f8cfc07fbca"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:55.863398Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "寓吉开学季海绵宝宝卡通印花抽纸面巾纸便捷小包装柔软加厚不易破抖店",
+        "category": "家居日用",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 117",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 11.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.239336Z"
+    },
+    {
+      "fingerprint": "b3a67aad0e3efe2a15403bbdee1ac659c0f6dff4e7fdb71b60b0c775d365db32",
+      "image_phash": "625b497727e80e53",
+      "title": "漫花4大包抽纸家用餐巾纸面巾纸加学生厚宿舍可用车载便捷实惠装抖店",
+      "sanitized_title": "漫花4大包抽纸家用餐巾纸面巾纸加学生厚宿舍可用车载便捷实惠装抖店",
+      "category": "家居日用",
+      "platform_price": 0.01,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 119,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:漫花4大包抽纸家用餐巾纸面巾纸加学生厚宿舍可用车载便捷实惠装抖店",
+          "title": "漫花4大包抽纸家用餐巾纸面巾纸加学生厚宿舍可用车载便捷实惠装抖店",
+          "price": 0.01,
+          "sales": 100000,
+          "rank": 119,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/f9a93278adf608a7f1b61cf90b4dee64/material.jpeg?auth_key=1788190554-eb36d666b0ff4c1bbf5a781788fedffa-0-ceef6f11d51ff143dd67bc9f4efe78ed"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:55.929469Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "漫花4大包抽纸家用餐巾纸面巾纸加学生厚宿舍可用车载便捷实惠装抖店",
+        "category": "家居日用",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 119",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 0.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.239477Z"
+    },
+    {
+      "fingerprint": "0e6d85f3579a7d93b527cf274bd8df9475655009fe1d9a11ef2a7e39f894e664",
+      "image_phash": "1cdb254b5ea0c33b",
+      "title": "【沈梦辰推荐】éLL壬二酸清洁泥膜清洁黑头闭口控油细腻毛孔男女抖店",
+      "sanitized_title": "【沈梦辰推荐】éLL壬二酸清洁泥膜清洁黑头闭口控油细腻毛孔男女抖店",
+      "category": "个护清洁",
+      "platform_price": 49.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 120,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【沈梦辰推荐】éLL壬二酸清洁泥膜清洁黑头闭口控油细腻毛孔男女抖店",
+          "title": "【沈梦辰推荐】éLL壬二酸清洁泥膜清洁黑头闭口控油细腻毛孔男女抖店",
+          "price": 49.9,
+          "sales": 100000,
+          "rank": 120,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/08f4aa47aac28c2cc815179a378c0e92/material.jpeg?auth_key=1788190554-04afa246b720407a90d232eb7c9163c2-0-c95ab5fc0a3bfa137cc5d1cd5d2c3829"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:55.962830Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【沈梦辰推荐】éLL壬二酸清洁泥膜清洁黑头闭口控油细腻毛孔男女抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 120",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 49.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.239577Z"
+    },
+    {
+      "fingerprint": "3da3c87ac83033a5a0443bd3b1aaeff7fb06d717f8280be3064209daab62b39d",
+      "image_phash": "f8b30bb053128ecf",
+      "title": "【静音按动中性笔】晨光升级K35双珠ST笔尖学生刷题笔0.5速干顺滑抖店",
+      "sanitized_title": "【静音按动中性笔】晨光升级K35双珠ST笔尖学生刷题笔0.5速干顺滑抖店",
+      "category": "办公文具",
+      "platform_price": 14.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 122,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【静音按动中性笔】晨光升级K35双珠ST笔尖学生刷题笔0.5速干顺滑抖店",
+          "title": "【静音按动中性笔】晨光升级K35双珠ST笔尖学生刷题笔0.5速干顺滑抖店",
+          "price": 14.0,
+          "sales": 100000,
+          "rank": 122,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/81cf597e0e77c7c59d8310ee5b29c27f/material.jpeg?auth_key=1788190556-2f1a797765de4da08a22396d31ca9b98-0-662231c4dd9dd88ff0826d1c7b57a981"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:57.041994Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【静音按动中性笔】晨光升级K35双珠ST笔尖学生刷题笔0.5速干顺滑抖店",
+        "category": "办公文具",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 122",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 14.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.239740Z"
+    },
+    {
+      "fingerprint": "440c2661adb892c9878027cdaae2a8971ff783c994f353f73c80846bc99d1688",
+      "image_phash": "af42291c66cd96ad",
+      "title": "优厨10A 级抗菌洗碗布易清洗厨房吸油去油抹布油利除洗碗巾百洁布抖店",
+      "sanitized_title": "优厨10A 级抗菌洗碗布易清洗厨房吸油去油抹布油利除洗碗巾百洁布抖店",
+      "category": "厨房用品",
+      "platform_price": 9.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 123,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:优厨10A 级抗菌洗碗布易清洗厨房吸油去油抹布油利除洗碗巾百洁布抖店",
+          "title": "优厨10A 级抗菌洗碗布易清洗厨房吸油去油抹布油利除洗碗巾百洁布抖店",
+          "price": 9.9,
+          "sales": 100000,
+          "rank": 123,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/144b6a93421812f701e569223febd0a2/material.jpeg?auth_key=1788190556-296fe87d8af7467f87b48af13b5bfbc4-0-40e6f2b2cef9dfab93d0d530915e3303"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:57.080427Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "优厨10A 级抗菌洗碗布易清洗厨房吸油去油抹布油利除洗碗巾百洁布抖店",
+        "category": "厨房用品",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 123",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 9.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.239824Z"
+    },
+    {
+      "fingerprint": "08d406c317b0413f6b328987afa46f664e360c0b12e91e4a3b0214c2e6c4be4a",
+      "image_phash": "1b896dc90706bc7d",
+      "title": "【自选8副】美乐菲美瞳半年抛高光自然素颜推荐隐形眼镜官方旗舰店抖店",
+      "sanitized_title": "【自选8副】美乐菲美瞳半年抛高光自然素颜推荐隐形眼镜 抖店",
+      "category": "服饰配件",
+      "platform_price": 29.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 124,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【自选8副】美乐菲美瞳半年抛高光自然素颜推荐隐形眼镜官方旗舰店抖店",
+          "title": "【自选8副】美乐菲美瞳半年抛高光自然素颜推荐隐形眼镜官方旗舰店抖店",
+          "price": 29.9,
+          "sales": 100000,
+          "rank": 124,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/3b6ee7a3341b7621eedad41db346b0ab/material.jpeg?auth_key=1788190556-3fdd22e6ba614177a6058e2cfdb7c32b-0-bb26f0a01c67f25611b96ae4519a0433"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:57.115793Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【自选8副】美乐菲美瞳半年抛高光自然素颜推荐隐形眼镜 抖店",
+        "category": "服饰配件",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 124",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 29.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.239906Z"
+    },
+    {
+      "fingerprint": "4e2095b6c28d0a5f4b3b0f677921c4558e847acfa13f1ff2dec85858622e2276",
+      "image_phash": "e70bc987f80324ed",
+      "title": "维达山茶花手帕纸4层加厚可爱花香便携式随身装家用便携纸巾抖店",
+      "sanitized_title": "维达山茶花手帕纸4层加厚可爱花香便携式随身装家用便携纸巾抖店",
+      "category": "家居日用",
+      "platform_price": 9.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 128,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:维达山茶花手帕纸4层加厚可爱花香便携式随身装家用便携纸巾抖店",
+          "title": "维达山茶花手帕纸4层加厚可爱花香便携式随身装家用便携纸巾抖店",
+          "price": 9.9,
+          "sales": 100000,
+          "rank": 128,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/79b473c997be8fbfbe0e09f1da07dc13/material.jpeg?auth_key=1788190556-bac472259a624b9cbedcd486d3baf503-0-9b6d61ae64b8ef1b1e35187b4b27ef0c"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:57.252652Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "维达山茶花手帕纸4层加厚可爱花香便携式随身装家用便携纸巾抖店",
+        "category": "家居日用",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 128",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 9.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.240188Z"
+    },
+    {
+      "fingerprint": "8b4959226259681d61fa573a4f6b1f5b92b5f7983593a8fbb99209e2c1a0386c",
+      "image_phash": "e420fa03967f47a3",
+      "title": "【破损包赔】立白大师香氛洗衣液持久留香柔顺护色洗衣液家用【bd1】抖店",
+      "sanitized_title": "【破损包赔】立白大师香氛洗衣液持久留香柔顺护色洗衣液家用【bd1】抖店",
+      "category": "个护清洁",
+      "platform_price": 29.9,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 75000,
+      "rank_best": 132,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "youmi",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【破损包赔】立白大师香氛洗衣液持久留香柔顺护色洗衣液家用【bd1】抖店",
+          "title": "【破损包赔】立白大师香氛洗衣液持久留香柔顺护色洗衣液家用【bd1】抖店",
+          "price": 29.9,
+          "sales": 75000,
+          "rank": 132,
+          "category": "",
+          "image_urls": [
+            "https://lp-ag-v2.umcdn.cn/d95d99910fc9e86c82eb21ccbde3630a/material.jpeg?auth_key=1788190556-9e9671030b924699a074d4a1a7c4aa6c-0-d546dbbc5e7ba067038a19c036c84480"
+          ],
+          "raw": {
+            "board": "商品榜"
+          },
+          "collected_at": "2026-08-31T11:35:57.397854Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【破损包赔】立白大师香氛洗衣液持久留香柔顺护色洗衣液家用【bd1】抖店",
+        "category": "个护清洁",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 47.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 12.0,
+            "weight": 0.35,
+            "weighted": 12.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 132",
+              "销量 75000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 29.9 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:40:09.240494Z"
+    }
+  ],
+  "skipped_sources": [],
+  "errors": []
+}

@@ -31,6 +31,22 @@ class FakeImg:
         return self._attrs.get(name)
 
 
+class FakeBg:
+    """模拟 .ys-bg-img 元素：style 属性内联 background-image（P-033）。"""
+
+    def __init__(self, style_attr, computed=None):
+        self._style = style_attr
+        self._computed = computed if computed is not None else style_attr
+
+    def get_attribute(self, name):
+        if name == "style":
+            return self._style
+        return None
+
+    def evaluate(self, js):
+        return self._computed
+
+
 class FakeImgLocator:
     def __init__(self, imgs):
         self._imgs = imgs
@@ -40,37 +56,51 @@ class FakeImgLocator:
 
 
 class FakeTd:
-    def __init__(self, imgs):
+    def __init__(self, imgs, bgs=None):
         self._imgs = imgs
+        self._bgs = bgs or []
 
     def locator(self, sel):
-        assert sel == "img"
-        return FakeImgLocator(self._imgs)
+        if sel == "img":
+            return FakeImgLocator(self._imgs)
+        if sel == ".ys-bg-img":
+            return FakeImgLocator(self._bgs)
+        raise AssertionError(f"unexpected selector: {sel!r}")
 
 
 class FakeTdLocator:
-    def __init__(self, cell_imgs):
+    def __init__(self, cell_imgs, cell_bgs=None):
         self._cell_imgs = cell_imgs  # list[list[FakeImg]]
+        self._cell_bgs = cell_bgs or [[] for _ in cell_imgs]  # list[list[FakeBg]]
 
     def nth(self, i):
         imgs = self._cell_imgs[i] if 0 <= i < len(self._cell_imgs) else []
-        return FakeTd(imgs)
+        bgs = self._cell_bgs[i] if 0 <= i < len(self._cell_bgs) else []
+        return FakeTd(imgs, bgs)
 
 
 class FakeRow:
     """模拟 Playwright Locator：locator("td") 按列取图，locator("img") 行内全图。"""
 
-    def __init__(self, cell_imgs, row_imgs=None):
+    def __init__(self, cell_imgs, row_imgs=None, cell_bgs=None, row_bgs=None):
         self._cell_imgs = cell_imgs
         self._row_imgs = (
             list(row_imgs) if row_imgs is not None else [i for c in cell_imgs for i in c]
         )
+        self._cell_bgs = cell_bgs or [[] for _ in cell_imgs]
+        self._row_bgs = (
+            list(row_bgs)
+            if row_bgs is not None
+            else [b for c in self._cell_bgs for b in c]
+        )
 
     def locator(self, sel):
         if sel == "td":
-            return FakeTdLocator(self._cell_imgs)
+            return FakeTdLocator(self._cell_imgs, self._cell_bgs)
         if sel == "img":
             return FakeImgLocator(self._row_imgs)
+        if sel == ".ys-bg-img":
+            return FakeImgLocator(self._row_bgs)
         raise AssertionError(f"unexpected selector: {sel!r}")
 
 
@@ -216,6 +246,49 @@ def test_youmi_lazy_attrs_constant_order():
     """LAZY_IMG_ATTRS 顺序：src 优先于 data-src 等 lazy 属性。"""
     assert LAZY_IMG_ATTRS[0] == "src"
     assert "data-src" in LAZY_IMG_ATTRS and "srcset" in LAZY_IMG_ATTRS
+
+
+# ------------------------------------------------------- P-033 background-image（有米云真实图载体）
+
+BG_URL = "https://lp-ag-v2.umcdn.cn/4d00c059633d852632fb72f987b8bb7d/material.jpeg"
+BG_STYLE = (
+    f"background-color: rgb(255,255,255); width: 64px; height: 64px; "
+    f'background-image: url("{BG_URL}?auth_key=abc");'
+)
+
+
+def test_youmi_bg_image_extract_from_style():
+    """P-033：.ys-bg-img style 内联 background-image → 提取真实 URL。"""
+    row = FakeRow([[FakeImg({})]], cell_bgs=[[FakeBg(BG_STYLE)]])
+    assert YoumiCollector._extract_images(row, title_cell=0) == [BG_URL + "?auth_key=abc"]
+
+
+def test_youmi_bg_preferred_over_img():
+    """P-033：bg 命中优先于 img lazy 兜底（真实页面既有 bg 又有占位 img 时）。"""
+    img = FakeImg({"src": "data:image/gif;base64,R0lGODlhAQAB"})
+    row = FakeRow([[img]], cell_bgs=[[FakeBg(BG_STYLE)]])
+    assert YoumiCollector._extract_images(row, title_cell=0) == [BG_URL + "?auth_key=abc"]
+
+
+def test_youmi_bg_falls_back_to_computed_style():
+    """P-033：style 属性无 url → getComputedStyle 兜底。"""
+    bg = FakeBg("width: 64px;", computed=f'url("{BG_URL}?k=1")')
+    row = FakeRow([[]], cell_bgs=[[bg]])
+    assert YoumiCollector._extract_images(row, title_cell=0) == [BG_URL + "?k=1"]
+
+
+def test_youmi_bg_missing_falls_back_to_img():
+    """P-033：无 bg 元素 → 回退 img lazy 提取（旧行为不回归）。"""
+    img = FakeImg({"data-src": "https://cdn.example.com/ym-bg-fallback.jpg"})
+    row = FakeRow([[img]])
+    assert YoumiCollector._extract_images(row, title_cell=0) == ["https://cdn.example.com/ym-bg-fallback.jpg"]
+
+
+def test_youmi_bg_no_url_returns_empty():
+    """P-033：bg style 无 http url（相对/data）→ 空（不误收）。"""
+    bg = FakeBg("background-image: url('/local/img.png');")
+    row = FakeRow([[]], cell_bgs=[[bg]])
+    assert YoumiCollector._extract_images(row, title_cell=0) == []
 
 
 # ------------------------------------------------------- A6 合并逻辑（不回归）

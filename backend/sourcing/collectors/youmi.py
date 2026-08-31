@@ -101,6 +101,26 @@ def _first_http_url(attrs: dict[str, str | None]) -> str:
     return ""
 
 
+def _bg_image_url(bg) -> str:
+    """从 .ys-bg-img 元素提取 background-image url（P-033）。
+
+    优先读 style 属性内联值（`background-image: url("https://...")`），
+    未命中回退 getComputedStyle；只收 http(s)；任何异常返回空串。
+    """
+    try:
+        raw = bg.get_attribute("style") or ""
+        m = re.search(r'url\(\s*["\']?(https?://[^"\')\s]+)', raw)
+        if m:
+            return m.group(1)
+        raw = bg.evaluate("el => getComputedStyle(el).backgroundImage") or ""
+        m = re.search(r'url\(\s*["\']?(https?://[^"\')\s]+)', raw)
+        if m:
+            return m.group(1)
+    except Exception:
+        pass
+    return ""
+
+
 class YoumiCollector(Collector):
     source = "youmi"
     default_boards = ["商品榜"]
@@ -240,25 +260,44 @@ class YoumiCollector(Collector):
 
     @staticmethod
     def _extract_images(row, title_cell: int | None = None) -> list[str]:
-        """提取行内商品图 URL（A6 收敛：lazy 属性 + 收窄到商品列容器）。
+        """提取行内商品图 URL（A6 + P-033 收敛：background-image + lazy img）。
 
-        - lazy 加载兼容：src 为占位（data:/blob:/空/相对路径）时继续读
-          data-src / data-original / data-lazy-src / data-lazy / srcset / data-srcset；
-        - 收窄：优先取 title_cell 指定 td（商品列）内的 img（避免收集排名/推广方式
-          等非商品图），该容器未命中再回退行内 img（防御，不依赖真实 DOM 结构——
-          列容器取不到时行为与旧版一致）；
+        - P-033（2026-08-31 实测）：有米云商品图为 **CSS background-image**（`.ys-bg-img`
+          div，style 内联 `background-image: url("https://...")`），**非 `<img>` 标签**——
+          A6 仅提取 img lazy 属性导致真实页面 imgs=0（67/68 商品无图）。新增 background 提取；
+        - lazy img 兼容保留为兜底：src 占位（data:/blob:/空）时读 data-src/srcset 等；
+        - 收窄：优先 title_cell 指定 td（商品列）容器，未命中回退行内；
         - 只收 http(s) 真实 URL，去重，最多 4 张；任何异常返回空列表，不阻断采集。
         """
+        urls: list[str] = []
+        seen: set[str] = set()
+        try:
+            # 1) 商品列容器内的 .ys-bg-img（background-image）优先
+            if title_cell is not None:
+                bg_loc = row.locator("td").nth(title_cell).locator(".ys-bg-img")
+                for bg in bg_loc.all()[:4]:
+                    url = _bg_image_url(bg)
+                    if url and url not in seen:
+                        seen.add(url)
+                        urls.append(url)
+                if urls:
+                    return urls[:4]
+            # 2) 行内 .ys-bg-img（列容器未命中/未指定列时）
+            for bg in row.locator(".ys-bg-img").all()[:4]:
+                url = _bg_image_url(bg)
+                if url and url not in seen:
+                    seen.add(url)
+                    urls.append(url)
+            if urls:
+                return urls[:4]
+        except Exception:
+            pass
+        # 3) img lazy 属性兜底（原 A6 逻辑）
         try:
             locators: list = []
             if title_cell is not None:
                 locators.append(row.locator("td").nth(title_cell).locator("img"))
-            locators.append(row.locator("img"))  # 兜底：列容器未命中时回退行内（含 title_cell=None）
-        except Exception:
-            return []
-        urls: list[str] = []
-        seen: set[str] = set()
-        try:
+            locators.append(row.locator("img"))
             for loc in locators:
                 for img in loc.all()[:4]:
                     url = _first_http_url({k: img.get_attribute(k) for k in LAZY_IMG_ATTRS})
@@ -266,7 +305,7 @@ class YoumiCollector(Collector):
                         seen.add(url)
                         urls.append(url)
                 if urls:
-                    break  # 精确容器命中即止，不再取兜底行内
+                    break
         except Exception:
             pass
         return urls[:4]

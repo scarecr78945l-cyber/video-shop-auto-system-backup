@@ -242,3 +242,16 @@
 - **现象与根因**：有米云重登后单源跑通，但流水线 persist 阶段 `IntegrityError: UNIQUE constraint failed: product_fingerprint_claims.fingerprint`。根因：`repo.claim_fingerprint` 用 `session.get(Claim, fingerprint)` **按主键 id 查询**（id 为自增数字，fingerprint 仅是 unique 列）→ 永远查不到已存在指纹 → 同 run 内 fingerprint 重复（同款不同图未合并）时 INSERT 撞 UNIQUE。
 - **解决方案**：claim_fingerprint 改为 `select ... where fingerprint == x` 按指纹列查询（session 内可见未提交行，同 run 幂等）；重复指纹返回 False 跳过（`_persist` 已有 continue 逻辑）。顺带有米云补采：登录态恢复后单源 200 条采集成功，商品池 **68 个白名单品（9 类全覆盖：个护 22/家居 13/厨房 11/文具 8/配件 7/宠物 3/户外 2/收纳 1）**；补 permanent 词（食用盐/食盐/调味料/香料/卤料/火锅料等 16 词，P-031b）修正 2 个食品漏网（盐/香料），pool 68 纯白名单品。
 - **防复发**：① 任何 `session.get(Model, key)` 必须确认 key 是**主键**（fingerprint 等业务键须用 select-where）；② 入库前 claim 语义=「已存在即跳过」幂等，不抛异常；③ 新数据源接入后跑一次全源验证并抽查 pool 语义（食品/店铺/类目漏网扫描）。
+## P-033 ｜ 有米云商品图是 CSS background-image（非 img 标签）→ 真实采集 67/68 无图
+
+- **出现时间**：2026-08-31 ｜ **模块**：M1 有米云采集 ｜ **代理**：总控（询价前置检查图片覆盖时发现）
+- **现象与根因**：pool 68 商品 67 个 `image_urls=[]`（P-027 无图不询价 → 询价无法执行）。根因：有米云商品图为 **CSS `background-image`**（`.ys-bg-img` div，64×64，style 内联 `background-image: url("https://lp-ag-v2.umcdn.cn/...")`），**页面行内无 `<img>` 标签**（imgCount=0）——A6 的 `_extract_images` 只提取 img 的 lazy 属性（src/data-src/srcset），永远拿不到 background 图。
+- **解决方案（P-033）**：`_extract_images` 新增 background-image 提取——优先 `.ys-bg-img` 容器（title_cell 列内，未命中回退行内）读 style 属性正则取 `url("http...")`，style 无 url 回退 `getComputedStyle().backgroundImage`；img lazy 提取保留为兜底。重采后 **68/68 pool 商品全部有图**（验证通过）。
+- **防复发**：① 平台图片载体确认（img vs background vs video）后再写提取器，真实页面 imgs=0 时先查 DOM 载体而非假设 lazy；② 询价前图片覆盖检查（有图数/总数）纳入全源验证步骤；③ background-image 提取 regex 只收 http(s)（相对/data 过滤）。
+## P-034 ｜ 批量询价运行纪律：子进程分块 + 块超时 + 重试（68 商品 41 个拿到成本，60% 覆盖）
+
+- **出现时间**：2026-08-31 ｜ **模块**：M1 1688 批量询价 ｜ **代理**：总控（68 个 pool 商品全量询价）
+- **现象与根因**：P-029 的 playwright driver 偶发挂死在大批量询价中高频复现——每块 10 商品约一半卡住（driver 挂 → 后续商品排队等待 → 块超时）；1688 搜图服务端波动致部分请求"搜图结果未渲染"（22.5s 快速失败，重试后多成功——非代码缺陷）。
+- **解决方案（运行纪律）**：① **子进程分块**（10/块）隔离 driver 挂死（超时 kill 不影响主进程）；② **补跑小块**（5/块 + 360s 块超时）减少卡住吞量；③ 失败/未跑商品**重试轮**（间隔 5s 防限流）；④ 每商品完成即落盘 JSONL（防中断丢失）；⑤ 结果回写复用 repo.save_quotes + 系统定价阶梯。
+- **结果**：68 pool 商品 → **41 个拿到真实成本（60%）**，全部毛利 60%+（89%×9、80%×3、78%×2、76%、75%×3、73%×3、70%×4、67%×6、60%×10），商品池可直接上架（M4）；证据 `_management/logs/m1_quote_results_20260831.jsonl`。剩余 27 个（卡住/无结果）登记后续轮次补询。
+- **防复发**：① 大批量询价固定「子进程分块 + 块超时 + 落盘 + 重试」四件套；② 每商品单进程隔离（每商品一个子进程）列入后续优化（彻底消除卡住吞量）；③ 询价成功率（~60%）与卡住率登记运行指标，异常时检查 1688 服务端/账号状态。
