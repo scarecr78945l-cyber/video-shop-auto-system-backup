@@ -204,3 +204,9 @@
 - **现象与根因**：test_optimization_e2e 原依赖「detect_ffmpeg 未就绪 → composer 自动 Mock」；ffmpeg 安装后 detect_ffmpeg 返回真实 → 走 FFmpegProcessRunner 对 fake 视频 probe 失败 → spec_ok=False。
 - **解决方案**：e2e 显式注入 `MockFFmpegRunner(probe_result={width/height/duration/size_bytes/format})`（测试确定性不依赖本机 ffmpeg 状态）。
 - **防复发**：① 测试凡依赖「外部工具缺失→自动降级」的，须显式注入 Mock（不依赖环境探测结果）；② ffmpeg 环境变更后全量回归 M3 域；③ 真实转码验证走独立冒烟（非 e2e 单测）。
+## P-027 ｜ 1688 以图搜款唯一化（用户裁定：标题搜索同款无效，废弃）
+
+- **出现时间**：2026-08-31 ｜ **模块**：M1 1688 询价 ｜ **代理**：总控（M1 真实运行验证时用户裁定）
+- **现象与根因**：alibaba.py 无图时退回「标题搜索」找同款——实测标题搜索出整类商品（精度差），用户裁定「用标题搜同款是没有用的，要以图搜款」。
+- **解决方案**：废弃标题搜索分支；quote() 以图搜款为唯一方式——图源优先级 item.image_urls → raw 候选图（taobao_image_urls/image_url/榜单图）；无图 → NO_MATCH「无图不可以图搜款」且不打开浏览器。
+- **防复发**：① 采集器（商机中心/抖店/有米云）必须携带商品图 URL（raw 字段契约）；② 无图商品标记 NO_MATCH 不询价（后续可补图源）；③ 测试覆盖（test_alibaba_image_search.py 4 例）。

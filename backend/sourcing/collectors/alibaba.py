@@ -40,7 +40,17 @@ class AlibabaQuoteCollector(QuoteCollector):
         self.browser = SharedBrowser(config.cdp_port, config.chrome_path)
 
     def quote(self, item: SourceItem, max_suppliers: int = 5) -> list[Quote]:
-        """以图搜款（或标题搜索）→ 进商品页 → 订单确认页读价。"""
+        """以图搜款（唯一方式，P-027：废弃标题搜索）→ 进商品页 → 订单确认页读价。
+
+        无图时尝试从 raw 携带的候选图（taobao_image_urls/榜单图）取首图；
+        仍无图 → NO_MATCH「无图不可以图搜款」且**不打开浏览器**（省资源），不退回标题搜索。
+        """
+        image_url = self._resolve_image_url(item)
+        if not image_url:
+            raise CollectorError(
+                "无图不可以图搜款（标题搜索已废弃 P-027）：需采集器携带商品图",
+                "NO_MATCH",
+            )
         page = self.browser.page()
         try:
             page.goto(self.selectors.get("home_url", "https://www.1688.com"), timeout=45000)
@@ -48,21 +58,13 @@ class AlibabaQuoteCollector(QuoteCollector):
                 raise CollectorError("1688 登录态失效，需人工登录", "AUTH_REQUIRED")
 
             quotes: list[Quote] = []
-            if item.image_urls:
-                # 以图搜款：上传首图（P-026：set_input_files_from_url 非标准 API，
-                # 改为下载到临时文件后 set_input_files）
-                upload = page.locator(self.selectors["image_upload"]).first
-                tmp_img = self._download_image(item.image_urls[0])
-                try:
-                    upload.set_input_files(tmp_img, timeout=30000)
-                finally:
-                    tmp_img.unlink(missing_ok=True)
-                page.wait_for_timeout(3000)
-            else:
-                box = page.locator(self.selectors["search_input"]).first
-                box.fill(item.title[:60])
-                page.locator(self.selectors["search_btn"]).first.click(timeout=5000)
-                page.wait_for_timeout(3000)
+            upload = page.locator(self.selectors["image_upload"]).first
+            tmp_img = self._download_image(image_url)
+            try:
+                upload.set_input_files(tmp_img, timeout=30000)
+            finally:
+                tmp_img.unlink(missing_ok=True)
+            page.wait_for_timeout(3000)
 
             if detect_page_changed(page, [self.selectors["result_row"]]):
                 raise CollectorError("1688 页面疑似改版，请更新选择器", "PAGE_CHANGED")
@@ -140,6 +142,28 @@ class AlibabaQuoteCollector(QuoteCollector):
 
         m = re.search(r"[\d.]+", (text or "").replace(",", ""))
         return float(m.group()) if m else 0.0
+
+    @staticmethod
+    def _resolve_image_url(item: SourceItem) -> str:
+        """以图搜款首图来源解析（P-027：废弃标题搜索后必须带图）。
+
+        优先级：item.image_urls → raw['taobao_image_urls'] → raw['image_url'] → raw['board_image']。
+        返回首个 http(s) 图 URL；无 → 空串（调用方抛 NO_MATCH）。
+        """
+        candidates: list[str] = []
+        candidates += list(item.image_urls or [])
+        raw = item.raw or {}
+        for key in ("taobao_image_urls", "image_url", "board_image", "alibaba_image_urls"):
+            v = raw.get(key)
+            if isinstance(v, str):
+                candidates.append(v)
+            elif isinstance(v, list):
+                candidates += [str(x) for x in v if isinstance(x, str)]
+        for url in candidates:
+            url = url.strip()
+            if url.startswith("http://") or url.startswith("https://"):
+                return url
+        return ""
 
     @staticmethod
     def _download_image(url: str) -> Path:
