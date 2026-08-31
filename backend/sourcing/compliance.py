@@ -73,7 +73,11 @@ _DEFAULT_HARD_BLOCK_PATH = Path(__file__).parent / "data" / "hard_block_policy.j
 
 
 class HardBlockPolicy:
-    """旧系统硬拦策略的配置化载体（REC-迁移-01：词表进 JSON 配置，不硬编码）。"""
+    """旧系统硬拦策略的配置化载体（REC-迁移-01：词表进 JSON 配置，不硬编码）。
+
+    P-031（2026-08-31 用户裁定「只找白名单里的品」）：接入 permanent_exclusion_terms
+    （食品/饮品/贵金属/图书等永久排除词）——命中即 hard_reject，双保险兜底类目解析漏网。
+    """
 
     def __init__(self, path: Path | str = _DEFAULT_HARD_BLOCK_PATH) -> None:
         self.path = Path(path)
@@ -81,6 +85,8 @@ class HardBlockPolicy:
         self.safe_apparel_terms: list[str] = []
         self.bag_terms: list[str] = []
         self.safe_bag_terms: list[str] = []
+        self.permanent_exclusion_terms: list[str] = []
+        self.safe_permanent_context_terms: list[str] = []
         self._load()
 
     def _load(self) -> None:
@@ -91,6 +97,10 @@ class HardBlockPolicy:
         self.safe_apparel_terms = list(raw.get("safe_apparel_context_terms", []) or [])
         self.bag_terms = list(raw.get("bag_terms", []) or [])
         self.safe_bag_terms = list(raw.get("safe_bag_context_terms", []) or [])
+        self.permanent_exclusion_terms = list(raw.get("permanent_exclusion_terms", []) or [])
+        self.safe_permanent_context_terms = list(
+            raw.get("safe_permanent_context_terms", []) or []
+        )
 
     def apparel_hit(self, title_lower: str) -> list[str]:
         hits = _match_any(self.apparel_terms, title_lower)
@@ -106,6 +116,19 @@ class HardBlockPolicy:
             safe = _match_any(self.safe_bag_terms, title_lower)
             if safe:
                 return []  # 安全上下文豁免（垃圾袋/收纳袋/保鲜袋等）
+        return hits
+
+    def permanent_hit(self, title_lower: str) -> list[str]:
+        """永久排除词命中（P-031：食品/饮品/贵金属/图书等，用户裁定不做）。
+
+        安全上下文豁免（safe_permanent_context_terms）：「食品」在「食品保鲜袋/食品级
+        保鲜膜/食品收纳盒」中是材质/用途描述（厨房用品可做），不判为食品商品。
+        """
+        hits = _match_any(self.permanent_exclusion_terms, title_lower)
+        if hits:
+            safe = _match_any(self.safe_permanent_context_terms, title_lower)
+            if safe:
+                return []  # 安全上下文豁免（保鲜袋/收纳/食品级等材质描述）
         return hits
 
     def blocked_terms(self, title_lower: str) -> list[str]:
@@ -141,6 +164,18 @@ class ComplianceEngine:
                 return ComplianceResult(
                     state=ComplianceState.HARD_REJECT,
                     reasons=[f"鞋服/包类硬拦词: {'/'.join(blocked[:5])}"],
+                    matched_rules=matched,
+                )
+
+        # P-031（用户裁定「只找白名单里的品」）：永久排除词（食品/饮品/贵金属/图书等）
+        # 命中 → hard_reject（先于类目映射：防「酸奶」被「健身」映射到户外运动漏网等）
+        if self.hard_block is not None:
+            permanent = self.hard_block.permanent_hit(lower)
+            if permanent:
+                matched += permanent
+                return ComplianceResult(
+                    state=ComplianceState.HARD_REJECT,
+                    reasons=[f"永久排除类目词（用户裁定不做）: {'/'.join(permanent[:5])}"],
                     matched_rules=matched,
                 )
 
@@ -181,11 +216,33 @@ class ComplianceEngine:
                 matched_rules=matched,
             )
 
-        # 类目白名单：启用时，白名单外 → manual_review（人工闸门，可后台放行）
+        # P-031：类目标注（采集源未带类目时按标题推断白名单类目）+ 白名单强制
+        # 用户裁定「只找白名单里的品，其他的不要找」——类目空/不在白名单 → hard_reject
+        #（原 manual_review 语义升级为硬拒；白名单 9 类见 config.category_whitelist）
         category = (item.category or "").strip()
         if self.config.category_whitelist_enabled and self.whitelist:
-            if category and not any(cat in category for cat in self.whitelist):
-                reasons.append(f"类目「{category}」不在白名单，转人工确认")
+            if not category:
+                from .category_map import infer_category
+
+                category = infer_category(title) or ""
+            if not category:
+                matched.append("类目未标注")
+                return ComplianceResult(
+                    state=ComplianceState.HARD_REJECT,
+                    reasons=["类目无法映射到白名单 9 类（用户裁定只找白名单内的品）"],
+                    sanitized_title=sanitized,
+                    category=category,
+                    matched_rules=matched,
+                )
+            if not any(cat in category for cat in self.whitelist):
+                matched.append(f"类目不在白名单:{category}")
+                return ComplianceResult(
+                    state=ComplianceState.HARD_REJECT,
+                    reasons=[f"类目「{category}」不在白名单 9 类（用户裁定只找白名单内的品）"],
+                    sanitized_title=sanitized,
+                    category=category,
+                    matched_rules=matched,
+                )
 
         # 功效词但未到 hard_reject 阈值 → manual_review
         if any(w in matched for w in EFFICACY_WORDS):

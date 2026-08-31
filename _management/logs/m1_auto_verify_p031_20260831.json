@@ -1,0 +1,128 @@
+{
+  "started_at": "2026-08-31T11:12:01.509249Z",
+  "finished_at": "2026-08-31T11:13:46.826223Z",
+  "collected": 110,
+  "after_dedup": 108,
+  "hard_rejected": 107,
+  "manual_review": 0,
+  "candidates": 1,
+  "quoted": 0,
+  "pool_entered": 1,
+  "gate_relaxed": 0,
+  "pool": [
+    {
+      "fingerprint": "151b97b7d5c9695ccfec70e75c1b433be839a38d55ab68367f292a647600b2b9",
+      "image_phash": "a3589973cb83a64d",
+      "title": "【拍一发二】不锈钢锅刷不伤锅具去污柔韧耐用长柄可挂式厨房清洁刷ID 10001305418695复制¥17",
+      "sanitized_title": "【拍一发二】不锈钢锅刷不伤锅具去污柔韧耐用长柄可挂式厨房清洁刷ID 10001305418695复制¥17",
+      "category": "厨房用品",
+      "platform_price": 0.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 0,
+      "rank_best": 1,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "opportunities",
+          "board": "机会品",
+          "platform_item_id": "机会品:【拍一发二】不锈钢锅刷不伤锅具去污柔韧耐用长柄可挂式厨房清洁刷ID 100013",
+          "title": "【拍一发二】不锈钢锅刷不伤锅具去污柔韧耐用长柄可挂式厨房清洁刷ID 10001305418695复制¥17",
+          "price": 0.0,
+          "sales": 0,
+          "rank": 1,
+          "category": "",
+          "image_urls": [
+            "https://wst.wxapp.tc.qq.com/161/20304/snscosdownload/SZ/reserved/6a7d904a000b814ef243adf80b950cc9000000a000004f50",
+            "https://wst.wxapp.tc.qq.com/161/20304/snscosdownload/SH/reserved/6a7969bc000c713e0ee991da8365b01e000000a100004f50"
+          ],
+          "raw": {
+            "board": "机会品",
+            "source": "不锈钢锅刷不伤锅具去污柔韧耐用长柄可挂式厨房清洁刷价格区间¥0 - ¥27"
+          },
+          "collected_at": "2026-08-31T11:12:06.611682Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【拍一发二】不锈钢锅刷不伤锅具去污柔韧耐用长柄可挂式厨房清洁刷ID 10001305418695复制¥17",
+        "category": "厨房用品",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 35.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 25.0,
+            "weight": 0.35,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 1"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "无价格数据，利润维度不参与"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 3/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T11:13:46.627461Z"
+    }
+  ],
+  "skipped_sources": [],
+  "errors": []
+}

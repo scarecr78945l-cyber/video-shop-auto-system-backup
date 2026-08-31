@@ -132,3 +132,11 @@
 - **修复**：① config 飙升榜 `enabled=False`（live 不再采集/入池）；② 清理存量污染（删除 116 店铺商品 + 120 evidence + 120 events，保留商品榜 108 真实商品）；③ fixtures 保留飙升榜样本回放（离线模拟数据不受影响，`boards` 覆写）；④ 店铺趋势洞察/「TOP成交商品」列提取排期。
 - **验证**：单源 live 只采商品榜 109 条（飙升榜跳过），重复商品被指纹去重拦截（0 新增）；sourcing 域 **194 passed** 全绿（`.pytest-tmp-m1`）。
 - **登记**：pitfall-log P-030、config 注释、decisions。
+
+## P-031 「能做品类」边界落地（2026-08-31 · 用户裁定「只找白名单里的品，其他的不要找」）
+
+- **背景**：用户问「能做的品类搞清楚了没有」→ 审计发现白名单 9 类未真正生效（商品类目全空、permanent_exclusion 未接入、食品/饮品混入商品池）。
+- **落地**：① `category_map.py` 类目解析器（标题关键词 → 白名单 9 类，食品刻意不映射）；② compliance 接入 permanent_exclusion_terms（127 词：食品/饮品/贵金属/图书，命中 → hard_reject 先于类目映射）；③ 白名单强制升级（类目空/不在白名单 → hard_reject，原 manual_review 升级）；④ 词表修正（移除「黄金」「姜」误伤，补 76 食品词，新增 safe_permanent_context_terms 27 词豁免器具/材质）。
+- **验证**：真实重跑采集 110 → 候选 1（拒 107）→ 入池 1（锅刷/厨房用品）；商品池只剩白名单内品；sourcing 域 **203 passed**（+category_map 6 + compliance 3）。
+- **数据源限制**：本期抖店商品榜几乎全食品/冲饮 → 白名单内可做品少；需有米云重登 + 商机中心多筛选 + 白名单类目定向选榜（后续排期）。
+- **登记**：pitfall-log P-031、dashboard、快照。
