@@ -47,9 +47,14 @@ class AlibabaQuoteCollector(QuoteCollector):
 
             quotes: list[Quote] = []
             if item.image_urls:
-                # 以图搜款：上传首图
+                # 以图搜款：上传首图（P-026：set_input_files_from_url 非标准 API，
+                # 改为下载到临时文件后 set_input_files）
                 upload = page.locator(self.selectors["image_upload"]).first
-                upload.set_input_files_from_url(item.image_urls[0], timeout=30000)
+                tmp_img = self._download_image(item.image_urls[0])
+                try:
+                    upload.set_input_files(tmp_img, timeout=30000)
+                finally:
+                    tmp_img.unlink(missing_ok=True)
                 page.wait_for_timeout(3000)
             else:
                 box = page.locator(self.selectors["search_input"]).first
@@ -133,6 +138,19 @@ class AlibabaQuoteCollector(QuoteCollector):
 
         m = re.search(r"[\d.]+", (text or "").replace(",", ""))
         return float(m.group()) if m else 0.0
+
+    @staticmethod
+    def _download_image(url: str) -> Path:
+        """下载图片到临时文件（P-026：以图搜款上传用；失败抛 CollectorError）。"""
+        import tempfile
+        import urllib.request
+
+        try:
+            tmp = Path(tempfile.gettempdir()) / f"1688_upload_{abs(hash(url))}.jpg"
+            urllib.request.urlretrieve(url, tmp)
+            return tmp
+        except Exception as exc:
+            raise CollectorError(f"1688 以图搜款图片下载失败: {type(exc).__name__}", "NO_MATCH") from exc
 
     # REC-迁移-02（C2）：上架必填参数清单（对照 old-system-assets/listing-requirements.json missing_field_labels）
     REQUIRED_ATTR_LABELS = [
