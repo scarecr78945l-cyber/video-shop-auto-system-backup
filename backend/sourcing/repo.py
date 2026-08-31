@@ -138,8 +138,19 @@ def record_events(session: Session, run_id: int, items: list[SourceItem]) -> Non
 def claim_fingerprint(
     session: Session, fingerprint: str, claimant: str = "pipeline"
 ) -> bool:
-    """原子认领指纹；已存在则返回 False（防并发重复入库）。"""
-    if session.get(T.ProductFingerprintClaim, fingerprint) is not None:
+    """原子认领指纹；已存在则返回 False（防并发重复入库）。
+
+    P-032（2026-08-31 实测）：原实现 `session.get(Claim, fingerprint)` 按**主键 id**
+    查询（id 为自增数字，fingerprint 仅是 unique 列）——永远查不到已存在指纹 →
+    同 run 内 fingerprint 重复（同款不同图未合并）时 INSERT 撞 UNIQUE 崩溃。
+    改为按 fingerprint 列查询（session 内 SELECT 可见未提交行，同 run 幂等）。
+    """
+    existing = session.execute(
+        select(T.ProductFingerprintClaim).where(
+            T.ProductFingerprintClaim.fingerprint == fingerprint
+        )
+    ).scalar_one_or_none()
+    if existing is not None:
         return False
     session.add(
         T.ProductFingerprintClaim(fingerprint=fingerprint, claimant=claimant)

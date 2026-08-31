@@ -236,3 +236,9 @@
 - **验证**：真实重跑采集 110 → 去重 108 → **候选 1（拒 107）** → 入池 1（不锈钢锅刷/厨房用品）——食品/饮品全部被拒，商品池只剩白名单内可做的品（证据 `_management/logs/m1_auto_verify_p031_20260831.json`）；sourcing 域 **203 passed**（194 基线 + category_map 6 + compliance 扩展 3）。
 - **后续（数据源品类限制）**：本期抖店商品榜几乎全是食品/冲饮 → 白名单内可做品仅 1 个；需有米云重登补采（第三源品类更多）+ 商机中心多筛选 + 后续按白名单类目定向选榜。
 - **防复发**：① 类目解析关键词随数据积累迭代（新可做品类补关键词）；② permanent 词表调整一律登记（新增词验证无子串误伤，safe 豁免词同步评估）；③ 白名单/词表改动后必须真实重跑验证入池语义（抽查 title 与类目一致性）。
+## P-032 ｜ claim_fingerprint 用主键查询致同 run 重复指纹撞 UNIQUE 崩溃 + 有米云重登补采（第三源打通）
+
+- **出现时间**：2026-08-31 ｜ **模块**：M1 流水线持久化 / 有米云第三源 ｜ **代理**：总控（有米云重登后全源补采时）
+- **现象与根因**：有米云重登后单源跑通，但流水线 persist 阶段 `IntegrityError: UNIQUE constraint failed: product_fingerprint_claims.fingerprint`。根因：`repo.claim_fingerprint` 用 `session.get(Claim, fingerprint)` **按主键 id 查询**（id 为自增数字，fingerprint 仅是 unique 列）→ 永远查不到已存在指纹 → 同 run 内 fingerprint 重复（同款不同图未合并）时 INSERT 撞 UNIQUE。
+- **解决方案**：claim_fingerprint 改为 `select ... where fingerprint == x` 按指纹列查询（session 内可见未提交行，同 run 幂等）；重复指纹返回 False 跳过（`_persist` 已有 continue 逻辑）。顺带有米云补采：登录态恢复后单源 200 条采集成功，商品池 **68 个白名单品（9 类全覆盖：个护 22/家居 13/厨房 11/文具 8/配件 7/宠物 3/户外 2/收纳 1）**；补 permanent 词（食用盐/食盐/调味料/香料/卤料/火锅料等 16 词，P-031b）修正 2 个食品漏网（盐/香料），pool 68 纯白名单品。
+- **防复发**：① 任何 `session.get(Model, key)` 必须确认 key 是**主键**（fingerprint 等业务键须用 select-where）；② 入库前 claim 语义=「已存在即跳过」幂等，不抛异常；③ 新数据源接入后跑一次全源验证并抽查 pool 语义（食品/店铺/类目漏网扫描）。
