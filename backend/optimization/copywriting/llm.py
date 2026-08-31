@@ -25,7 +25,11 @@ DEEPSEEK_MODEL = "deepseek-chat"
 #   LLM_BASE_URL 覆盖接口地址（如 OpenRouter/硅基流动/中转，形如 https://…/v1）
 #   LLM_MODEL    覆盖模型名（如 deepseek-chat / deepseek-v3 / 任意兼容模型）
 def _base_url() -> str:
-    return (os.environ.get("LLM_BASE_URL") or "").strip() or DEEPSEEK_URL
+    url = (os.environ.get("LLM_BASE_URL") or "").strip() or DEEPSEEK_URL
+    # 兼容两种写法：完整 /chat/completions URL，或 v1 根地址（自动拼接）
+    if not url.rstrip("/").endswith("/chat/completions"):
+        url = url.rstrip("/") + "/chat/completions"
+    return url
 
 
 def _model_name(default: str) -> str:
@@ -126,7 +130,7 @@ class DeepSeekClient:
         user: str,
         schema: dict[str, Any],
         *,
-        max_tokens: int = 1024,
+        max_tokens: int = 2048,
         temperature: float = 0.7,
     ) -> Optional[dict[str, Any]]:
         """请求结构化 JSON 输出；成功返回解析后的 dict，失败返回 None。

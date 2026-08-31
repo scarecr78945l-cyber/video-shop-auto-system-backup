@@ -198,3 +198,9 @@
 - **现象与根因**：dev 服务器运行中执行 `npm run build`（M6 v1.1 验收）→ build 重建/清理 .next → dev 服务器仍引用旧 chunk → 浏览器报 `Cannot find module './611.js'`（webpack runtime）。
 - **解决方案**：停 dev → 清 .next → 重启 dev（编译完成后正常）。
 - **防复发**：① build 与 dev 严禁同时运行（同一 .next 目录冲突）；② 验收流程固定：先停 dev → build → 再启 dev 或直接 start 生产构建；③ 前端 README 注明「build 前停 dev、dev 前清 .next」。
+## P-025 ｜ ffmpeg 安装后 e2e 测试走真实转码致 fake 视频失败（Mock 注入缺失）
+
+- **出现时间**：2026-08-30 ｜ **模块**：M3 视频二创 ｜ **代理**：总控（B1 LLM 联调时发现）
+- **现象与根因**：test_optimization_e2e 原依赖「detect_ffmpeg 未就绪 → composer 自动 Mock」；ffmpeg 安装后 detect_ffmpeg 返回真实 → 走 FFmpegProcessRunner 对 fake 视频 probe 失败 → spec_ok=False。
+- **解决方案**：e2e 显式注入 `MockFFmpegRunner(probe_result={width/height/duration/size_bytes/format})`（测试确定性不依赖本机 ffmpeg 状态）。
+- **防复发**：① 测试凡依赖「外部工具缺失→自动降级」的，须显式注入 Mock（不依赖环境探测结果）；② ffmpeg 环境变更后全量回归 M3 域；③ 真实转码验证走独立冒烟（非 e2e 单测）。

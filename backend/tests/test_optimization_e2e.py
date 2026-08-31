@@ -74,10 +74,15 @@ def test_end_to_end_pipeline(e2e_cfg, e2e_db, tmp_path):
     assert all(d.passed for d in ads + badges)
 
     # ---------- ② 视频二创（Mock 出片，≥2 版落库） ----------
-    # runner 缺省：detect_ffmpeg() 未就绪 → composer 自动用带 probe_from_asset 预设的 MockFFmpegRunner
+    # 显式注入 MockFFmpegRunner：测试确定性不依赖本机 ffmpeg 状态
+    #（ffmpeg 安装后 detect_ffmpeg() 会走真实转码，对 fake 视频 probe 失败——P-025）
     result = run_pipeline(
         asset, product, variants=2,
         config=e2e_cfg, db=e2e_db,
+        runner=MockFFmpegRunner(probe_result={
+            "width": 720, "height": 1280, "duration": 15.0,
+            "size_bytes": 1024 * 1024, "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        }),
     )
     variants = result["variants"]
     assert len(variants) >= 2, "同一商品必须产出 ≥2 版素材（A/B）"
