@@ -331,19 +331,19 @@ class SourcingConfig(BaseSettings):
             cdp_port=9223,
             profile_dir="shared",
             # A1：与 alibaba.py DEFAULT_SELECTORS 逐键一致
-            # A6（v1.1，2026-08-29）防御性收敛：
-            #   order_price 收窄为精确类名（宽泛 [class*='price'] 保留在 alibaba.py
-            #   _read_order_price 兜底，避免订单确认页 .first 误读导航/广告价格元素）；
-            #   result_row 保留宽泛 [class*='offer'] li 兜底（真实页面校准前不强改，
-            #   待登录态就绪后 inspect-page --source alibaba 实测收窄）。
+            # P-028（2026-08-31 真实链路修复）：1688 以图搜款已跳转独立搜图页
+            #   air.1688.com/kapp/1688-search/pc-image-search/?imageAddress=<图URL>——
+            #   直接导航免上传；结果卡片 data-renderkey 携带 offerId → 直链 detail.1688.com；
+            #   detail 页 .price-info 取最小为最低有效成本。
+            #   （旧选择器 .card-item/[class*='offer'] li 为首页推荐位结构，实测匹配 0 行已废弃。）
             selectors={
-                "search_input": "input[placeholder*='搜索'], input[class*='search']",
-                "search_btn": "button[class*='search'], .search-btn",
-                "image_upload": "input[type='file'], .upload-btn",
-                "result_row": ".card-item, [class*='offer'] li",
-                "result_title": ".title, [class*='title']",
+                "search_url": "https://air.1688.com/kapp/1688-search/pc-image-search/",
+                "result_row": "[class*='searchOfferItem']",
+                "result_title": "[class*='titleText']",
+                "supplier_name": "[class*='shopName']",
+                "result_price": ".offer-price-row, [class*='offerPriceRow']",
+                "detail_price": ".price-info, .price-comp, .price-component",
                 "order_price": ".order-price, .price-box",
-                "supplier_name": ".company-name, [class*='company']",
                 "confirm_btn": ".confirm-btn, button:has-text('确认')",
                 "login_gate": ".login-modal, [class*='login']",
                 "verify_gate": ".captcha, [class*='verify']",
@@ -375,6 +375,12 @@ class SourcingConfig(BaseSettings):
 
     # 广告转化数据（回流）：按类目聚合的 ROI/成交额（AdReportSnapshot 汇总来源）
     ad_conversion_by_category: dict[str, dict[str, float]] = Field(default_factory=dict)
+
+    # 单轮流水线询价商品数上限（live 模式；fixtures 不受限——内存报价零耗时）。
+    # 真实询价 40~70s/商品（air 直链 + detail 读价），大榜全量询价会跑 1~2 小时；
+    # 默认只询前 10 个 pool 候选，剩余保留 quotes 为空后续轮次/按需补询
+    # （真实运行验证 2026-08-31 定，P-028 配套）。
+    quoting_max_items: int = 10
 
     # M5 → M1 投放转化回写交换文件路径（契约 C-2：_management/data-exchange/m5-ad-conversion.json）。
     # 默认 "" = 未配置：此时 ad-sync 必须 --file 显式指定；配置后 ad-sync 可缺省读此路径。

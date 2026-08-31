@@ -1,0 +1,2266 @@
+{
+  "started_at": "2026-08-31T10:04:57.249574Z",
+  "finished_at": "2026-08-31T10:09:21.869583Z",
+  "collected": 230,
+  "after_dedup": 223,
+  "hard_rejected": 0,
+  "manual_review": 0,
+  "candidates": 223,
+  "quoted": 0,
+  "pool_entered": 20,
+  "gate_relaxed": 0,
+  "pool": [
+    {
+      "fingerprint": "a4a125b0d944869df9c587672df2744cf37c9fb8e129d899a7e39bbe3aa6dd9c",
+      "image_phash": "3146b2c6ac8dd6d9",
+      "title": "【周年狂欢购】永和经典原味豆浆粉营养高蛋白早餐纯豆浆粉狂欢大包价格带 ¥99",
+      "sanitized_title": "【周年狂欢购】永和经典原味豆浆粉营养高蛋白早餐纯豆浆粉狂欢大包价格带 ¥99",
+      "category": "",
+      "platform_price": 99.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 1,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【周年狂欢购】永和经典原味豆浆粉营养高蛋白早餐纯豆浆粉狂欢大包价格带 ¥99",
+          "title": "【周年狂欢购】永和经典原味豆浆粉营养高蛋白早餐纯豆浆粉狂欢大包价格带 ¥99",
+          "price": 99.0,
+          "sales": 100000,
+          "rank": 1,
+          "category": "",
+          "image_urls": [
+            "https://p3-aio.ecombdimg.com/obj/ecom-shop-material/jpeg_m_2b5b3f8a665be862e261bc59d4dfa313_sx_283768_www800-800",
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/0b962dc4bf5c4626942aa91b99f00d5b~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819704944&x-signature=DdBGBjJrMVm8LYLOYynRZSmoMyQ%3D"
+          ],
+          "raw": {
+            "board": "商品榜",
+            "shop": "永和豆浆冲饮旗舰店"
+          },
+          "collected_at": "2026-08-31T10:05:11.395777Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【周年狂欢购】永和经典原味豆浆粉营养高蛋白早餐纯豆浆粉狂欢大包价格带 ¥99",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 68.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 33.0,
+            "weight": 0.35,
+            "weighted": 33.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 1",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 99.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.443332Z"
+    },
+    {
+      "fingerprint": "bd01edd29a813ddc30d731274c70975d0b09dde6e7621a848f746afa7a16449d",
+      "image_phash": "919034133db3e36f",
+      "title": "原始黄金驼奶粉330g/罐*3 特级产区 新疆真驼奶 品质达到欧盟标准价格带 ¥1899",
+      "sanitized_title": "原始黄金驼奶粉330g/罐*3 特级产区 新疆真驼奶 品质达到欧盟标准价格带 ¥1899",
+      "category": "",
+      "platform_price": 1899.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 10000,
+      "rank_best": 2,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:原始黄金驼奶粉330g/罐*3 特级产区 新疆真驼奶 品质达到欧盟标准价格带 ¥",
+          "title": "原始黄金驼奶粉330g/罐*3 特级产区 新疆真驼奶 品质达到欧盟标准价格带 ¥1899",
+          "price": 1899.0,
+          "sales": 10000,
+          "rank": 2,
+          "category": "",
+          "image_urls": [
+            "https://p9-aio.ecombdimg.com/obj/ecom-shop-material/jpeg_m_3660041b71d3890b34e1242337888455_sx_986439_www1000-1000",
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/c1cf09d00b8b4d119e9980b820e6f0d2~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819703689&x-signature=IbAoZmrPD9eC2XwaZJvYIDWV2uA%3D"
+          ],
+          "raw": {
+            "board": "商品榜",
+            "shop": "原始黄金官方旗舰店"
+          },
+          "collected_at": "2026-08-31T10:05:11.447770Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "原始黄金驼奶粉330g/罐*3 特级产区 新疆真驼奶 品质达到欧盟标准价格带 ¥1899",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 68.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 33.0,
+            "weight": 0.35,
+            "weighted": 33.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 2",
+              "销量 10000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 1899.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.443417Z"
+    },
+    {
+      "fingerprint": "d870a70efe77be3850a0cf1b1ae52a54c359b0e762812102672a1e9bbcb7cf20",
+      "image_phash": "aca628e63d0ee15b",
+      "title": "新驼新疆纯驼乳粉320g*2罐价格带 ¥479",
+      "sanitized_title": "新驼新疆纯驼乳粉320g*2罐价格带 ¥479",
+      "category": "",
+      "platform_price": 479.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 25000,
+      "rank_best": 3,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:新驼新疆纯驼乳粉320g*2罐价格带 ¥479",
+          "title": "新驼新疆纯驼乳粉320g*2罐价格带 ¥479",
+          "price": 479.0,
+          "sales": 25000,
+          "rank": 3,
+          "category": "",
+          "image_urls": [
+            "https://p3-aio.ecombdimg.com/obj/ecom-shop-material/jpeg_m_d7df247f280856c1c8cd379a047524c5_sx_384093_www800-800",
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/285b38c13d384214af8edf381d60ac66~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819703413&x-signature=GFtIjrJXT0jgVKu4fnFjJZydm3I%3D"
+          ],
+          "raw": {
+            "board": "商品榜",
+            "shop": "新驼官方旗舰店"
+          },
+          "collected_at": "2026-08-31T10:05:11.501066Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "新驼新疆纯驼乳粉320g*2罐价格带 ¥479",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 68.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 33.0,
+            "weight": 0.35,
+            "weighted": 33.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 3",
+              "销量 25000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 479.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.443479Z"
+    },
+    {
+      "fingerprint": "52f6b7b79a43d52561c3e9d1c4076f8fd4a556d08347e6fa72ea396638806e49",
+      "image_phash": "c41926333339d9e7",
+      "title": "西域皇后官方旗舰店",
+      "sanitized_title": "西域皇后",
+      "category": "",
+      "platform_price": 2500000.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 1,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "飙升榜",
+          "platform_item_id": "飙升榜:西域皇后官方旗舰店",
+          "title": "西域皇后官方旗舰店",
+          "price": 2500000.0,
+          "sales": 100000,
+          "rank": 1,
+          "category": "",
+          "image_urls": [
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/2d7ae6c95a714368a3148040251e43a5~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819705419&x-signature=4LsbOxtiNNnVKncUr%2FGntjzKC3U%3D"
+          ],
+          "raw": {
+            "board": "飙升榜",
+            "shop": "西域皇后官方旗舰店"
+          },
+          "collected_at": "2026-08-31T10:06:49.538278Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "西域皇后",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 68.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 33.0,
+            "weight": 0.35,
+            "weighted": 33.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 1",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 2500000.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.449908Z"
+    },
+    {
+      "fingerprint": "a67f93e9c9559bf53d39041cd1489e1471bdcc308bd118e3d7458db3ec95ce05",
+      "image_phash": "cccc33333133cccd",
+      "title": "马三三官方旗舰店",
+      "sanitized_title": "马三三",
+      "category": "",
+      "platform_price": 10000000.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 2,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "飙升榜",
+          "platform_item_id": "飙升榜:马三三官方旗舰店",
+          "title": "马三三官方旗舰店",
+          "price": 10000000.0,
+          "sales": 100000,
+          "rank": 2,
+          "category": "",
+          "image_urls": [
+            "https://p6-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/137cfce32c0a40f2a7dbeb2f1f2c4b4c~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819703689&x-signature=2NVOJfJ48cZwENsLnAXZncyQdnk%3D"
+          ],
+          "raw": {
+            "board": "飙升榜",
+            "shop": "马三三官方旗舰店"
+          },
+          "collected_at": "2026-08-31T10:06:49.597529Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "马三三",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 68.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 33.0,
+            "weight": 0.35,
+            "weighted": 33.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 2",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 10000000.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.449953Z"
+    },
+    {
+      "fingerprint": "4317b68ac7347237da5ef1d51be9e0b43521f97a485bf88423e3f5f56a333750",
+      "image_phash": "4c99c97296693367",
+      "title": "西域华腾食品旗舰店",
+      "sanitized_title": "西域华腾食品",
+      "category": "",
+      "platform_price": 5000000.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 3,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "飙升榜",
+          "platform_item_id": "飙升榜:西域华腾食品旗舰店",
+          "title": "西域华腾食品旗舰店",
+          "price": 5000000.0,
+          "sales": 100000,
+          "rank": 3,
+          "category": "",
+          "image_urls": [
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/8f7fbfd2896147f8ae3360c5f6a515a2~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819706094&x-signature=sXPqnoRu0ZnyDROfs1PKbGV27Yk%3D"
+          ],
+          "raw": {
+            "board": "飙升榜",
+            "shop": "西域华腾食品旗舰店"
+          },
+          "collected_at": "2026-08-31T10:06:49.651477Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "西域华腾食品",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 68.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 33.0,
+            "weight": 0.35,
+            "weighted": 33.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 3",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 5000000.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.449999Z"
+    },
+    {
+      "fingerprint": "798d9a36293b4bccba4ace483ffc4ff01a22e6183031e24143feddff5ea5f5d4",
+      "image_phash": "2bfcf940b7330645",
+      "title": "【福利官专属】南方黑芝麻糊原味浓香美味营养早餐代餐冲泡饮品价格带 ¥99",
+      "sanitized_title": "【福利官专属】南方黑芝麻糊原味浓香美味营养早餐代餐冲泡饮品价格带 ¥99",
+      "category": "",
+      "platform_price": 99.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 75000,
+      "rank_best": 4,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【福利官专属】南方黑芝麻糊原味浓香美味营养早餐代餐冲泡饮品价格带 ¥99",
+          "title": "【福利官专属】南方黑芝麻糊原味浓香美味营养早餐代餐冲泡饮品价格带 ¥99",
+          "price": 99.0,
+          "sales": 75000,
+          "rank": 4,
+          "category": "",
+          "image_urls": [
+            "https://p3-aio.ecombdimg.com/obj/ecom-shop-material/png_m_c0234e990b5a5dda86ba31def6b4a8be_sx_786945_www800-800",
+            "https://p6-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/ee019b52bc98471b8c45dabadfbfb87e~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819703244&x-signature=X3mo3UstLzrXZQoNfzPg7WsF7Ng%3D"
+          ],
+          "raw": {
+            "board": "商品榜",
+            "shop": "南方黑芝麻冲饮旗舰店"
+          },
+          "collected_at": "2026-08-31T10:05:11.544159Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【福利官专属】南方黑芝麻糊原味浓香美味营养早餐代餐冲泡饮品价格带 ¥99",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 4",
+              "销量 75000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 99.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.443546Z"
+    },
+    {
+      "fingerprint": "23b298b5c92c3a191f842a5b87a20f4de47d0740d3facbf542b9454d46231f31",
+      "image_phash": "321b23dac936e6c3",
+      "title": "【与辉定制】  光明5.0蛋白厚牛乳200ml*15盒*2箱价格带 ¥99",
+      "sanitized_title": "【与辉定制】 光明5.0蛋白厚牛乳200ml*15盒*2箱价格带 ¥99",
+      "category": "",
+      "platform_price": 99.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 75000,
+      "rank_best": 5,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【与辉定制】  光明5.0蛋白厚牛乳200ml*15盒*2箱价格带 ¥99",
+          "title": "【与辉定制】  光明5.0蛋白厚牛乳200ml*15盒*2箱价格带 ¥99",
+          "price": 99.0,
+          "sales": 75000,
+          "rank": 5,
+          "category": "",
+          "image_urls": [
+            "https://p9-aio.ecombdimg.com/obj/ecom-shop-material/jpeg_m_43ad45c4c7675d7c379681c3a74ba2e8_sx_404121_www800-800",
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/a324a3e1932a4da6ba9ae520d7a8e65e~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819704351&x-signature=g2zx9%2BJfY%2FR4lmE1LEPJN73SCIE%3D"
+          ],
+          "raw": {
+            "board": "商品榜",
+            "shop": "光明官方旗舰店"
+          },
+          "collected_at": "2026-08-31T10:05:11.588424Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【与辉定制】 光明5.0蛋白厚牛乳200ml*15盒*2箱价格带 ¥99",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 5",
+              "销量 75000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 99.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.443606Z"
+    },
+    {
+      "fingerprint": "0f71303e4fb13e2f05748c185ac1c0c1724962721ca5c2070a5573b154f6e021",
+      "image_phash": "edb89872990b664b",
+      "title": "【哈纳斯乳业】新疆牛奶粉300g*2袋/4袋价格带 ¥78-¥149",
+      "sanitized_title": "【哈纳斯乳业】新疆牛奶粉300g*2袋/4袋价格带 ¥78-¥149",
+      "category": "",
+      "platform_price": 78.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 75000,
+      "rank_best": 6,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【哈纳斯乳业】新疆牛奶粉300g*2袋/4袋价格带 ¥78-¥149",
+          "title": "【哈纳斯乳业】新疆牛奶粉300g*2袋/4袋价格带 ¥78-¥149",
+          "price": 78.0,
+          "sales": 75000,
+          "rank": 6,
+          "category": "",
+          "image_urls": [
+            "https://p9-aio.ecombdimg.com/obj/ecom-shop-material/jpeg_m_199320a719bae55ac5c6b3d4960f86aa_sx_558985_www800-800",
+            "https://p6-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/1dd4a02c48b841e18e371011ac33c6ea~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819704139&x-signature=uKRTau9Sk630gIctmVX08WAV4Dg%3D"
+          ],
+          "raw": {
+            "board": "商品榜",
+            "shop": "哈纳斯乳业冲饮旗舰店"
+          },
+          "collected_at": "2026-08-31T10:05:11.655749Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【哈纳斯乳业】新疆牛奶粉300g*2袋/4袋价格带 ¥78-¥149",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 6",
+              "销量 75000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 78.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.443664Z"
+    },
+    {
+      "fingerprint": "2c33b662f75d95cf29e45849acecdf29fc797ecafee13a2b15e5809c1b5d3850",
+      "image_phash": "b4fc7f3e25310701",
+      "title": "2026新茶茉莉雪螺王手工揉捻全芽带小鱼叶 适口性强耐泡袋装价格带 ¥108-¥200",
+      "sanitized_title": "2026新茶茉莉雪螺王手工揉捻全芽带小鱼叶 适口性强耐泡袋装价格带 ¥108-¥200",
+      "category": "",
+      "platform_price": 108.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 25000,
+      "rank_best": 7,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:2026新茶茉莉雪螺王手工揉捻全芽带小鱼叶 适口性强耐泡袋装价格带 ¥108-¥",
+          "title": "2026新茶茉莉雪螺王手工揉捻全芽带小鱼叶 适口性强耐泡袋装价格带 ¥108-¥200",
+          "price": 108.0,
+          "sales": 25000,
+          "rank": 7,
+          "category": "",
+          "image_urls": [
+            "https://p9-aio.ecombdimg.com/obj/ecom-shop-material/jpeg_m_8bbf7563aa41d6b3635fa56102d23576_sx_563511_www800-800",
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/27545715b069474c8523a8ecb27ea427~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819706362&x-signature=cWZcjWJEBLCR%2FYdJlhkt6Wav7vI%3D"
+          ],
+          "raw": {
+            "board": "商品榜",
+            "shop": "老贰的伍店"
+          },
+          "collected_at": "2026-08-31T10:05:11.699941Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "2026新茶茉莉雪螺王手工揉捻全芽带小鱼叶 适口性强耐泡袋装价格带 ¥108-¥200",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 7",
+              "销量 25000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 108.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.443727Z"
+    },
+    {
+      "fingerprint": "2d8dc3dd3f1343aa5dae6e08e3d04aaf868411b142eabc278f069e6752108643",
+      "image_phash": "b6fc87964b78b003",
+      "title": "【推荐官专属】西麦即食纯燕麦5黑燕麦高钙奇亚籽早餐代餐冲饮FY价格带 ¥99",
+      "sanitized_title": "【推荐官专属】西麦即食纯燕麦5黑燕麦高钙奇亚籽早餐代餐冲饮FY价格带 ¥99",
+      "category": "",
+      "platform_price": 99.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 50000,
+      "rank_best": 8,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【推荐官专属】西麦即食纯燕麦5黑燕麦高钙奇亚籽早餐代餐冲饮FY价格带 ¥99",
+          "title": "【推荐官专属】西麦即食纯燕麦5黑燕麦高钙奇亚籽早餐代餐冲饮FY价格带 ¥99",
+          "price": 99.0,
+          "sales": 50000,
+          "rank": 8,
+          "category": "",
+          "image_urls": [
+            "https://p3-aio.ecombdimg.com/obj/ecom-shop-material/png_m_0c1247f185980a31e730bca27c9407a5_sx_998702_www800-800",
+            "https://p3-ecom-qualification-sign.ecombdimg.com/temai/16158586870b37097a4d9b42f47b925b8cb4a214df5204a109~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819705012&x-signature=goDcURDJlSUnkb98pzRH%2FdTH7ZA%3D"
+          ],
+          "raw": {
+            "board": "商品榜",
+            "shop": "西麦官方旗舰店"
+          },
+          "collected_at": "2026-08-31T10:05:11.749341Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【推荐官专属】西麦即食纯燕麦5黑燕麦高钙奇亚籽早餐代餐冲饮FY价格带 ¥99",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 8",
+              "销量 50000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 99.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.443788Z"
+    },
+    {
+      "fingerprint": "0c39df7d71dcbb85191e737030cd7c6fa675aa2a2b190a69a6855b040e1e1c12",
+      "image_phash": "843f39c0a1bf46d3",
+      "title": "【马三三】A2β-酪蛋白全脂奶粉300g*3袋/6袋新疆天山牧场奶源价格带 ¥68-¥128",
+      "sanitized_title": "【马三三】A2β-酪蛋白全脂奶粉300g*3袋/6袋新疆天山牧场奶源价格带 ¥68-¥128",
+      "category": "",
+      "platform_price": 68.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 50000,
+      "rank_best": 9,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【马三三】A2β-酪蛋白全脂奶粉300g*3袋/6袋新疆天山牧场奶源价格带 ¥6",
+          "title": "【马三三】A2β-酪蛋白全脂奶粉300g*3袋/6袋新疆天山牧场奶源价格带 ¥68-¥128",
+          "price": 68.0,
+          "sales": 50000,
+          "rank": 9,
+          "category": "",
+          "image_urls": [
+            "https://p3-aio.ecombdimg.com/obj/ecom-shop-material/png_m_d8ae06c827d63d3d482b83c819c19587_sx_635425_www800-800",
+            "https://p6-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/137cfce32c0a40f2a7dbeb2f1f2c4b4c~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819703689&x-signature=2NVOJfJ48cZwENsLnAXZncyQdnk%3D"
+          ],
+          "raw": {
+            "board": "商品榜",
+            "shop": "马三三官方旗舰店"
+          },
+          "collected_at": "2026-08-31T10:05:11.795745Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【马三三】A2β-酪蛋白全脂奶粉300g*3袋/6袋新疆天山牧场奶源价格带 ¥68-¥128",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 9",
+              "销量 50000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 68.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.443850Z"
+    },
+    {
+      "fingerprint": "530bf7a878273269651c4c27183ba1f1955223af0f1b77dabb65c318f685c50e",
+      "image_phash": "4c33e33333634cad",
+      "title": "【总经理宠粉专属】蒙牛悠瑞骨力金装奶粉中老年奶粉正品官方旗舰店价格带 ¥396",
+      "sanitized_title": "【总经理宠粉专属】蒙牛悠瑞骨力金装奶粉中老年奶粉 价格带 ¥396",
+      "category": "",
+      "platform_price": 396.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 10000,
+      "rank_best": 10,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "商品榜",
+          "platform_item_id": "商品榜:【总经理宠粉专属】蒙牛悠瑞骨力金装奶粉中老年奶粉正品官方旗舰店价格带 ¥396",
+          "title": "【总经理宠粉专属】蒙牛悠瑞骨力金装奶粉中老年奶粉正品官方旗舰店价格带 ¥396",
+          "price": 396.0,
+          "sales": 10000,
+          "rank": 10,
+          "category": "",
+          "image_urls": [
+            "https://p3-aio.ecombdimg.com/obj/ecom-shop-material/jpeg_m_5564791e71342c6763238d41835ea68a_sx_617409_www800-800",
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/3260aab2ae1c4055b3089eeb8d9b346a~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819703155&x-signature=KNQajW4UBowp4qSb8W6rOAtcOh0%3D"
+          ],
+          "raw": {
+            "board": "商品榜",
+            "shop": "蒙牛食品旗舰店"
+          },
+          "collected_at": "2026-08-31T10:05:11.973771Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "【总经理宠粉专属】蒙牛悠瑞骨力金装奶粉中老年奶粉 价格带 ¥396",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 10",
+              "销量 10000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 396.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.443910Z"
+    },
+    {
+      "fingerprint": "4fda3a389851d89be5e36d1e75b36d308a0525a81a1c1a21eb628974c63ab502",
+      "image_phash": "3c43c7bc30b4cd4b",
+      "title": "天上天山官方旗舰店",
+      "sanitized_title": "天上天山",
+      "category": "",
+      "platform_price": 10000000.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 4,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "飙升榜",
+          "platform_item_id": "飙升榜:天上天山官方旗舰店",
+          "title": "天上天山官方旗舰店",
+          "price": 10000000.0,
+          "sales": 100000,
+          "rank": 4,
+          "category": "",
+          "image_urls": [
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/923980cdfda04a24b58ed18964fe457e~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819705373&x-signature=PstdMd%2FfxgyYyfh3DhX3T%2BytmiA%3D"
+          ],
+          "raw": {
+            "board": "飙升榜",
+            "shop": "天上天山官方旗舰店"
+          },
+          "collected_at": "2026-08-31T10:06:49.713355Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "天上天山",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 4",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 10000000.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.450046Z"
+    },
+    {
+      "fingerprint": "57f208d1ce577c9025e2893de784498ecfa9c14b107ec02be658fac6665a7c33",
+      "image_phash": "9133cc33cc3333cd",
+      "title": "西域春乳品旗舰店",
+      "sanitized_title": "西域春乳品",
+      "category": "",
+      "platform_price": 10000000.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 5,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "飙升榜",
+          "platform_item_id": "飙升榜:西域春乳品旗舰店",
+          "title": "西域春乳品旗舰店",
+          "price": 10000000.0,
+          "sales": 100000,
+          "rank": 5,
+          "category": "",
+          "image_urls": [
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/3b9c9552b0b44894b0c3b1f0dacee49d~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819703612&x-signature=sostYqFA6am6JpiNcLswADWAHQI%3D"
+          ],
+          "raw": {
+            "board": "飙升榜",
+            "shop": "西域春乳品旗舰店"
+          },
+          "collected_at": "2026-08-31T10:06:49.780521Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "西域春乳品",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 5",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 10000000.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.450093Z"
+    },
+    {
+      "fingerprint": "5ac20348ace71c712bc58627f2da3a51308031d337c0d1f1973e9a31309fa650",
+      "image_phash": "711c38f3c3f31c0d",
+      "title": "哈纳斯乳业冲饮旗舰店",
+      "sanitized_title": "哈纳斯乳业冲饮",
+      "category": "",
+      "platform_price": 7500000.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 100000,
+      "rank_best": 6,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "飙升榜",
+          "platform_item_id": "飙升榜:哈纳斯乳业冲饮旗舰店",
+          "title": "哈纳斯乳业冲饮旗舰店",
+          "price": 7500000.0,
+          "sales": 100000,
+          "rank": 6,
+          "category": "",
+          "image_urls": [
+            "https://p6-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/1dd4a02c48b841e18e371011ac33c6ea~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819704139&x-signature=uKRTau9Sk630gIctmVX08WAV4Dg%3D"
+          ],
+          "raw": {
+            "board": "飙升榜",
+            "shop": "哈纳斯乳业冲饮旗舰店"
+          },
+          "collected_at": "2026-08-31T10:06:49.848677Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "哈纳斯乳业冲饮",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 6",
+              "销量 100000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 7500000.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.450139Z"
+    },
+    {
+      "fingerprint": "47955aecf7e71333d0c9df384767bd603a6bbbb6464d5bf30406cd55a5c9f4c5",
+      "image_phash": "1c26e39c1cb66373",
+      "title": "一品玉水饮旗舰店",
+      "sanitized_title": "一品玉水饮",
+      "category": "",
+      "platform_price": 2500000.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 75000,
+      "rank_best": 7,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "飙升榜",
+          "platform_item_id": "飙升榜:一品玉水饮旗舰店",
+          "title": "一品玉水饮旗舰店",
+          "price": 2500000.0,
+          "sales": 75000,
+          "rank": 7,
+          "category": "",
+          "image_urls": [
+            "https://p6-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/c303d2abb7fe428e98e24c6dcbbb86cd~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819705651&x-signature=VevBkjbHv3gz%2BYOMXHaxq%2Bi8Cb4%3D"
+          ],
+          "raw": {
+            "board": "飙升榜",
+            "shop": "一品玉水饮旗舰店"
+          },
+          "collected_at": "2026-08-31T10:06:49.916937Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "一品玉水饮",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 7",
+              "销量 75000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 2500000.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.450185Z"
+    },
+    {
+      "fingerprint": "d3f8dbc2e5b4d915b03d7ce7a230d46bf7212d428b7fdeb65bd0f6508dcaa5c1",
+      "image_phash": "ccd9649933999867",
+      "title": "LAIYENO1",
+      "sanitized_title": "LAIYENO1",
+      "category": "",
+      "platform_price": 5000000.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 75000,
+      "rank_best": 8,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "飙升榜",
+          "platform_item_id": "飙升榜:LAIYENO1",
+          "title": "LAIYENO1",
+          "price": 5000000.0,
+          "sales": 75000,
+          "rank": 8,
+          "category": "",
+          "image_urls": [
+            "https://p6-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/4db12a0fff8a4415927d0602607680a9~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819705720&x-signature=zQDFNzaW%2Ben4IuEfVx3FexWTrzA%3D"
+          ],
+          "raw": {
+            "board": "飙升榜",
+            "shop": "LAIYENO1"
+          },
+          "collected_at": "2026-08-31T10:06:49.979445Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "LAIYENO1",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 8",
+              "销量 75000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 5000000.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.450227Z"
+    },
+    {
+      "fingerprint": "31c941d888dd673492cd7639e5bebc1639ee1ff447be707ecbf303341a3f6eaf",
+      "image_phash": "b634d3f2d8d22329",
+      "title": "疆瀚奶酪旗舰店",
+      "sanitized_title": "疆瀚奶酪",
+      "category": "",
+      "platform_price": 2500000.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 75000,
+      "rank_best": 9,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "飙升榜",
+          "platform_item_id": "飙升榜:疆瀚奶酪旗舰店",
+          "title": "疆瀚奶酪旗舰店",
+          "price": 2500000.0,
+          "sales": 75000,
+          "rank": 9,
+          "category": "",
+          "image_urls": [
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/5835305f893e4acba616e4487f1e65a4~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819706666&x-signature=Wy31067YpYJilCjZeImgqA5By0M%3D"
+          ],
+          "raw": {
+            "board": "飙升榜",
+            "shop": "疆瀚奶酪旗舰店"
+          },
+          "collected_at": "2026-08-31T10:06:50.036006Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "疆瀚奶酪",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 9",
+              "销量 75000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 2500000.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.450272Z"
+    },
+    {
+      "fingerprint": "6b2f4d2eecac6377fdd8a8a1a62fa529549a612229c55899e6c6cc5def7d637d",
+      "image_phash": "0ad166f19399196f",
+      "title": "积蜜千语集烘焙食品专卖店",
+      "sanitized_title": "积蜜千语集烘焙食品专卖店",
+      "category": "",
+      "platform_price": 2500000.0,
+      "real_cost": null,
+      "suggested_price": null,
+      "profit_margin": null,
+      "sales": 50000,
+      "rank_best": 10,
+      "board_count": 1,
+      "source_items": [
+        {
+          "source": "doudian",
+          "board": "飙升榜",
+          "platform_item_id": "飙升榜:积蜜千语集烘焙食品专卖店",
+          "title": "积蜜千语集烘焙食品专卖店",
+          "price": 2500000.0,
+          "sales": 50000,
+          "rank": 10,
+          "category": "",
+          "image_urls": [
+            "https://p3-ecom-qualification-sign.ecombdimg.com/tos-cn-i-6vegkygxbk/21fbbc1c17f846238a6cdbe9e589f58e~tplv-6vegkygxbk-s:750.image?lk3s=c9156bde&x-expires=1819704572&x-signature=90D1PM4cvFbzeJ4nyQyc6Q%2B%2FBVI%3D"
+          ],
+          "raw": {
+            "board": "飙升榜",
+            "shop": "积蜜千语集烘焙食品专卖店"
+          },
+          "collected_at": "2026-08-31T10:06:50.087206Z"
+        }
+      ],
+      "quotes": [],
+      "supplier_count": 0,
+      "return_rate": null,
+      "compliance": {
+        "state": "candidate",
+        "reasons": [],
+        "sanitized_title": "积蜜千语集烘焙食品专卖店",
+        "category": "",
+        "matched_rules": []
+      },
+      "score": {
+        "total": 63.0,
+        "dimensions": {
+          "trend": {
+            "key": "trend",
+            "label": "热度趋势",
+            "raw": 28.0,
+            "weight": 0.35,
+            "weighted": 28.0,
+            "active": true,
+            "reasons": [
+              "榜单排名第 10",
+              "销量 50000（+8）"
+            ]
+          },
+          "profit": {
+            "key": "profit",
+            "label": "利润率",
+            "raw": 25.0,
+            "weight": 0.3,
+            "weighted": 25.0,
+            "active": true,
+            "reasons": [
+              "未询价，按平台价 2500000.0 的 55% 毛利估算（+25），待 1688 询价回填"
+            ]
+          },
+          "after_sale": {
+            "key": "after_sale",
+            "label": "售后风险",
+            "raw": 10.0,
+            "weight": 0.2,
+            "weighted": 10.0,
+            "active": true,
+            "reasons": [
+              "退货率未知，取中间档（+10），待平台数据回填"
+            ]
+          },
+          "supply": {
+            "key": "supply",
+            "label": "供给稳定",
+            "raw": 0.0,
+            "weight": 0.15,
+            "weighted": 0.0,
+            "active": true,
+            "reasons": [
+              "暂无同款供应商数据"
+            ]
+          },
+          "ad_conversion": {
+            "key": "ad_conversion",
+            "label": "投放转化",
+            "raw": 0.0,
+            "weight": 0.0,
+            "weighted": 0.0,
+            "active": false,
+            "reasons": [
+              "该类目暂无托管投放数据，维度权重折入其他四维"
+            ]
+          }
+        },
+        "rank": 0,
+        "note": "参与维度 4/5（投放转化无数据）"
+      },
+      "ad_conversion": {},
+      "is_duplicate": false,
+      "duplicate_of": null,
+      "state": "pool",
+      "created_at": "2026-08-31T10:09:21.450319Z"
+    }
+  ],
+  "skipped_sources": [],
+  "errors": []
+}

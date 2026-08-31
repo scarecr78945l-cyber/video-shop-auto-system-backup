@@ -155,14 +155,13 @@ class YoumiCollector(Collector):
                         continue
 
                     def cell(idx: int) -> str:
-                        # 商品标题渲染在隐藏的 el-popover 里，inner_text 拿不到，用 textContent
+                        # text_content 优先：等价 evaluate textContent（含隐藏 el-popover 标题），
+                        # 且带超时；evaluate 无 timeout 参数，页面渲染进程挂起时 driver 无限阻塞
+                        # （P-028 实测根因，2026-08-31 总控定）
                         try:
-                            return tds[idx].evaluate("el => (el.textContent || '').trim()") or ""
+                            return tds[idx].text_content(timeout=1500) or ""
                         except Exception:
-                            try:
-                                return tds[idx].inner_text(timeout=1500) or ""
-                            except Exception:
-                                return ""
+                            return ""
 
                     title = cell(cols["title"]).strip()
                     if not title or title in seen:

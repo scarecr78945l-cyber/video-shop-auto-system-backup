@@ -201,10 +201,10 @@ def test_list_not_array_tolerated(monkeypatch):
 
 
 def test_default_keep_fragments_by_port():
-    """默认保留片段按端口：9223→opprotunity/rank-product；9555→有米云。"""
-    assert zc.default_keep_fragments(9223) == ["opprotunity", "rank-product"]
+    """默认保留片段按端口：9223→opprotunity/rank-product/product-rank；9555→有米云。"""
+    assert zc.default_keep_fragments(9223) == ["opprotunity", "rank-product", "product-rank"]
     assert zc.default_keep_fragments(9555) == ["console.youshu.youcloud.com"]
-    assert zc.default_keep_fragments(9999) == ["opprotunity", "rank-product"]  # 兜底
+    assert zc.default_keep_fragments(9999) == ["opprotunity", "rank-product", "product-rank"]  # 兜底
 
 
 def test_youmi_port_keeps_youcloud_page(monkeypatch):

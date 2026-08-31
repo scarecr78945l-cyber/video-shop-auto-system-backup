@@ -38,8 +38,9 @@ from typing import Iterable, Optional
 
 logger = logging.getLogger(__name__)
 
-# 采集目标页 URL 片段（默认保留）：视频号商机中心 opprotunity、抖店罗盘 rank-product
-DEFAULT_KEEP_URL_FRAGMENTS: tuple[str, ...] = ("opprotunity", "rank-product")
+# 采集目标页 URL 片段（默认保留）：视频号商机中心 opprotunity、抖店罗盘
+# rank-product（旧）/ product-rank（P-016 后罗盘真实 URL，2024 改版重定向目标）
+DEFAULT_KEEP_URL_FRAGMENTS: tuple[str, ...] = ("opprotunity", "rank-product", "product-rank")
 # 有米云独立浏览器（9555）采集目标页保留片段
 YOUMI_KEEP_URL_FRAGMENT: str = "console.youshu.youcloud.com"
 

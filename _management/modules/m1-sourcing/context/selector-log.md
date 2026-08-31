@@ -118,19 +118,22 @@
 
 ## 4. 1688 询价（alibaba）
 
-- **URL 模板**：config.boards 空；代码兜底 `selectors.get("home_url", "https://www.1688.com")`（DEFAULT_SELECTORS **无 home_url 键**，靠兜底常量）
-- **config.selectors 键清单**：`（空）`
-- **采集器实际使用键**（`collectors/alibaba.py` DEFAULT_SELECTORS）：`search_input`、`search_btn`、`image_upload`=`input[type='file'], .upload-btn`、`result_row`=`.card-item, [class*='offer'] li`、`result_title`、`order_price`=`.order-price, .price-box, [class*='price']`、`supplier_name`、`confirm_btn`、`login_gate`、`verify_gate`
-- **实际取数逻辑**：`quote()` 新开页 → goto 1688 → login gate 检查 → **有图则以图搜款（`upload.set_input_files_from_url(item.image_urls[0])`，Playwright 较新 API）**，无图则标题搜索 → `detect_page_changed(page, [result_row])` → 结果行遍历：取 link/title/supplier → 进商品页 → 点 `confirm_btn`（订单确认页）→ 读 `order_price` → `_parse_price` 取首个数字 → Quote（raw_url=page.url）。**只读不下单（R-53）**。
+> **P-028（2026-08-31 真实链路修复 + 页面校准完成，总控直接执行）**：以图搜款改为 **air 搜图结果页直链**（免上传），选择器按真实页面校准，旧「首页上传」路径废弃。详见本节「P-028 校准」小节。
+
+- **URL 模板**：`search_url`=`https://air.1688.com/kapp/1688-search/pc-image-search/`（P-028 起为唯一入口，`imageAddress=<quote(图URL)>` 参数直链）
+- **config.selectors 键清单**（P-028 校准后）：`search_url`、`result_row`=`[class*='searchOfferItem']`、`result_title`=`[class*='titleText']`、`supplier_name`=`[class*='shopName']`、`result_price`=`.offer-price-row, [class*='offerPriceRow']`、`detail_price`=`.price-info, .price-comp, .price-component`、`order_price`=`.order-price, .price-box`、`confirm_btn`=`.confirm-btn, button:has-text('确认')`、`login_gate`、`verify_gate`
+- **采集器实际使用键**（`collectors/alibaba.py` DEFAULT_SELECTORS，与 config 逐键一致 A1）：同上；另新增代码级辅助 `_build_search_url`（URL 编码）、`_offer_id_from_row`（data-renderkey/data-aplus-report 末段数字）、`_read_detail_price`（`.price-info/.price-comp` 多档取最小）、`_read_order_confirm_price`（订单确认页降级，SKU 浮层时代不稳定，失败返回 0 不阻断）
+- **实际取数逻辑**（P-028）：`quote()` 新开页 → **直接导航** `air.1688.com/kapp/1688-search/pc-image-search/?imageAddress=<图URL>`（免上传，实测 2s 渲染 60 卡片）→ `_wait_results` 轮询卡片 → login/verify gate 检查 → 结果卡片遍历：`_offer_id_from_row` 取 offerId + `titleText` 标题 + `shopName` 供应商 → 直链 `detail.1688.com/offer/<offerId>.html` → `_detect_missing_attrs`（C2 缺参探测）→ `_read_detail_price` 读最低价（主）→ `_read_order_confirm_price` 兜底（降级）→ Quote（raw_url=detail 链接）。**只读不下单（R-53）**。
 - **fixtures 字段映射**：alibaba_quotes.json 按 `platform_item_id` → `Quote(supplier_name/sku_name/unit_cost/min_order/freight/raw_url)` 列表（fixtures.py FixtureQuoteCollector）。
-- **现状评估**：配置齐全（代码默认）；选择器多为**宽泛模糊类名**（`[class*='price']`/`[class*='title']`）易误匹配，且未经真实页面验证；`set_input_files_from_url` 依赖以图搜款上传控件存在。**本源是最需要真实页面校准的补全源**。
-- **待实测项**（`inspect-page --source alibaba` / 登录态就绪后手工链路验证）：
-  1. 1688 首页 `image_upload` 上传控件选择器是否命中「以图搜款」入口；
-  2. `set_input_files_from_url` 在该控件上是否可用（Playwright 版本兼容性）；
-  3. 搜索结果 `result_row`（`.card-item, [class*='offer'] li`）是否命中真实 offer 卡片；
-  4. 商品页 `confirm_btn` 是否命中「立即订购/确认」按钮（进入订单确认页的入口）；
-  5. 订单确认页 `order_price` 是否命中单价元素（不下单，仅读价）；
-  6. `login_gate` 未登录页触发行为。
+- **现状评估**：✅ **真实页面校准完成**（P-028，2026-08-31 实机验证）——air 搜图直链免上传、offerId 提取、detail 读价全链路真实冒烟通过（1 条有效报价：供应商/标题/¥8.0/详情链接）。
+
+### P-028 校准（2026-08-31 · 真实页面实测记录）
+
+1. **搜图入口**：1688 首页「以图搜款」相机上传（`input.file.image-file-reader-wrapper`，accept=jpg/png/bmp/webp）`set_input_files` 后**页面跳转**到 `air.1688.com/kapp/1688-search/pc-image-search/?imageAddress=<图URL>`（独立搜图结果页）；该 URL 带 imageAddress 参数 → **直接导航即可免上传出结果**（实测 2s 渲染 60 卡片）。注意：纯色/占位图只触发首页「推荐位」卡片（`offer-card-container pc-home2024-recommend-part_card-item`，data-scene=search，**无商品链接、点击不跳转**），非真实搜图结果——采集器必须带真实商品图。
+2. **结果卡片**：`.searchOfferWrapper--xxx / searchOfferItem--xxx`（CSS Modules 哈希，120 张）；标题 `[class*='titleText']`、价格 `.offer-price-row`、店铺 `[class*='shopName']`；**卡片内无商品详情链接**（仅旺旺聊天链接）→ 商品链接通过 `data-renderkey`（`1_0_normal_b2b-<uid>_<offerId>`，末段数字）构造 `detail.1688.com/offer/<offerId>.html` 直链。
+3. **detail 读价**：`.price-info`（新人价 ¥8.00）/`.price-comp`（新人价¥8.00起）/`.price-component` 多档 → `_read_detail_price` 取最小为最低有效成本。
+4. **订购链路（降级）**：点击「立即下单」（`button.v-button.primary`）→ 弹 SKU 选择浮层（`.module-od-sku-selection`，规格价格 `.item-price-stock`）→ 无稳定「确认」按钮 → 订单确认页直读链路不稳定，保留为 `_read_order_confirm_price` 失败静默回退，不阻断主链路。
+5. **旧选择器废弃**：`.card-item, [class*='offer'] li`（首页推荐位结构）实测 0 命中；`search_input/search_btn/image_upload`（首页搜索/上传）不再使用。
 
 ### A6 防御性收敛（v1.1 迭代，2026-08-29 · 子代理 A6）
 

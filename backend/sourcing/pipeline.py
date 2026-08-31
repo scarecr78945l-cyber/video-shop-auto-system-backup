@@ -184,7 +184,10 @@ class SourcingPipeline:
                 collected[source] = [it for lst in board_items.values() for it in lst]
             except Exception as e:
                 log.error("来源 %s 整体失败: %s", source, e)
-        # 断开所有浏览器 CDP 连接（不影响真实浏览器与登录态）
+        # 断开所有浏览器 CDP 连接（不影响真实浏览器与登录态）。
+        # 必须断开：playwright connect_over_cdp 不支持对同一浏览器重复连接，
+        # 连接未断时后续源重复 connect 会报「Connection closed while reading from the driver」
+        # （P-028 实测 2026-08-31；collect 内逐源连接/断开循环是安全的）。
         for c in created:
             browser = getattr(c, "browser", None)
             if browser is not None:
@@ -200,16 +203,26 @@ class SourcingPipeline:
         candidates: list[ProductCandidate],
         mode: str = "fixtures",
         quote_limit: int = 10,
+        max_items: int | None = 10,
     ) -> None:
         """1688 逐 SKU 询价 + 淘宝参考素材；取最低有效总成本。
 
         对候选的全部来源条目逐个询价（同款多榜出现时，任一榜单条目都可能命中报价），
         按 (供应商, SKU, 单价) 去重后取最低有效成本。
+
+        max_items：本轮询价的 pool 候选商品数上限（默认 10）。
+        真实询价每个商品 40~70s（air 直链 + detail 读价），大榜采集（如抖店 100+ 条）
+        全量询价会跑 1~2 小时——按商品数截断，保证单轮流水线分钟级完成；
+        剩余候选保留 quotes 为空，后续轮次/按需补询（真实运行验证 2026-08-31 定）。
         """
         quote_col = make_collector("alibaba", self.config, mode)
+        quoted_count = 0
         for cand in candidates:
             if cand.state != "pool":  # 数据补全只对入池候选执行（S5 放松后 manual_review→pool 同样补全）
                 continue
+            if max_items is not None and quoted_count >= max_items:
+                break
+            quoted_count += 1
             quotes: list[Quote] = []
             seen_quote: set[tuple] = set()
             for src_item in cand.source_items:
@@ -295,9 +308,14 @@ class SourcingPipeline:
         # 3.5) S5 人工闸门按达标自动放松（默认 enabled=false 零变化；放行理由落 compliance.reasons）
         result.gate_relaxed = self._relax_manual_review(candidates)
 
-        # 4) 数据补全（询价/素材）——只对 candidate 执行
+        # 4) 数据补全（询价/素材）——只对 candidate 执行；max_items 限制单轮询价商品数
+        #    （真实询价 40~70s/商品，大榜全量询价会跑 1~2 小时；fixtures 模式不受限——引号走内存）
         if do_quotes:
-            self.complete(candidates, mode)
+            self.complete(
+                candidates,
+                mode,
+                max_items=None if mode == "fixtures" else self.config.quoting_max_items,
+            )
             result.quoted = sum(1 for c in candidates if c.quotes)
 
         # 5) 打分（五维，投放转化按类目回流）
@@ -390,7 +408,11 @@ class SourcingPipeline:
         result.gate_relaxed = self._relax_manual_review(candidates)
 
         if do_quotes:
-            self.complete(candidates, mode)
+            self.complete(
+                candidates,
+                mode,
+                max_items=None if mode == "fixtures" else self.config.quoting_max_items,
+            )
             result.quoted = sum(1 for c in candidates if c.quotes)
 
         ad_by_cat = load_ad_snapshots(self.config) if mode == "fixtures" else self.config.ad_conversion_by_category

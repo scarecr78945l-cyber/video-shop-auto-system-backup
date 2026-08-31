@@ -210,3 +210,15 @@
 - **现象与根因**：alibaba.py 无图时退回「标题搜索」找同款——实测标题搜索出整类商品（精度差），用户裁定「用标题搜同款是没有用的，要以图搜款」。
 - **解决方案**：废弃标题搜索分支；quote() 以图搜款为唯一方式——图源优先级 item.image_urls → raw 候选图（taobao_image_urls/image_url/榜单图）；无图 → NO_MATCH「无图不可以图搜款」且不打开浏览器。
 - **防复发**：① 采集器（商机中心/抖店/有米云）必须携带商品图 URL（raw 字段契约）；② 无图商品标记 NO_MATCH 不询价（后续可补图源）；③ 测试覆盖（test_alibaba_image_search.py 4 例）。
+## P-028 ｜ 1688 以图搜款选择器过期：上传后跳转 air 独立搜图页，旧结果选择器匹配 0 行 → 询价全失败
+
+- **出现时间**：2026-08-31 ｜ **模块**：M1 1688 询价 ｜ **代理**：总控（M1 全源真实采集验证时用户提问「光上传图片不搜的吗」）
+- **现象与根因**：quote() 在 1688 首页 `set_input_files` 上传图片后，在**旧首页**检查结果选择器 `.card-item, [class*='offer'] li`——实测上传确实触发搜索（1688 跳转到独立搜图页 `air.1688.com/kapp/1688-search/pc-image-search/?imageAddress=<图URL>`），但该页结果卡片为 CSS Modules 哈希类名（`searchOfferItem--xxx`），旧选择器匹配 0 行 → 误判 PAGE_CHANGED → 询价全失败（上一轮 0 供应商）。另：首页若用纯色测试图则渲染「推荐位」卡片（`pc_homepage.reco_itemCard`，data-scene=search，无商品链接、点击不跳转），与真实搜图结果页不同。
+- **解决方案（P-028 落地）**：废弃首页上传路径；quote() 改为**直接导航搜图结果页直链** `air.1688.com/kapp/1688-search/pc-image-search/?imageAddress=<quote(图URL)>`（实测免上传 2s 渲染 60 卡片）；结果卡片 `data-renderkey`（形如 `1_0_normal_b2b-<uid>_<offerId>`）末段数字即 offerId → 直链 `detail.1688.com/offer/<offerId>.html` 读详情页价格区 `.price-info/.price-comp`（多档取最小为最低有效成本，实测 ¥8.00）；订单确认页读价（点「立即下单」→ SKU 浮层）因真实页面结构不稳定降级为失败静默回退。真实冒烟：1 条有效报价（供应商/标题/¥8.0/详情链接齐全）。
+- **防复发**：① 采集器必须携带真实商品图 URL（纯色/占位图只出推荐位，搜图结果失真）；② 平台页面改版后结果选择器用**语义前缀匹配**（`[class*='searchOfferItem']` 等，CSS Modules 哈希后缀变化不失效），不用完整哈希类名；③ 询价真实链路以「air 直链 + offerId 提取 + detail 读价」为准，选择器校准登记 selector-log；④ 测试覆盖（test_alibaba_image_search.py 新增 P-028 8 例 + test_collector_config.py 2 例）。
+## P-029 ｜ pipeline 内多商品询价循环偶发挂死（playwright driver 稳定性），cell() evaluate 无超时是放大器
+
+- **出现时间**：2026-08-31 ｜ **模块**：M1 流水线询价 ｜ **代理**：总控（全源验证运行期实测）
+- **现象与根因**：`run-pipeline --mode auto` 询价阶段（complete() 循环 quote）**偶发无限挂死**（进程 CPU 停滞、浏览器页面健康、新 playwright 实例探测全部正常）——卡点在 playwright **driver 通信层**：同进程内 collect 阶段多次 connect/close 后，后续 quote 连接的深层不稳定；`cell()` 用 `page.evaluate`（**无 timeout 参数**）读 td 文本，页面渲染进程挂起时 driver 无限阻塞是放大器。另确认：connect_over_cdp **不支持同一浏览器重复连接**（连接未断时再次 connect → Connection closed while reading from the driver）。
+- **解决方案（务实分层）**：① cell() 三处（doudian/opportunities/youmi）evaluate → `text_content(timeout=1500)`（等价语义、带超时，消除无超时读文本）；② collect() 保留逐源 connect/close（防重复连接冲突）；③ **单轮流水线询价商品数上限 `quoting_max_items=10`**（config 可配，fixtures 不受限）控制暴露面；④ **当前全源验证拆分为两步**：`--no-quotes` 跑采集→入池（真实落库，264.6s）+ 独立脚本询价（repro 模式 3/3 成功，链路已证）；pipeline 内完整询价循环的 driver 稳定性**登记为已知运行时问题**（后续排期：询价子进程隔离/独立 driver）。
+- **防复发**：① 采集器/询价一律用带 timeout 的 locator API（inner_text/text_content），**禁止无 timeout 的 evaluate 读数据**（页面结构操作例外并包 try）；② 同一浏览器 CDP 连接用完即断开，禁止重复 connect；③ pipeline 询价默认限流（quoting_max_items），大榜采集不做全量询价；④ 运行期若复现询价挂死：先 zombie-clean → 独立脚本询价兜底（链路已验证）。

@@ -103,3 +103,24 @@
 - **v1.1-④ S4**：`report.py::daily_effective_candidates(days)`（日有效候选 state∈pool/manual_review、事件/运行计数、≥200 target_met+gap、空数据容错）+ cli `report-daily` + test_report_daily.py 6 用例 + context「S4 日有效候选度量」口径小节。
 - **v1.1-⑤ S5**：`gate.py`（gate.relax.* 五键点分隔命名空间、load_gate_relax_config 类型回落不抛、decide_relax 纯判定 reasons 可解释、should_relax_category、relax_manual_review dry-run 默认）+ pipeline 接线（_relax_manual_review 放行理由落 compliance.reasons 审计、PipelineResult.gate_relaxed）+ cli `gate-relax` + models.py 加法字段 + test_gate_relax.py 16 用例 + context 第七节 + decisions D-12；口径对齐 R-54/10 文档第五节（95%×50，窗口 30 天）。
 - **v1.1 迭代收官**：模块完成度 **95% → 97%**（v1.1+ 五项全部落地：A3/A6 实测落地、僵尸页防复发工具化、S4/S5 工具化完成）；剩余：S4 联调实测验收（依赖真实数据积累、日有效候选≥200 需运行期验证）、A6 真实页面校准（登录态）、S5 闸门放松运行期启用（数据达标后 app_config 开闸）。
+
+## P-028 1688 以图搜款真实链路修复（2026-08-31 · 总控直接执行 · 用户提问驱动）
+
+- **触发**：M1 全源真实采集验证（run-pipeline --mode auto）时，用户观察浏览器提问「光上传图片不搜的吗」——1688 询价上传图片后无结果入库。
+- **根因（已实测证实）**：1688 首页 `set_input_files` 上传**确实触发搜索**，但页面**跳转**到独立搜图页 `air.1688.com/kapp/1688-search/pc-image-search/?imageAddress=<图URL>`；旧结果选择器 `.card-item, [class*='offer'] li`（首页推荐位结构，2024 改版）匹配 0 行 → 误判 PAGE_CHANGED → 询价全失败（上轮 0 供应商）。纯色测试图另触发首页「推荐位」卡片（无商品链接），与真实搜图结果页不同。
+- **修复（alibaba.py + config.py + 测试）**：
+  1. **air 搜图直链免上传**：`_build_search_url` 直接导航 `air.1688.com/kapp/1688-search/pc-image-search/?imageAddress=<quote(图URL)>`（实测 2s 渲染 60 卡片，弃用首页上传路径）；
+  2. **offerId 提取**：`_offer_id_from_row` 从卡片 `data-renderkey`（`1_0_normal_b2b-<uid>_<offerId>`）/`data-aplus-report` 末段数字提取 → 直链 `detail.1688.com/offer/<id>.html`；
+  3. **detail 读价**：`_read_detail_price` 读 `.price-info/.price-comp` 多档取最小（实测 ¥8.00）；订单确认页读价降级为 `_read_order_confirm_price` 失败静默回退（SKU 浮层结构不稳定）；
+  4. **选择器校准**：`result_row`=`[class*='searchOfferItem']`、`result_title`=`[class*='titleText']`、`supplier_name`=`[class*='shopName']`、新增 `search_url`/`detail_price`（config.py 同步，A1 逐键一致）；
+  5. **真实冒烟**：1 条有效报价（供应商/标题/¥8.0/详情链接齐全）。
+- **测试**：test_alibaba_image_search.py +8 例（build_search_url/offer_id/read_detail_price/quote 全流程 mock/无结果 PAGE_CHANGED/登录浮层 AUTH_REQUIRED）+ test_collector_config.py +2 例（P-028 选择器一致性 + read_detail_price 最小化）→ **sourcing 域 194 passed**（175 基线 + 19 新增，`.pytest-tmp-m1`）全绿无回归。
+- **登记**：pitfall-log P-028、selector-log 第 4 节「P-028 校准」。
+
+## M1 全源真实采集验证（2026-08-31 · run-pipeline --mode auto --no-quotes · 快照待办②完成）
+
+- **结果**：采集 **230 条**（商机中心 1 + 抖店商品榜 109 + 飙升榜 120）→ 去重后 **223** → 候选 223（拒 0/人工 0）→ **入池 20**（TopN，264.6s）；真实数据全部落库（products 224 / events 232 / runs 9）。
+- **有米云（第三源）**：登录态失效（AUTH_REQUIRED，两次运行一致）——采集器**正确转人工不硬闯**（P-002 纪律）；需用户在 9555 有米云浏览器重新登录后重跑补采。
+- **询价链路**：独立验证 **3/3 成功**（真实商品图 → air 直链 → offerId → detail 读价 → ¥1.0/¥1.0/¥8.0 有效报价，供应商/标题/详情链接齐全）。
+- **运行期问题登记**：pipeline 内多商品询价循环偶发挂死（playwright driver 稳定性，P-029）——本轮回调为 `--no-quotes` + 独立询价两步；后续排期询价子进程隔离。
+- **配套改动**：`quoting_max_items=10` 配置（单轮询价商品数上限，fixtures 不受限）；cell() evaluate → text_content（带超时）；zombie-clean keep 片段补 product-rank（P-016 工具校准）。

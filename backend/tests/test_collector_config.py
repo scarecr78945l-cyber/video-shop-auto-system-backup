@@ -296,14 +296,109 @@ def test_a6_alibaba_order_price_narrowed_with_broad_fallback_registered():
     """A6：alibaba order_price 默认收窄为精确类名，宽泛 [class*='price'] 移入代码兜底。"""
     assert ALIBABA_DEFAULTS["order_price"] == ".order-price, .price-box"
     assert "[class*='price']" not in ALIBABA_DEFAULTS["order_price"]
-    # 兜底保留在采集器实现内（_read_order_price 未命中时回退宽泛选择器）
+    # 兜底保留在采集器实现内（_read_order_confirm_price 未命中时回退宽泛选择器）
     import inspect
     from sourcing.collectors.alibaba import AlibabaQuoteCollector
 
-    src = inspect.getsource(AlibabaQuoteCollector._read_order_price)
+    src = inspect.getsource(AlibabaQuoteCollector._read_order_confirm_price)
     assert "[class*='price']" in src
-    # result_row 无把握不强改：宽泛兜底仍在默认值中（登记「待真实页面校准」）
-    assert ALIBABA_DEFAULTS["result_row"] == ".card-item, [class*='offer'] li"
+
+
+def test_p028_alibaba_image_search_selectors_updated():
+    """P-028：1688 以图搜款选择器更新（air 搜图页直链 + detail 读价 + offerId 提取）。
+
+    - config.selectors 与 DEFAULT_SELECTORS 逐键一致（A1 不回归）；
+    - result_row 由首页推荐位结构（.card-item）改为搜图结果卡片（[class*='searchOfferItem']）；
+    - search_url/detail_price 新键在位；
+    - 新辅助方法可静态验证（_build_search_url 编码、_offer_id_from_row 提取）。
+    """
+    from sourcing.collectors.alibaba import AlibabaQuoteCollector
+
+    cfg = load_config()
+    assert cfg.alibaba.selectors == ALIBABA_DEFAULTS
+    assert ALIBABA_DEFAULTS["result_row"] == "[class*='searchOfferItem']"
+    assert ".card-item" not in ALIBABA_DEFAULTS["result_row"]
+    assert ALIBABA_DEFAULTS["search_url"].startswith(
+        "https://air.1688.com/kapp/1688-search/pc-image-search/"
+    )
+    assert "detail_price" in ALIBABA_DEFAULTS
+
+    # _build_search_url：imageAddress 参数 URL 编码
+    url = AlibabaQuoteCollector._build_search_url(
+        "https://cbu01.alicdn.com/img/a b.jpg"
+    )
+    assert url.startswith(
+        "https://air.1688.com/kapp/1688-search/pc-image-search/?imageAddress="
+    )
+    assert "a%20b.jpg" in url  # 空格被编码
+
+    # _offer_id_from_row：data-renderkey 末段数字
+    class FakeRow:
+        def __init__(self, rk, aplus=""):
+            self._rk = rk
+            self._ap = aplus
+
+        def get_attribute(self, name):
+            return {
+                "data-renderkey": self._rk,
+                "data-aplus-report": self._ap,
+            }.get(name, "")
+
+    row = FakeRow("1_0_normal_b2b-221674209657250c6e_1052811778069")
+    assert AlibabaQuoteCollector._offer_id_from_row(row) == "1052811778069"
+    row2 = FakeRow("", "serverTrackId@gul_x_1052811778069^final")
+    assert AlibabaQuoteCollector._offer_id_from_row(row2) == "1052811778069"
+    row3 = FakeRow("no-id-here")
+    assert AlibabaQuoteCollector._offer_id_from_row(row3) == ""
+
+
+def test_p028_alibaba_read_detail_price_min_and_fallback():
+    """P-028：detail 页价格区读最低价；空价格区回退宽泛 [class*='price-info']；无价返回 0。"""
+    from sourcing.collectors.alibaba import AlibabaQuoteCollector
+
+    class FakePrice:
+        def __init__(self, txt):
+            self._t = txt
+
+        def inner_text(self, timeout=0):
+            return self._t
+
+    class FakeLoc:
+        def __init__(self, items):
+            self._items = items
+
+        def count(self):
+            return len(self._items)
+
+        def nth(self, i):
+            return self._items[i]
+
+    class FakePage:
+        def __init__(self, exact, fallback):
+            self._exact = FakeLoc(exact)
+            self._fallback = FakeLoc(fallback)
+            self._use_exact = True
+
+        def locator(self, sel):
+            if sel == ".price-info, .price-comp, .price-component":
+                return self._exact
+            return self._fallback
+
+    # 多档价格取最小
+    page = FakePage(
+        [FakePrice("新人价¥8.00起"), FakePrice("¥10.00"), FakePrice("老客价¥12.00")],
+        [],
+    )
+    col = AlibabaQuoteCollector(load_config().alibaba)
+    assert col._read_detail_price(page) == 8.0
+
+    # 精确选择器空 → 回退宽泛
+    page2 = FakePage([], [FakePrice("¥5.50")])
+    assert col._read_detail_price(page2) == 5.5
+
+    # 无价格 → 0
+    page3 = FakePage([], [])
+    assert col._read_detail_price(page3) == 0.0
 
 
 def test_a6_taobao_image_narrowed_with_img_fallback_registered():
