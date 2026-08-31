@@ -239,14 +239,17 @@ class SourcingConfig(BaseSettings):
                 # 真实入口为「市场 → 市场排行 → 店铺榜单」页内 tab：/shop/chance/rank-shop，
                 # 与总榜/搜索榜/同行低退榜同页（URL 不区分榜单，点击「飙升榜」后地址栏不变，
                 # 表头由「用户支付金额」切为「订单提升量」，实测 .aurora-table-tbody tr 命中 22 行）。
-                # 注意：与商品榜（rank-product）**不同页**，且为店铺维度榜单（列：排名/店铺信息/
-                # 订单提升量/成交订单数/…/TOP成交商品），采集器 doudian.py 导航后需点击「飙升榜」
-                # tab（BOARD_TABS 映射）并适配店铺榜表头（_locate_columns 排除「商品曝光人数」等指标列）。
-                # kind=realtime：飙升榜高频变化，按小时轮询（连续空转 24 次自动降日，scheduler 兜底）。
+                # 注意：与商品榜（rank-product）**不同页**，且为**店铺维度榜单**（列：排名/店铺信息/
+                # 订单提升量/成交订单数/…/TOP成交商品），title 列为店铺名——**不是商品**。
+                # P-030（2026-08-31 用户提问「怎么还会有店铺的，这不是商品吗」裁定）：
+                #   店铺名混入商品候选池属数据污染 → 飙升榜**停用为商品采集源**（enabled=False），
+                #   不再参与采集/入池；店铺趋势洞察或「TOP成交商品」列提取排期后续实现
+                #   （登记 decisions / dashboard / pitfall-log P-030）。
                 BoardSpec(
                     name="飙升榜",
                     url_template="https://compass.jinritemai.com/shop/chance/rank-shop",
                     kind="realtime",
+                    enabled=False,
                 ),
                 # P2-6 旧系统罗盘榜单目录补全（douyin_compass_board_catalog.py，2026-08 旧系统现场）：
                 # 旧系统为「3 类目(运动户外/个护家清/智能家居) × 3 时间窗(近1天/近7天/近30天) × 3 静态榜

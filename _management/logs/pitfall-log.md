@@ -222,3 +222,9 @@
 - **现象与根因**：`run-pipeline --mode auto` 询价阶段（complete() 循环 quote）**偶发无限挂死**（进程 CPU 停滞、浏览器页面健康、新 playwright 实例探测全部正常）——卡点在 playwright **driver 通信层**：同进程内 collect 阶段多次 connect/close 后，后续 quote 连接的深层不稳定；`cell()` 用 `page.evaluate`（**无 timeout 参数**）读 td 文本，页面渲染进程挂起时 driver 无限阻塞是放大器。另确认：connect_over_cdp **不支持同一浏览器重复连接**（连接未断时再次 connect → Connection closed while reading from the driver）。
 - **解决方案（务实分层）**：① cell() 三处（doudian/opportunities/youmi）evaluate → `text_content(timeout=1500)`（等价语义、带超时，消除无超时读文本）；② collect() 保留逐源 connect/close（防重复连接冲突）；③ **单轮流水线询价商品数上限 `quoting_max_items=10`**（config 可配，fixtures 不受限）控制暴露面；④ **当前全源验证拆分为两步**：`--no-quotes` 跑采集→入池（真实落库，264.6s）+ 独立脚本询价（repro 模式 3/3 成功，链路已证）；pipeline 内完整询价循环的 driver 稳定性**登记为已知运行时问题**（后续排期：询价子进程隔离/独立 driver）。
 - **防复发**：① 采集器/询价一律用带 timeout 的 locator API（inner_text/text_content），**禁止无 timeout 的 evaluate 读数据**（页面结构操作例外并包 try）；② 同一浏览器 CDP 连接用完即断开，禁止重复 connect；③ pipeline 询价默认限流（quoting_max_items），大榜采集不做全量询价；④ 运行期若复现询价挂死：先 zombie-clean → 独立脚本询价兜底（链路已验证）。
+## P-030 ｜ 抖店飙升榜是店铺维度榜单：店铺名混入商品候选池（数据污染）
+
+- **出现时间**：2026-08-31 ｜ **模块**：M1 抖店采集 ｜ **代理**：总控（全源验证后用户提问「怎么还会有店铺的，这不是商品吗」）
+- **现象与根因**：全源验证入池商品中出现「认养一头牛旗舰店」「盒马官方旗舰店」等**店铺名**。根因：抖店「飙升榜」页（rank-shop）是**店铺维度榜单**（列：排名/店铺信息/订单提升量/成交订单数），采集器将店铺名作为 title 入库（A3 校准已知此结构，但当时冒烟仅验证链路可用，未把关数据语义）——120 条店铺名与商品榜真实商品混入商品池，属数据污染。
+- **解决方案（用户裁定）**：飙升榜**停用为商品采集源**（config `doudian.boards[1].enabled=False`，live 模式不再采集/入池；fixtures 离线样本保留回放覆盖多榜测试）；**清理存量污染数据**（删除 116 个店铺商品 + 120 evidence + 120 events，保留商品榜真实商品 108 个）；店铺趋势洞察或「TOP成交商品」列提取排期后续实现。
+- **防复发**：① 新榜单接入必须先确认**数据维度**（商品榜 vs 店铺榜 vs 内容榜），店铺/内容维度不得直接进商品候选池；② 全源验证的入池结果须抽查 title 语义（商品名 vs 店铺名 vs 关键词）；③ 榜单启用以 enabled=False 默认 + 真实语义确认后开闸。

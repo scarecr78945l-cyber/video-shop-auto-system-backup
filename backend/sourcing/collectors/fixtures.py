@@ -56,6 +56,15 @@ class FixtureCollector(Collector):
         self.config_all = config
         self._cache: dict[str, dict[str, list[dict]]] = {}
 
+    @property
+    def boards(self) -> list[str]:
+        """fixtures 回放全部样本（含 enabled=False 的榜单，如抖店飙升榜）。
+
+        离线样本为模拟数据，不受「真实榜单停用」影响（P-030：飙升榜仅 live 停用，
+        店铺名不入商品池；fixtures 保留样本覆盖多榜链路测试）。
+        """
+        return list(self.default_boards)
+
     def _data(self) -> dict[str, list[dict]]:
         if self.source not in self._cache:
             self._cache[self.source] = _load(
