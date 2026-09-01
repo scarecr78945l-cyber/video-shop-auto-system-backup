@@ -63,6 +63,13 @@
   - [x] **DA-009（M0 A7 集成冒烟缺口）**：pipeline 创建 SPU/SKU 后落库 `listing_spus`/`listing_skus`（幂等 upsert + audit_id 回填），repo 新增 upsert_spu/upsert_skus/get_spu/get_skus；候选池 title/category/价格不再恒 None；新增端到端回归用例（test_listing_candidate_pool +1）；目标测试 22 passed、M4 全量 **132 passed** 无回退（decisions D13）
 - 待外部条件（不阻塞 mock 模式）：官方 channels OpenAPI 文档核对（T1~T7 需 web 额度恢复后销项，live 模式实现依赖 T1/T2）；企业主体/类目资质开通状态（REC-004，用户确认后切 live）
 
+## P-041 上架推进：商品池 → pending 上架任务（2026-09-01 ｜ 用户批准推进上架）
+
+- **新增 CLI `listing intake`**：读 M1 商品池（state=pool + real_cost）→ 清洗标题（15-35 字符）→ 构造 ListingCandidate（模拟主图/详情图、占位资质/购买设置）→ 六项门禁 → 建 pending 上架任务（幂等，generation_version 去重）。
+- **结果**：50 个真实商品门禁全过 → **50 个 pending 任务**（API `/api/listing/tasks?status=pending` 可见；`/api/listing/ready`=0 正确——pending 未确认不进 M5 销售候选池）；M4 回归 **136 passed**。
+- **真实 live 前置**（REC-004 待用户）：① M3 真实素材（当前占位图）；② 类目资质/运费模板（店铺后台）；③ 契约 T2/T4/T7。前置齐备 → 前端 confirm → pipeline.submit(live)。
+- **登记**：pitfall-log P-041。
+
 ## 四、验收门（模块级）
 
 - [ ] 端到端模拟流程跑通（不提交真实商品）；真实链接才标「已上架」（R22 铁律）

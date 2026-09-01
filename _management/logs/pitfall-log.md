@@ -295,3 +295,10 @@
 - **根因（后续全失败）**：探测（反复开 cascader）+ 两次 collect-categories 切换类目频率过高 → **罗盘接口限流**（切换类目后表格 20s+ 卡 loading，默认加载正常）——与 P-039 阿里风控同类型，字节系罗盘亦有接口频率限制。
 - **应对**：① 停止罗盘高频操作（冷却）；② 恢复后低频采集（类目间间隔 10-20s、单轮 ≤4 类、必要时人工分段）；③ 类目采集纳入风控熔断（连续失败即停）。
 - **防复发**：① 平台接口类操作统一限速纪律（P-039/P-040 同源）；② 探测脚本不得对目标接口高频切换；③ 类目定向采集作为「低频补充源」，主体仍走榜单轮询。
+## P-041 ｜ M4 上架推进：商品池→上架任务桥接（intake CLI）+ drill 模拟污染清理
+
+- **出现时间**：2026-09-01 ｜ **模块**：M4 上架 ｜ **代理**：总控（用户批准「推进上架功能」）
+- **推进**：新增 `listing intake` CLI——读 M1 商品池（有成本）→ 清洗标题→ 构造 ListingCandidate（占位图/资质/购买设置）→ 门禁 → 建 pending 上架任务（幂等）。**50 个真实商品门禁全过 → 50 个 pending 任务**（API `/api/listing/tasks?status=pending` 可见），M4 回归 **136 passed**。
+- **踩坑**：演练脚本（_listing_intake.py）用 pipeline.submit(mock adapter) 端到端模拟时，把 50 个商品写成了 **listed**（task_id=`listing_*`、mock 链接、link_verified_at 有值）→ 污染 m4-listing.db，会让 M5 候选池误判「已上架」。**已清理**（删 50 个 mock listed 任务及关联 spus/skus/op_logs），保留正式 pending 任务。
+- **真实 live 上架前置**（REC-004 待用户）：① M3 真实素材（主图 5 张 1:1 + 详情图，当前占位图）；② 类目资质/运费模板（店铺后台配置）；③ 契约 T2/T4/T7 核对。前置齐备后：前端 confirm → pipeline.submit（live）。
+- **防复发**：① 演练/模拟脚本不得对正式库跑「直通 listed」的 submit（mock 上架只应存在于测试临时库）；② intake 只建 pending（真实上架由 confirm 触发）；③ 模拟数据必须可区分（task_id 前缀/证据标记），误入正式库即清理。
