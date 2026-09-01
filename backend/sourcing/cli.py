@@ -329,6 +329,59 @@ def run_pipeline(config, sources, mode, top_n, no_quotes, no_persist, json_out) 
         click.echo(f"      {cand.sanitized_title[:44]}（{cand.category}）成本={cand.real_cost} 建议售价={cand.suggested_price}")
 
 
+@cli.command("collect-categories")
+@click.option("--top-n", type=int, default=None, help="入池数量上限（默认配置）")
+@click.option("--no-quotes", is_flag=True, help="跳过 1688 询价")
+@click.option("--no-persist", is_flag=True, help="不写库，仅内存运行")
+@click.option("--json-out", type=click.Path(dir_okay=False), default=None, help="将完整结果写为 JSON 文件")
+@click.pass_obj
+def collect_categories(config, top_n, no_quotes, no_persist, json_out) -> None:
+    """P-040 白名单类目定向采集：罗盘「抖音商品 TOP200」按白名单行业类目采品入池。
+
+    类目映射见 config.doudian_categories（个护家清/智能家居/餐饮厨具/宠物生活/服饰/
+    3C/运动户外/办公设备——industry_id/category_id 为罗盘 API 参数，2026-09-01 实测）。
+    """
+    from .db import Database
+    from .pipeline import SourcingPipeline
+    from .collectors.doudian import DoudianCollector
+
+    if not no_persist:
+        Database(config).create_all()
+    col = DoudianCollector(config.doudian)
+    collected: list = []
+    for cat in config.doudian_categories:
+        try:
+            items = col.collect_category(cat, limit=200)
+            collected += items
+            click.echo(f"类目 {cat['name']:<16} {len(items):>4} 条")
+        except Exception as e:
+            click.echo(f"类目 {cat['name']:<16} ✗ {str(e)[:80]}")
+
+    pipe = SourcingPipeline(config)
+    result = pipe.run_from_items(
+        collected, mode="live", top_n=top_n,
+        do_quotes=not no_quotes, persist=not no_persist,
+    )
+    if json_out:
+        from pathlib import Path
+
+        import json as _json
+
+        Path(json_out).write_text(
+            _json.dumps(result.model_dump(mode="json"), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        click.echo(f"JSON 已写入 {json_out}")
+    click.echo(
+        f"类目采集 {len(collected)} → 去重后 {result.after_dedup} "
+        f"→ 候选 {result.candidates}（拒 {result.hard_rejected}/人工 {result.manual_review}）"
+        f"→ 询价 {result.quoted} → 入池 {result.pool_entered}"
+    )
+    for i, cand in enumerate(result.pool[:10], 1):
+        click.echo(f"  #{i} [{cand.score.total:5.1f}] {cand.score.summary()}")
+        click.echo(f"      {cand.sanitized_title[:44]}（{cand.category}）成本={cand.real_cost} 建议售价={cand.suggested_price}")
+
+
 @cli.command()
 @click.option("--once", is_flag=True, help="只跑一轮")
 @click.option("--loop", is_flag=True, help="常驻循环")

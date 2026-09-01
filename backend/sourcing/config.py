@@ -279,6 +279,33 @@ class SourcingConfig(BaseSettings):
         )
     )  # 抖店电商罗盘（共享浏览器）
 
+    # P-040 抖店罗盘「抖音商品 TOP200」白名单类目定向采集（2026-09-01 用户提议：
+    # 罗盘可筛行业类目，按白名单品类定向找品）。industry_id/category_id 为
+    # 罗盘 market_hot_sale API 参数（cascader data-path-key 实测映射）。
+    # 采集器 doudian.collect_category：导航 rank-product → 打开类目 cascader →
+    # 选一级行业 + 二级类目（lv2=None 表示该行业「全部」）→ 读 TOP 表。
+    # lv2_id 留空 = 选「全部」；category 为白名单类目名（ComplianceEngine 兜底过滤）。
+    doudian_categories: list[dict] = Field(
+        default_factory=lambda: [
+            {"name": "个护清洁-全部", "industry_name": "个护家清", "industry_id": 5,
+             "category": "个护清洁"},
+            {"name": "家居日用-全部", "industry_name": "智能家居", "industry_id": 7,
+             "category": "家居日用"},
+            {"name": "厨房用品-餐饮厨具", "industry_name": "智能家居", "industry_id": 7,
+             "lv2_name": "餐饮厨具", "lv2_id": "1000009092", "category": "厨房用品"},
+            {"name": "宠物用品-宠物生活", "industry_name": "母婴宠物", "industry_id": 10,
+             "lv2_name": "宠物生活", "lv2_id": "1000002529", "category": "宠物用品"},
+            {"name": "服饰配件-全部", "industry_name": "服饰内衣", "industry_id": 4,
+             "category": "服饰配件"},
+            {"name": "数码配件-3C", "industry_name": "3C数码家电", "industry_id": 14,
+             "lv2_name": "3C数码及配件", "lv2_id": "1000007020", "category": "数码配件"},
+            {"name": "户外运动-全部", "industry_name": "运动户外", "industry_id": 18,
+             "category": "户外运动"},
+            {"name": "办公文具-办公设备", "industry_name": "3C数码家电", "industry_id": 14,
+             "lv2_name": "办公设备及耗材", "lv2_id": "1000002394", "category": "办公文具"},
+        ]
+    )
+
     # P2-6 考古加（kaogujia）—— 第四源备胎（REC-006：D-1 裁决，考古加降级可选第四源）。
     # 榜单目录来自旧系统 kaogujia_board_catalog.py（2026-08 现场，配套 playwright_kaogujia.py 32KB 分页逻辑）。
     # 状态：**仅配置登记，未启用**（enabled=False → 不参与采集/调度）：

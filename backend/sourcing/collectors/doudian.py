@@ -86,6 +86,73 @@ class DoudianCollector(Collector):
             self.browser.current_page("compass.jinritemai.com"), board, limit
         )
 
+    def collect_category(self, cat: dict, limit: int = 200) -> list[SourceItem]:
+        """白名单类目定向采集（P-040，2026-09-01 用户提议：罗盘 TOP200 可筛行业类目）。
+
+        流程：导航 rank-product → 打开类目 cascader → 选行业一级 → 选二级（或「全部」）
+        → 复用 _collect_from_page 读 TOP 表。industry_name/lv2_name 来自
+        config.doudian_categories（industry_id/category_id 已实测映射）。
+        """
+        page = self.browser.page()
+        try:
+            page.goto(
+                self.selectors.get("home_url", "https://compass.jinritemai.com/shop/chance/rank-product"),
+                timeout=45000,
+                wait_until="domcontentloaded",
+            )
+            page.wait_for_timeout(4500)
+            self._select_category(page, cat.get("industry_name", ""), cat.get("lv2_name"))
+            return self._collect_from_page(page, cat.get("name", "类目榜"), limit)
+        finally:
+            page.close()
+
+    def _select_category(
+        self, page, industry_name: str, lv2_name: str | None = None
+    ) -> None:
+        """打开罗盘类目 cascader 并选择行业 + 二级类目（P-040 实测 aurora-select 组件）。"""
+        try:
+            page.locator(".aurora-select-content-value").first.click(timeout=5000, force=True)
+            page.wait_for_timeout(1500)
+        except Exception as e:
+            raise CollectorError(f"打开类目选择器失败: {e}", "PAGE_CHANGED") from e
+
+        ok = page.evaluate(
+            """(name) => {
+                const items = [...document.querySelectorAll('.aurora-cascader-menu-item')];
+                const tgt = items.find(el => (el.getAttribute('title')||'') === name);
+                if (tgt) { tgt.click(); return true; }
+                return false;
+            }""",
+            industry_name,
+        )
+        if not ok:
+            raise CollectorError(f"未找到行业类目「{industry_name}」", "PAGE_CHANGED")
+        page.wait_for_timeout(2000)
+
+        if lv2_name:
+            ok = page.evaluate(
+                """(name) => {
+                    const items = [...document.querySelectorAll('.aurora-cascader-menu-item')];
+                    const tgt = items.find(el => (el.getAttribute('title')||'') === name);
+                    if (tgt) { tgt.click(); return true; }
+                    return false;
+                }""",
+                lv2_name,
+            )
+            if not ok:
+                raise CollectorError(f"未找到二级类目「{lv2_name}」", "PAGE_CHANGED")
+            page.wait_for_timeout(3000)
+        else:
+            # 未指定二级 → 选「全部」（该行业全部商品）
+            page.evaluate(
+                """() => {
+                    const items = [...document.querySelectorAll('.aurora-cascader-menu-item')];
+                    const tgt = items.find(el => (el.getAttribute('title')||'') === '全部');
+                    if (tgt) tgt.click();
+                }"""
+            )
+            page.wait_for_timeout(3000)
+
     def _collect_from_page(self, page, board: str, limit: int) -> list[SourceItem]:
         try:
             if page.locator(self.selectors["login_gate"]).first.is_visible(timeout=2000):
@@ -95,6 +162,9 @@ class DoudianCollector(Collector):
             # A3：需要页内 tab 的榜单（如飙升榜=店铺榜单页内 tab）先切到目标 tab 再采集；
             # 无映射的榜单（商品榜，默认总榜）直接跳过，零影响。
             self._ensure_board_tab(page, board)
+            # P-040：类目切换后表格异步加载（部分类目如服饰内衣为三级 cascader、加载慢），
+            # 先轮询等待表格行出现（≤15s），避免慢加载误报 PAGE_CHANGED。
+            self._wait_table_rows(page, timeout_ms=15000)
             # Aurora 表格首行是隐藏表头（height:0），用行数判断而非 is_visible
             if page.locator(self.selectors["row"]).count() < 2:
                 raise CollectorError(
@@ -161,6 +231,19 @@ class DoudianCollector(Collector):
             raise
         except Exception as e:
             raise CollectorError(f"抖店罗盘采集失败（{board}）：{e}", "UNEXPECTED") from e
+
+    def _wait_table_rows(self, page, timeout_ms: int = 15000) -> None:
+        """轮询等待表格数据行出现（P-040：类目切换后异步加载，慢类目需等待）。"""
+        import time
+
+        deadline = time.time() + timeout_ms / 1000
+        while time.time() < deadline:
+            try:
+                if page.locator(self.selectors["row"]).count() >= 2:
+                    return
+            except Exception:
+                pass
+            page.wait_for_timeout(1000)
 
     def _locate_columns(self, page) -> dict[str, int]:
         """按表头动态定位列索引；config 显式配置的 columns 优先。
