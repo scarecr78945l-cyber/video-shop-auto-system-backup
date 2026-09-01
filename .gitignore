@@ -31,6 +31,10 @@ out/
 *.sqlite3
 backend/data/db/
 
+# ===== 运行时素材/图片（M3 上架素材本地缓存，不入库；可随时重生成）=====
+backend/data/images/
+backend/data/_tmp/
+
 # ===== 本地编辑器 / 系统 =====
 .obsidian/
 .vscode/

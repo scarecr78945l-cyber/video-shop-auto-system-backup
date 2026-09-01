@@ -302,3 +302,10 @@
 - **踩坑**：演练脚本（_listing_intake.py）用 pipeline.submit(mock adapter) 端到端模拟时，把 50 个商品写成了 **listed**（task_id=`listing_*`、mock 链接、link_verified_at 有值）→ 污染 m4-listing.db，会让 M5 候选池误判「已上架」。**已清理**（删 50 个 mock listed 任务及关联 spus/skus/op_logs），保留正式 pending 任务。
 - **真实 live 上架前置**（REC-004 待用户）：① M3 真实素材（主图 5 张 1:1 + 详情图，当前占位图）；② 类目资质/运费模板（店铺后台配置）；③ 契约 T2/T4/T7 核对。前置齐备后：前端 confirm → pipeline.submit（live）。
 - **防复发**：① 演练/模拟脚本不得对正式库跑「直通 listed」的 submit（mock 上架只应存在于测试临时库）；② intake 只建 pending（真实上架由 confirm 触发）；③ 模拟数据必须可区分（task_id 前缀/证据标记），误入正式库即清理。
+## P-042 ｜ M4 上架真实素材生成（有米云重登后 56/65）+ intake 真实素材优先
+
+- **出现时间**：2026-09-01 ｜ **模块**：M4 上架素材 / M3 链路 ｜ **代理**：总控（用户批准推进上架 + 重登有米云）
+- **推进**：商品池 65 个中 64 个图源为有米云 umcdn 时效签名（曾 403）——用户重登有米云后重采 200 条（新签名图），按标题匹配 pool 商品 → **下载本地 → PIL 生成 5 张 1:1 主图 + 详情图（56/65）**；#1（微信图）单独补生成；9 个有米云商品本次榜单未命中（旧签名 403，可能掉榜，登记待补）。
+- **intake 升级**：`listing intake` 优先用 `data/images/listing/<pid>/` 真实素材（main_0..4 + detail_0），缺失回退 PIL 占位图；清理旧占位 pending → 重建 **65 个 pending 上架任务**（真实素材优先）。
+- **结果**：65 个 pending 任务（API 可见），M4 回归 115 passed；素材目录 `backend/data/images/listing/`（56 商品，供 live 上架传图）。
+- **登记**：pitfall-log P-042、dashboard。

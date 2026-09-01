@@ -75,17 +75,29 @@ def cmd_intake(args: argparse.Namespace) -> int:
     con.close()
 
     tmp = Path(tempfile.mkdtemp(prefix="listing_intake_"))
+    # P-042：优先使用 M3 素材链路产出的真实素材（data/images/listing/<pid>/，
+    # 5 张 1:1 主图 main_0..4 + 详情图 detail_0）；缺失时回退 PIL 占位图（live 前须补）。
+    asset_root = Path("data/images/listing")
 
     def make_images(pid: int, n_main: int = 5):
+        real = asset_root / str(pid)
         mains, details = [], []
-        for i in range(n_main):
-            p = tmp / f"p{pid}_main_{i}.png"
-            Image.new("RGB", (800, 800), (30 + i * 50 % 220, 40 + i * 40 % 220, 50 + i * 30 % 220)).save(p)
-            mains.append(str(p))
-        d = tmp / f"p{pid}_detail.png"
-        Image.new("RGB", (800, 800), (120, 200, 90)).save(d)
-        details.append(str(d))
-        return mains, details
+        if real.is_dir():
+            mains = [str(real / f"main_{i}.png") for i in range(n_main)
+                     if (real / f"main_{i}.png").exists()]
+            if (real / "detail_0.png").exists():
+                details.append(str(real / "detail_0.png"))
+        if len(mains) < n_main or not details:
+            for i in range(n_main):
+                p = tmp / f"p{pid}_main_{i}.png"
+                Image.new("RGB", (800, 800), (30 + i * 50 % 220, 40 + i * 40 % 220, 50 + i * 30 % 220)).save(p)
+                if len(mains) < n_main:
+                    mains.append(str(p))
+            d = tmp / f"p{pid}_detail.png"
+            Image.new("RGB", (800, 800), (120, 200, 90)).save(d)
+            if not details:
+                details.append(str(d))
+        return mains[:n_main], details
 
     stats = {"created": 0, "duplicate": 0, "gate_fail": 0, "errors": 0}
     reasons: dict[str, int] = {}
