@@ -17,6 +17,7 @@ fixtures 模式见 fixtures.FixtureQuoteCollector。
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from urllib.parse import quote
 
 from ..config import CollectorConfig
@@ -73,14 +74,34 @@ class AlibabaQuoteCollector(QuoteCollector):
                 wait_until="domcontentloaded",
             )
             if not self._wait_results(page):
-                raise CollectorError("1688 搜图结果未渲染（页面改版或加载失败）", "PAGE_CHANGED")
+                # P-036 回退：图 URL 签名失效（umcdn auth_key 403，见 pitfall-log P-036）
+                # → 下载本地图 → 1688 首页上传搜图（不依赖签名 URL，彻底根治时效问题）
+                tmp_img = self._download_image(image_url)
+                try:
+                    page.goto(
+                        "https://www.1688.com/", timeout=45000,
+                        wait_until="domcontentloaded",
+                    )
+                    page.wait_for_timeout(1500)
+                    upload = page.locator("input[type=file]").first
+                    upload.set_input_files(tmp_img, timeout=30000)
+                finally:
+                    tmp_img.unlink(missing_ok=True)
+                page.wait_for_timeout(3000)
+                if not self._wait_results(page):
+                    raise CollectorError("1688 搜图结果未渲染（页面改版或加载失败）", "PAGE_CHANGED")
             if page.locator(self.selectors["login_gate"]).first.is_visible(timeout=2000):
                 raise CollectorError("1688 登录态失效，需人工登录", "AUTH_REQUIRED")
             if page.locator(self.selectors["verify_gate"]).first.is_visible(timeout=2000):
                 raise CollectorError("1688 触发安全验证", "VERIFICATION_REQUIRED")
 
             quotes: list[Quote] = []
+            # P-038（2026-09-01 实测）：先在搜图结果页**一次性提取全部卡片数据**
+            # （offerId/标题/供应商），再逐个 goto detail 读价——
+            # 旧实现循环内逐卡 goto，首次导航后其余卡片 ElementHandle 引用旧页面
+            # 全部失效（get_attribute 30s 超时）→ 每商品实际只询到 1 家。
             rows = page.locator(self.selectors["result_row"]).all()[:max_suppliers]
+            card_data: list[tuple[str, str, str]] = []
             for row in rows:
                 try:
                     offer_id = self._offer_id_from_row(row)
@@ -97,6 +118,12 @@ class AlibabaQuoteCollector(QuoteCollector):
                     )
                     if not offer_id or not title:
                         continue
+                    card_data.append((offer_id, title, supplier))
+                except Exception:
+                    continue
+
+            for offer_id, title, supplier in card_data:
+                try:
                     detail_url = f"https://detail.1688.com/offer/{offer_id}.html"
                     # wait_until="commit"：只等导航开始（不等 domcontentloaded，detail 页
                     # 资源重加载慢会拖慢询价；渲染由固定等待兜底）
@@ -192,6 +219,8 @@ class AlibabaQuoteCollector(QuoteCollector):
 
         实测 .price-info 含多档（新人价 ¥8.00 / 老客价 ¥10.00 / ¥12.00），
         取最小数值作为「最低有效成本」；价格区改版时回退宽泛 [class*='price-info']。
+        P-038：价格文本可能被字体渲染拆成逐字符换行（"¥\\n2\\n.80"），
+        解析前先合并换行（否则 regex 只取到整数位，价格偏低）。
         """
         loc = page.locator(self.selectors["detail_price"])
         if loc.count() == 0:
@@ -199,7 +228,7 @@ class AlibabaQuoteCollector(QuoteCollector):
         prices: list[float] = []
         for i in range(min(loc.count(), 12)):
             try:
-                txt = loc.nth(i).inner_text(timeout=1500)
+                txt = loc.nth(i).inner_text(timeout=1500).replace("\n", "")
                 m = re.search(r"¥\s*([\d.]+)", txt)
                 if m:
                     prices.append(float(m.group(1)))
@@ -255,6 +284,19 @@ class AlibabaQuoteCollector(QuoteCollector):
             if url.startswith("http://") or url.startswith("https://"):
                 return url
         return ""
+
+    @staticmethod
+    def _download_image(url: str) -> Path:
+        """下载图片到临时文件（P-026/P-036：以图搜款上传用；失败抛 CollectorError）。"""
+        import tempfile
+        import urllib.request
+
+        try:
+            tmp = Path(tempfile.gettempdir()) / f"1688_upload_{abs(hash(url))}.jpg"
+            urllib.request.urlretrieve(url, tmp)
+            return tmp
+        except Exception as exc:
+            raise CollectorError(f"1688 以图搜款图片下载失败: {type(exc).__name__}", "NO_MATCH") from exc
 
     # REC-迁移-02（C2）：上架必填参数清单（对照 old-system-assets/listing-requirements.json missing_field_labels）
     REQUIRED_ATTR_LABELS = [

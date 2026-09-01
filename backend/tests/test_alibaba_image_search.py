@@ -61,7 +61,7 @@ def test_quote_without_image_raises_no_match(monkeypatch):
 
 # ------------------------------------------------------------------ P-028 mock 基础设施
 class FakeSingle:
-    """单个元素（inner_text / is_visible / count）。"""
+    """单个元素（inner_text / is_visible / count / set_input_files）。"""
 
     def __init__(self, text="", visible=False):
         self._text = text
@@ -75,6 +75,9 @@ class FakeSingle:
 
     def count(self):
         return 1
+
+    def set_input_files(self, *a, **k):
+        pass  # P-036 本地图上传回退：no-op mock
 
 
 class FakeMulti:
@@ -244,13 +247,56 @@ def test_quote_success_flow(monkeypatch):
 
 
 def test_quote_no_results_raises_page_changed(monkeypatch):
-    """P-028：搜图结果未渲染 → PAGE_CHANGED。"""
+    """P-028/P-036：搜图结果未渲染 → 本地图上传回退 → 仍失败 → PAGE_CHANGED。"""
+    from pathlib import Path
+
     page = FakePage(rows=[])
     col = _make_collector(page, monkeypatch)
-    monkeypatch.setattr(col, "_wait_results", lambda page, timeout_ms=30000: False)
+    monkeypatch.setattr(col, "_wait_results", lambda page, timeout_ms=20000: False)
+    monkeypatch.setattr(col, "_download_image", lambda url: Path("/tmp/fake.jpg"))
     with pytest.raises(CollectorError) as exc:
         col.quote(_item(image_urls=["https://img.example.com/a.jpg"]))
     assert exc.value.error_code == "PAGE_CHANGED"
+
+
+def test_quote_fallback_to_local_upload(monkeypatch):
+    """P-036：直链搜图无结果 → 下载本地图 → 首页上传 → 搜图成功返回报价。"""
+    from pathlib import Path
+    from sourcing.collectors.alibaba import AlibabaQuoteCollector as AC
+
+    # 第一次 _wait_results False（直链失败），第二次 True（本地图上传成功）
+    class FlipPage(FakePage):
+        def __init__(self):
+            super().__init__(rows=[], prices=["新人价¥8.00起"])
+            self._waits = 0
+
+    page = FlipPage()
+    col = _make_collector(page, monkeypatch)
+
+    def flaky_wait(page, timeout_ms=20000):
+        page._waits += 1
+        return page._waits >= 2  # 第二次 True
+
+    monkeypatch.setattr(col, "_wait_results", flaky_wait)
+    monkeypatch.setattr(
+        col, "_download_image",
+        lambda url: Path("/tmp/fake_upload.jpg"),
+    )
+    # rows 由第二次 wait 后返回——用 monkeypatch 让 locator 在第二次后返回卡片
+    orig = page.locator
+
+    def loc(sel):
+        if "[class*='searchOfferItem']" in sel:
+            # 卡片数据（offerId 从 renderkey 提取）
+            if page._waits >= 2:
+                return FakeMulti([FakeRow("1_0_normal_b2b-x_1052811778069", "玫瑰洗衣液", "米诺蒂儿公司")])
+            return FakeMulti([])
+        return orig(sel)
+
+    page.locator = loc
+    quotes = col.quote(_item(image_urls=["https://img.example.com/a.jpg"]))
+    assert len(quotes) == 1
+    assert quotes[0].raw_url == "https://detail.1688.com/offer/1052811778069.html"
 
 
 def test_quote_login_gate_raises_auth_required(monkeypatch):
