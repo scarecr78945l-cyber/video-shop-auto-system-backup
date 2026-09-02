@@ -331,3 +331,17 @@
 - **解决方案（Codex 逆向前端 JS bundle 后落地）**：下载分析 `g.alicdn.com/main-search/new-search-suggest/2.14.6/bundle.js`（292KB）+ `pc-search-2024/1.8.54/js/main.js`（5MB），拿到 DOM 契约（`[data-spm="image_search_icon"]`/`#image-search-custom-file-input`/`#image-search-upload-button`/`upload-button-active`）与 MTOP 接口（`mtop.relationrecommend.wirelessrecommend.recommend` appId=46006，strimg 传压缩图）；写 `taobao_image_search_cdp.py` 两阶段脚本——实测 3 商品各返回 57 同款，详情页扒 8 张主图。固化版 `_experiment/pdd-scrape/taobao_v3.py`。
 - **教训**：复杂平台交互（识图/上传类）第一动作是**逆向前端 JS 找真实状态机与 DOM 契约**，而非黑盒反复试注入方式——源码逆向 > 试错。
 - **防复发**：① 识图类交互先下载分析前端 bundle（找 DOM 选择器/状态类名/API）；② 多阶段组件必须等前序状态（如按钮 active）再触发后续动作；③ 淘宝识图输入仅接受 PNG/JPG/JPEG（webp 需转 PNG）。
+## P-045b ｜ 淘宝识图下载图片扩展名与内容不符（alicdn 返回 webp 字节但 URL 为 .jpg）
+
+- **出现时间**：2026-09-02 ｜ **模块**：M4 上架素材 / 淘宝识图 ｜ **代理**：总控（taobao_v4 全量跑）
+- **现象与根因**：淘宝详情页图片 URL 为 `....jpg_q50.jpg_.webp`（经 hd_url 剥后缀得 `....jpg` 原图 URL），但 alicdn 对该 URL 返回的是 **webp 字节**（Content 按 Accept/默认压缩策略），导致下载文件以 `.jpg` 命名却是 webp 内容——`read_image`/部分消费者报「扩展名声明 jpeg 但字节是其他格式」。
+- **解决方案**：taobao_v4.py `scrape_detail` 下载后**按内容识别格式**（PIL `im.format`）再定扩展名；集成脚本 `_integrate_real_images.py` 一律经 PIL 内容嗅探转 800×800 PNG（规避扩展名陷阱）。
+- **防复发**：① alicdn 图下载一律「按内容定扩展名」而非按 URL 扩展名；② 任何图片处理前用 PIL 嗅探真实格式。
+
+## P-046 ｜ 淘宝识图批量跑触发登录态失效（AUTH_REQUIRED）+ 频率冷却（P-039 升级）
+
+- **出现时间**：2026-09-02 ｜ **模块**：M4 上架素材 / 淘宝识图 ｜ **代理**：总控
+- **现象与根因**：taobao_v4 全量跑：前 13 商品成功（高清同款图下载），随后连续 3 个商品 `upload-button-active` 等 45s 超时 → 熔断（P-039 纪律生效）。冷却 10 分钟后续跑首商品即 `Locator.click` 45s 超时（相机图标点击不了）。**根因诊断**：共享 Chrome 9223 的**淘宝登录态已失效**——首页出现「请登录」+ 登录表单，`elementFromPoint` 显示 `J_MIDDLEWARE_FRAME_WIDGET` 覆盖层拦截相机图标点击（非登录态首页布局）。登录态失效为自动化怀疑/自然过期所致（P-002 预判命中），与 1688 高频引发的阿里系风控（P-039）同源风险升级。
+- **解决方案**：① 立即停止淘宝自动化（熔断 + 不再重试）；② 按 P-002 **转人工登录**（用户重新登录淘宝于共享 Chrome 9223）；③ 恢复后**低频续跑**：`taobao_v4.py` 内置 `--interval=8+ --batch-size=10 --batch-pause=300`（批次间长暂停）续跑剩余 48 商品（断点续跑自动跳过已完成）；④ 已完成的 13 商品真实图已接入主项目（`_integrate_real_images.py`）。
+- **数据保全**：13 商品高清真实同款主图已落地并接入 listing（门禁 61/65 通过）；剩余 48 商品待登录恢复后续跑；4 商品（17/164/165/166）无源图（有米云 umcdn 签名 403，P-042 登记），待有米云重采。
+- **防复发**：① 大批量平台自动化前置「登录态探活」（首页含"请登录"即 AUTH_REQUIRED 停止转人工）；② 频率冷却遵循 P-039：商品间隔 ≥5s、单轮 ≤15、批次间 ≥4min 长暂停、连续失败 3 次熔断；③ 页面点击超时先查 `elementFromPoint` 是否被覆盖层拦截（区分「选择器失效 P-003」与「登录态失效 P-002」）。
