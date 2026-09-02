@@ -316,3 +316,18 @@
 - **改正（P-043）**：重写为卖家式真实变体——main_0 原图整版 / main_1 中心 2.0x 强特写 / main_2 灰底留白 / main_3 底部红带「热卖」/ main_4 顶部蓝带「新品上架」（与 main_3 对称）；dhash 验证与主图差异 6-38（肉眼可辨）。每商品仅 1 张原图——诚实约束：无法造出 5 张不同产品照，变体是单图标准做法。
 - **结果**：61/65 商品素材齐全（4 个失败=下载 403/榜单未命中，登记待补）；listing 门禁 61/65 通过；pending 任务素材文件已更新（路径不变幂等）。
 - **防复发**：① 素材「做变体」必须**视觉可辨**（缩放/镜像等微调不算，门禁用 SHA256 只防完全重复）；② 生成后 dhash/人眼抽查（与主图差异阈值，如 >8）；③ 诚实交付：单图就说明是构图变体，不冒充多角度产品照。
+## P-044 ｜ 接入用户提供的生图模型（OpenAI 兼容 img2img，gpt-image-2）——真实商品图变体生成
+
+- **出现时间**：2026-09-01 ｜ **模块**：M3 生图 / M4 上架素材 ｜ **代理**：总控（用户提供生图模型端点 http://192.168.31.12:51000/v1 + Key，要求先明确图片要求）
+- **接入**：需求文档 `m3-optimization/context/image-generation-requirements.md`（图类型/尺寸/变体/合规红线）；新增 `optimization/images/openai_provider.py`（`OpenAIImg2ImgProvider`——/v1/images/edits multipart img2img，商品本体保真、错误分类、落盘）。
+- **实测验证**：文生图 ✅（gpt-image-2，1254×1254 b64 返回）；**图生图 ✅**（参考商品图 → 白底/场景/细节变体，商品本体保真——锅刷参考图生成"锅刷清洁蜂窝纹不粘炒锅"高角度产品图 + 白水槽场景图 + 红底卖点横幅）。
+- **覆盖 P-043**：真实变体替代"同图缩放"造假——每商品 3 张 img2img 变体（白底/场景/特写）+ main_0 原图 + 角标变体，视觉可辨。
+- **结果**：小批量 3 商品 9 张验证通过 → 全量 62 商品 × 3 变体后台生成中；M4 门禁 61/65 通过（素材优先真实图）。
+- **防复发**：① 生图 prompt 明确「仅保留商品本体/去文字水印/无功效承诺」防幻觉；② 生成后质量抽查（商品保真/文字不串）；③ 模型配额/限流走令牌桶（RATE_LIMIT 180s 退避）。
+## P-045 ｜ 淘宝以图搜款自动化：两阶段状态机（Codex 攻坚，总控此前 8+ 轮试错全失败）
+
+- **出现时间**：2026-09-02 ｜ **模块**：M4 上架素材 / 淘宝识图 ｜ **代理**：总控 8+ 轮失败 → Codex CLI 攻坚成功
+- **现象与根因**：总控反复尝试触发淘宝网页以图搜款（s.taobao.com/image 直连 / 相机图标 JS 点击 / Playwright+CDP 文件注入 / Ctrl+V 粘贴 / 手机 UA / 系统对话框+pywinauto），全部失败——只有 `image_choose` 埋点、无识图 API、URL 不跳转、只见首页推荐流。根因：淘宝识图组件是**两阶段状态机**——① 向 `#image-search-custom-file-input` 注入图片 → `FileReader`+canvas 压缩 → 按钮变 `upload-button-active`（文字变"搜索"）；② **必须再点一次"搜索"按钮**（`#image-search-upload-button`）→ 才 `window.open` 跳转 `s.taobao.com/search?...localImgKey=...` 结果页。总控只做阶段①，漏了阶段②。
+- **解决方案（Codex 逆向前端 JS bundle 后落地）**：下载分析 `g.alicdn.com/main-search/new-search-suggest/2.14.6/bundle.js`（292KB）+ `pc-search-2024/1.8.54/js/main.js`（5MB），拿到 DOM 契约（`[data-spm="image_search_icon"]`/`#image-search-custom-file-input`/`#image-search-upload-button`/`upload-button-active`）与 MTOP 接口（`mtop.relationrecommend.wirelessrecommend.recommend` appId=46006，strimg 传压缩图）；写 `taobao_image_search_cdp.py` 两阶段脚本——实测 3 商品各返回 57 同款，详情页扒 8 张主图。固化版 `_experiment/pdd-scrape/taobao_v3.py`。
+- **教训**：复杂平台交互（识图/上传类）第一动作是**逆向前端 JS 找真实状态机与 DOM 契约**，而非黑盒反复试注入方式——源码逆向 > 试错。
+- **防复发**：① 识图类交互先下载分析前端 bundle（找 DOM 选择器/状态类名/API）；② 多阶段组件必须等前序状态（如按钮 active）再触发后续动作；③ 淘宝识图输入仅接受 PNG/JPG/JPEG（webp 需转 PNG）。
