@@ -1,0 +1,463 @@
+# external-actions.yaml — P0-0 批 C 契约：外部动作注册表
+# 来源：round-18 §5.1（21 字段契约 + 最小动作覆盖面）+ round-19 §五（采纳）+ round-38 §3（C1/C2 回修）
+# 用途：P0-1 各适配器的外部动作契约唯一依据；官方接口路径仍为 P0-3.5 核对项，当前标「未确认」。
+
+schema_version: "1.0"
+source_documents:
+  - "14-新立项最终方案.md §7/§8"
+  - "15-数据字典.md v6"
+frozen_round: "round-19 / round-20 / round-39"
+count: 20
+
+# 字段：action_id/platform/capability/read_or_write/account_scope/credential_ref/
+#       input_schema/output_schema/gate/idempotency_key_spec/timeout_reconcile_probe/
+#       retry_class/evidence_ref/mode/provider/model/source/
+#       compensation_action_id/irreversible_effect/owner/current_status
+# 规则（round-39 C1/C2 冻结）：
+#   - compensation_action_id 值域 = null | 已登记 action_id（闭包：非空引用集合 ⊆ action_id 集合）；
+#     人工说明（如「进入审核后不可撤回」）移入 YAML 注释或语义字段，ID 字段只留规范值。
+#   - 9 个非创建类 write 的 idempotency_key_spec 统一映射到 idempotency.md 的
+#     workflow_steps.action_idempotency_key（logical_action_slot + target_public_id_or_nil），不再使用 action-local 名称。
+#   - read 动作不产生平台写；write 动作必须有 gate + idempotency + reconcile + compensation/不可逆说明。
+#   - mode: real/mock/fixtures 显式标注；官方接口路径 P0-3.5 核对前一律 current_status: unconfirmed。
+
+entries:
+  - action_id: acc_login_probe
+    platform: wechat_channels
+    capability: 账号/登录探活
+    read_or_write: read
+    account_scope: account
+    credential_ref: credential_refs(openapi/cookie)
+    input_schema: {account_id: int}
+    output_schema: {login_state: enum_login_state, health_state: enum_health_state}
+    gate: none
+    idempotency_key_spec: 只读，无需幂等键
+    timeout_reconcile_probe: none
+    retry_class: TIMEOUT(60s) 有限重试
+    evidence_ref: 响应摘要/时间
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: null
+    irreversible_effect: false
+    owner: platform_session_or_adapter
+    current_status: unconfirmed
+
+  - action_id: shop_list_read
+    platform: wechat_channels
+    capability: 店铺列表读取
+    read_or_write: read
+    account_scope: account
+    credential_ref: credential_refs(openapi/cookie)
+    input_schema: {account_id: int}
+    output_schema: {shops: [{shop_id, platform_shop_id, status}]}
+    gate: none
+    idempotency_key_spec: 只读，无需幂等键
+    timeout_reconcile_probe: none
+    retry_class: TIMEOUT(60s) 有限重试
+    evidence_ref: 响应摘要
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: null
+    irreversible_effect: false
+    owner: platform_session_or_adapter
+    current_status: unconfirmed
+
+  - action_id: category_qualification_read
+    platform: wechat_channels
+    capability: 类目/资质读取
+    read_or_write: read
+    account_scope: shop
+    credential_ref: credential_refs(openapi)
+    input_schema: {shop_id: int}
+    output_schema: {categories: [{category_id, qualification_status}]}
+    gate: none
+    idempotency_key_spec: 只读，无需幂等键
+    timeout_reconcile_probe: none
+    retry_class: TIMEOUT(60s) 有限重试
+    evidence_ref: 响应摘要
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: null
+    irreversible_effect: false
+    owner: platform_session_or_adapter
+    current_status: unconfirmed
+
+  - action_id: board_snapshot_read
+    platform: youmi
+    capability: 榜单/页面信号读取
+    read_or_write: read
+    account_scope: account
+    credential_ref: credential_refs(cookie)
+    input_schema: {source_account_id: int, board: str, window: str}
+    output_schema: {rows: [{title, category, price, signals}]}
+    gate: none
+    idempotency_key_spec: 批次幂等（selection_decisions.selection_batch_key 派生，见 idempotency.md #3）
+    timeout_reconcile_probe: none
+    retry_class: TIMEOUT(60s)/RATE_LIMIT(180s) 退避
+    evidence_ref: 页面截图/响应哈希
+    mode: real
+    provider: youmi
+    model: web
+    source: board
+    compensation_action_id: null
+    irreversible_effect: false
+    owner: domain_workflow
+    current_status: unconfirmed
+
+  - action_id: supplier_quote_read
+    platform: alibaba
+    capability: 供应商/报价读取
+    read_or_write: read
+    account_scope: account
+    credential_ref: credential_refs(cookie)
+    input_schema: {product_id: int, sku_id: int}
+    output_schema: {offers: [{supplier_id, price, shipping, expires_at}]}
+    gate: none
+    idempotency_key_spec: supplier_offers.idempotency_key 派生（见 idempotency.md #1）
+    timeout_reconcile_probe: none
+    retry_class: TIMEOUT(60s)/NO_MATCH(120s)
+    evidence_ref: 页面截图
+    mode: real
+    provider: alibaba
+    model: web
+    source: inquiry
+    compensation_action_id: null
+    irreversible_effect: false
+    owner: platform_adapter
+    current_status: unconfirmed
+
+  - action_id: material_read
+    platform: wechat_channels
+    capability: 素材读取
+    read_or_write: read
+    account_scope: shop
+    credential_ref: credential_refs(cookie)
+    input_schema: {shop_id: int, material_ids: [int]}
+    output_schema: {materials: [{material_id, url, rights}]}
+    gate: none
+    idempotency_key_spec: 只读，无需幂等键
+    timeout_reconcile_probe: none
+    retry_class: TIMEOUT(60s)
+    evidence_ref: 响应摘要
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: null
+    irreversible_effect: false
+    owner: platform_session_or_adapter
+    current_status: unconfirmed
+
+  - action_id: material_upload
+    platform: wechat_channels
+    capability: 素材上传
+    read_or_write: write
+    account_scope: shop
+    credential_ref: credential_refs(cookie)
+    input_schema: {shop_id: int, file_ref: str, purpose: str}
+    output_schema: {material_id: str}
+    gate: 素材闸门（规格/权限/审核）
+    idempotency_key_spec: workflow_steps.action_idempotency_key；logical_action_slot=material_upload；target=asset.public_id（见 idempotency.md #11）
+    timeout_reconcile_probe: 超时先按 action key 查 workflow_steps 取回原 token，再查平台 evidence
+    retry_class: TIMEOUT(60s) 有限重试
+    evidence_ref: 上传响应/素材 ID
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: material_delete
+    irreversible_effect: false
+    owner: platform_action
+    current_status: unconfirmed
+
+  - action_id: material_delete
+    platform: wechat_channels
+    capability: 素材删除
+    read_or_write: write
+    account_scope: shop
+    credential_ref: credential_refs(cookie)
+    input_schema: {shop_id: int, material_id: str}
+    output_schema: {ok: bool}
+    gate: 素材闸门（删除确认）
+    idempotency_key_spec: workflow_steps.action_idempotency_key；logical_action_slot=material_delete；target=asset.public_id（见 idempotency.md #11）
+    timeout_reconcile_probe: 超时先按 action key 查 workflow_steps，再查平台 evidence
+    retry_class: TIMEOUT(60s) 有限重试
+    evidence_ref: 删除响应
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: null
+    irreversible_effect: true
+    owner: platform_action
+    current_status: unconfirmed
+
+  - action_id: product_schema_read
+    platform: wechat_channels
+    capability: 商品 schema 读取
+    read_or_write: read
+    account_scope: shop
+    credential_ref: credential_refs(openapi)
+    input_schema: {shop_id: int}
+    output_schema: {product_schema: jsonb}
+    gate: none
+    idempotency_key_spec: 只读，无需幂等键
+    timeout_reconcile_probe: none
+    retry_class: TIMEOUT(60s)
+    evidence_ref: 响应摘要
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: null
+    irreversible_effect: false
+    owner: platform_session_or_adapter
+    current_status: unconfirmed
+
+  - action_id: product_create
+    platform: wechat_channels
+    capability: 商品创建
+    read_or_write: write
+    account_scope: shop
+    credential_ref: credential_refs(openapi)
+    input_schema: {shop_id: int, product: jsonb, skus: [jsonb]}
+    output_schema: {platform_product_id: str}
+    gate: 上架闸门（标题/SKU/资质/运费模板）
+    idempotency_key_spec: shop_listings.idempotency_key（见 idempotency.md #4；submit_intent=workflow logical action slot）
+    timeout_reconcile_probe: 超时先按本地 key + 平台证据查已有商品
+    retry_class: TIMEOUT(60s)/RATE_LIMIT(180s) 退避
+    evidence_ref: 平台响应/商品 ID
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: product_close
+    irreversible_effect: true
+    owner: platform_action
+    current_status: unconfirmed
+
+  - action_id: product_update
+    platform: wechat_channels
+    capability: 商品更新
+    read_or_write: write
+    account_scope: shop
+    credential_ref: credential_refs(openapi)
+    input_schema: {shop_listing_id: int, fields: jsonb}
+    output_schema: {ok: bool}
+    gate: 上架闸门（变更校验）
+    idempotency_key_spec: workflow_steps.action_idempotency_key；logical_action_slot=product_update；target=shop_listing.public_id（见 idempotency.md #11）
+    timeout_reconcile_probe: 超时先按 action key 查 workflow_steps，再查平台 evidence
+    retry_class: TIMEOUT(60s)
+    evidence_ref: 平台响应
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: product_update
+    irreversible_effect: false
+    owner: platform_action
+    current_status: unconfirmed
+
+  - action_id: product_submit_audit
+    platform: wechat_channels
+    capability: 商品提交审核
+    read_or_write: write
+    account_scope: shop
+    credential_ref: credential_refs(openapi)
+    input_schema: {shop_listing_id: int, media_ids: [str]}
+    output_schema: {audit_id: str}
+    gate: 上架闸门（素材绑定完整）
+    idempotency_key_spec: workflow_steps.action_idempotency_key；logical_action_slot=product_submit_audit；target=shop_listing.public_id（见 idempotency.md #11）
+    timeout_reconcile_probe: 超时先按 action key 查 workflow_steps，再查审核状态
+    retry_class: TIMEOUT(60s)
+    evidence_ref: 平台响应/审核 ID
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: null  # 进入审核后不可撤回
+    irreversible_effect: true
+    owner: platform_action
+    current_status: unconfirmed
+
+  - action_id: product_status_read
+    platform: wechat_channels
+    capability: 商品状态读取
+    read_or_write: read
+    account_scope: shop
+    credential_ref: credential_refs(openapi)
+    input_schema: {shop_listing_id: int}
+    output_schema: {status: str, reject_reason: str}
+    gate: none
+    idempotency_key_spec: 只读，无需幂等键
+    timeout_reconcile_probe: none
+    retry_class: TIMEOUT(60s)/NO_MATCH(120s)
+    evidence_ref: 平台响应
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: null
+    irreversible_effect: false
+    owner: platform_action
+    current_status: unconfirmed
+
+  - action_id: product_close
+    platform: wechat_channels
+    capability: 商品关闭
+    read_or_write: write
+    account_scope: shop
+    credential_ref: credential_refs(openapi)
+    input_schema: {shop_listing_id: int, reason: str}
+    output_schema: {ok: bool}
+    gate: 关闭确认（人工/规则）
+    idempotency_key_spec: workflow_steps.action_idempotency_key；logical_action_slot=product_close；target=shop_listing.public_id（见 idempotency.md #11）
+    timeout_reconcile_probe: 超时先按 action key 查 workflow_steps，再查关闭状态
+    retry_class: TIMEOUT(60s)
+    evidence_ref: 平台响应
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: null  # 关闭为不可逆
+    irreversible_effect: true
+    owner: platform_action
+    current_status: unconfirmed
+
+  - action_id: ads_report_read
+    platform: wechat_channels
+    capability: 投放报表/诊断读取
+    read_or_write: read
+    account_scope: shop
+    credential_ref: credential_refs(cookie)
+    input_schema: {shop_id: int, campaign_id: int, window: str}
+    output_schema: {snapshots: [{spend, gmv, roi, diagnosis}]}
+    gate: none
+    idempotency_key_spec: ad_report_snapshots.report_version_key（canonical，见 idempotency.md #8）
+    timeout_reconcile_probe: none
+    retry_class: TIMEOUT(60s)/RATE_LIMIT(180s)
+    evidence_ref: 报表截图/响应哈希
+    mode: real
+    provider: wechat
+    model: channels
+    source: report
+    compensation_action_id: null
+    irreversible_effect: false
+    owner: platform_session_or_adapter
+    current_status: unconfirmed
+
+  - action_id: campaign_create
+    platform: wechat_channels
+    capability: 投放计划创建
+    read_or_write: write
+    account_scope: shop
+    credential_ref: credential_refs(cookie)
+    input_schema: {shop_listing_id: int, budget: int, target_roi: numeric}
+    output_schema: {platform_campaign_id: str}
+    gate: 托管闸门（预算/ROI/人工确认）
+    idempotency_key_spec: ad_campaigns.idempotency_key（见 idempotency.md #7；create_intent=manual approval public ref）
+    timeout_reconcile_probe: 超时先按本地 key + 平台证据查已有 campaign
+    retry_class: TIMEOUT(60s)/RATE_LIMIT(180s)
+    evidence_ref: 平台响应/计划 ID
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: campaign_stop
+    irreversible_effect: false
+    owner: platform_action
+    current_status: unconfirmed
+
+  - action_id: campaign_start
+    platform: wechat_channels
+    capability: 投放计划启动
+    read_or_write: write
+    account_scope: shop
+    credential_ref: credential_refs(cookie)
+    input_schema: {campaign_id: int}
+    output_schema: {status: str}
+    gate: 托管闸门（人工确认后）
+    idempotency_key_spec: workflow_steps.action_idempotency_key；logical_action_slot=campaign_start；target=ad_campaign.public_id（见 idempotency.md #11）
+    timeout_reconcile_probe: 超时先按 action key 查 workflow_steps，再查状态
+    retry_class: TIMEOUT(60s)
+    evidence_ref: 平台响应
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: campaign_pause
+    irreversible_effect: false
+    owner: platform_action
+    current_status: unconfirmed
+
+  - action_id: campaign_tune
+    platform: wechat_channels
+    capability: 投放计划调参（ROI/预算/素材）
+    read_or_write: write
+    account_scope: shop
+    credential_ref: credential_refs(cookie)
+    input_schema: {campaign_id: int, fields: jsonb}
+    output_schema: {ok: bool}
+    gate: 托管闸门（人工确认后）
+    idempotency_key_spec: workflow_steps.action_idempotency_key；logical_action_slot=campaign_tune；target=ad_campaign.public_id（见 idempotency.md #11）
+    timeout_reconcile_probe: 超时先按 action key 查 workflow_steps，再查状态
+    retry_class: TIMEOUT(60s)
+    evidence_ref: 平台响应
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: campaign_tune
+    irreversible_effect: false
+    owner: platform_action
+    current_status: unconfirmed
+
+  - action_id: campaign_pause
+    platform: wechat_channels
+    capability: 投放计划暂停
+    read_or_write: write
+    account_scope: shop
+    credential_ref: credential_refs(cookie)
+    input_schema: {campaign_id: int}
+    output_schema: {status: str}
+    gate: 止损/人工
+    idempotency_key_spec: workflow_steps.action_idempotency_key；logical_action_slot=campaign_pause；target=ad_campaign.public_id（见 idempotency.md #11）
+    timeout_reconcile_probe: 超时先按 action key 查 workflow_steps，再查状态
+    retry_class: TIMEOUT(60s)
+    evidence_ref: 平台响应
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: campaign_start
+    irreversible_effect: false
+    owner: platform_action
+    current_status: unconfirmed
+
+  - action_id: campaign_stop
+    platform: wechat_channels
+    capability: 投放计划停止
+    read_or_write: write
+    account_scope: shop
+    credential_ref: credential_refs(cookie)
+    input_schema: {campaign_id: int}
+    output_schema: {status: str}
+    gate: 人工/一键全停
+    idempotency_key_spec: workflow_steps.action_idempotency_key；logical_action_slot=campaign_stop；target=ad_campaign.public_id（见 idempotency.md #11）
+    timeout_reconcile_probe: 超时先按 action key 查 workflow_steps，再查状态
+    retry_class: TIMEOUT(60s)
+    evidence_ref: 平台响应
+    mode: real
+    provider: wechat
+    model: channels
+    source: platform
+    compensation_action_id: null  # 停止为终态
+    irreversible_effect: true
+    owner: platform_action
+    current_status: unconfirmed

@@ -1,0 +1,228 @@
+# enum-registry.yaml — P0-0 批 A 契约
+# 来源：15-数据字典.md v6 §0.3（round-16 冻结）
+# 验收：exact-set = 60；名称/值集/字段映射/default/原序与 v6 一致；无第 61 项。
+# 生成顺序：migration 按 entries 顺序 CREATE TYPE；downgrade 逆序 DROP TYPE。
+
+schema_version: "1.0"
+source_document: "15-数据字典.md v6 §0.3"
+frozen_round: "round-16"
+count: 60
+
+# A1（round-23 回修）：32 个 enum DEFAULT exact-set，与 v6 31 表字段定义一致。
+# 校验：default_count=32；每个 default 字段 ∈ 对应 enum 的 used_by；default 值 ∈ 对应 values；无多余/缺失。
+default_count: 32
+defaults:
+  tenants.status: active
+  platform_accounts.login_state: unknown
+  platform_accounts.health_state: healthy
+  platform_accounts.status: draft
+  shops.status: active
+  account_runtime_profiles.status: active
+  credential_refs.status: valid
+  suppliers.health_state: healthy
+  suppliers.status: active
+  products.status: draft
+  product_skus.compliance_status: ok
+  product_skus.salable_status: salable
+  supplier_offers.preferred_status: none
+  selection_decisions.quote_status: none
+  selection_decisions.material_status: unknown
+  selection_decisions.state: discovered
+  assets.rights_status: unknown
+  assets.status: active
+  asset_shop_bindings.authorization_status: pending
+  asset_shop_bindings.review_status: pending
+  shop_listings.status: draft
+  shop_listing_skus.listing_status: listed
+  pricing_decisions.status: draft
+  ad_campaigns.status: draft
+  ad_report_snapshots.diagnosis: unknown
+  ad_report_snapshots.status: unknown
+  workflow_runs.status: running
+  workflow_steps.status: pending
+  manual_tasks.status: pending
+  alert_events.status: open
+  alert_deliveries.status: pending
+  actor_registry.status: active
+
+entries:
+  - name: enum_entity_status
+    values: [active, suspended, archived]
+    used_by: [tenants.status, shops.status, suppliers.status]
+  - name: enum_product_status
+    values: [draft, active, archived]
+    used_by: [products.status]
+  - name: enum_asset_status
+    values: [active, archived, rejected]
+    used_by: [assets.status]
+  - name: enum_health_state
+    values: [healthy, degraded, cooldown, manual_required]
+    used_by: [platform_accounts.health_state, suppliers.health_state]
+  - name: enum_platform
+    values: [wechat_channels, douyin, youmi, luopan, taobao, alibaba]
+    used_by: [platform_accounts.platform]
+  - name: enum_login_state
+    values: [unknown, logged_in, expired, auth_required]
+    used_by: [platform_accounts.login_state]
+  - name: enum_account_status
+    values: [draft, auth_pending, read_verified, config_verified, write_pending, write_verified, ready, suspended]
+    used_by: [platform_accounts.status]
+  - name: enum_profile_purpose
+    values: [default, browser_automation, openapi]
+    used_by: [account_runtime_profiles.purpose]
+  - name: enum_profile_status
+    values: [active, broken, recalibrating]
+    used_by: [account_runtime_profiles.status]
+  - name: enum_credential_purpose
+    values: [cookie, token, openapi_secret, proxy_credential]
+    used_by: [credential_refs.purpose]
+  - name: enum_credential_status
+    values: [valid, expired, rotating, revoked]
+    used_by: [credential_refs.status]
+  - name: enum_supplier_platform
+    values: ["1688", taobao, self, custom]
+    used_by: [suppliers.source_platform]
+  - name: enum_fulfillment_mode
+    values: [drop_ship, self_stock]
+    used_by: [suppliers.fulfillment_mode]
+  - name: enum_common_source
+    values: [manual, import, system]
+    used_by: [suppliers.source]
+  - name: enum_common_mode
+    values: [real, mock, fixtures]
+    used_by: [suppliers.mode, supplier_offers.mode]
+  - name: enum_asset_mode
+    values: [real, mock, fixtures, pillow, ai_generated]
+    used_by: [assets.mode]
+  - name: enum_offer_source
+    values: [supplier_catalog, realtime_inquiry, manual]
+    used_by: [supplier_offers.source]
+  - name: enum_offer_preferred
+    values: [none, current, superseded]
+    used_by: [supplier_offers.preferred_status]
+  - name: enum_sku_compliance
+    values: [ok, hard_reject, manual_review]
+    used_by: [product_skus.compliance_status]
+  - name: enum_decision_compliance
+    values: [hard_reject, candidate, manual_review]
+    used_by: [selection_decisions.compliance_result]
+  - name: enum_sku_salable
+    values: [salable, closed, insufficient_data]
+    used_by: [product_skus.salable_status]
+  - name: enum_listing_sku_status
+    values: [listed, closed, rejected, insufficient_data]
+    used_by: [shop_listing_skus.listing_status]
+  - name: enum_snapshot_objtype
+    values: [product, sku, shop_listing, shop_listing_sku]
+    used_by: [cost_snapshots.decision_object_type]
+  - name: enum_decision_source
+    values: [board_snapshot, page_signal, supplier, manual]
+    used_by: [selection_decisions.source]
+  - name: enum_quote_status
+    values: [none, pending, valid, expired]
+    used_by: [selection_decisions.quote_status]
+  - name: enum_material_status
+    values: [unknown, has_path, material_gap]
+    used_by: [selection_decisions.material_status]
+  - name: enum_decision_state
+    values: [discovered, scored, approved, material_ready, listing_ready]
+    used_by: [selection_decisions.state]
+  - name: enum_asset_source_type
+    values: [supplier_authorized, self_created, purchased_license, web_collected]
+    used_by: [assets.source_type]
+  - name: enum_rights_status
+    values: [owned, authorized, licensed, pending_review, unknown, rejected]
+    used_by: [assets.rights_status]
+  - name: enum_media_purpose
+    values: [main_image, detail_image, ad_video, ad_image]
+    used_by: [asset_product_bindings.purpose, asset_shop_bindings.purpose]
+  - name: enum_shopbind_auth
+    values: [pending, authorized, revoked]
+    used_by: [asset_shop_bindings.authorization_status]
+  - name: enum_shopbind_review
+    values: [pending, approved, rejected]
+    used_by: [asset_shop_bindings.review_status]
+  - name: enum_review_scope
+    values: [asset, asset_product, asset_shop, listing, campaign]
+    used_by: [asset_reviews.review_scope]
+  - name: enum_review_type
+    values: [source, rights, quality, ai_content, first_use, re_submit]
+    used_by: [asset_reviews.review_type]
+  - name: enum_review_decision
+    values: [approved, rejected, needs_rework]
+    used_by: [asset_reviews.decision]
+  - name: enum_listing_status
+    values: [draft, gate_pending, listing, on_sale, rejected, archived]
+    used_by: [shop_listings.status]
+  - name: enum_pricing_type
+    values: [initial, adjustment, promotion]
+    used_by: [pricing_decisions.decision_type]
+  - name: enum_pricing_status
+    values: [draft, pending_approval, approved, rejected, superseded, expired]
+    used_by: [pricing_decisions.status]
+  - name: enum_listevent_type
+    values: [created, gate_retry, auto_fixed, submitted, audit_pass, audit_reject, manual_confirm, on_sale, archived]
+    used_by: [listing_events.event_type]
+  - name: enum_campaign_status
+    values: [draft, pending_confirm, running, paused, stopped, ended, manual_review]
+    used_by: [ad_campaigns.status]
+  - name: enum_snapshot_granularity
+    values: [campaign, shop_listing, shop_listing_sku, campaign_asset]
+    used_by: [ad_report_snapshots.granularity]
+  - name: enum_snapshot_diag
+    values: [excellent, good, optimize_1, optimize_n, unknown]
+    used_by: [ad_report_snapshots.diagnosis]
+  - name: enum_snapshot_status
+    values: [active, paused, not_eligible, pending, ended, unknown]
+    used_by: [ad_report_snapshots.status]
+  - name: enum_feedback_type
+    values: [product_score, category_score, material_score, sku_margin, shop_strategy]
+    used_by: [roi_feedback_events.feedback_type]
+  - name: enum_feedback_subject
+    values: [product, category, material, shop, sku]
+    used_by: [roi_feedback_events.subject_type]
+  - name: enum_run_type
+    values: [listing_flow, material_flow, selection_flow, ads_flow, full_chain]
+    used_by: [workflow_runs.run_type]
+  - name: enum_run_status
+    values: [running, waiting_manual, paused, done, failed, cancelled]
+    used_by: [workflow_runs.status]
+  - name: enum_step_status
+    values: [pending, running, gate_retry, manual_review, done, failed]
+    used_by: [workflow_steps.status]
+  - name: enum_task_type
+    values: [login_assist, gate_override, material_review, listing_confirm, ads_confirm, report_manual, page_calibration]
+    used_by: [manual_tasks.task_type]
+  - name: enum_task_status
+    values: [pending, in_progress, approved, rejected, resolved]
+    used_by: [manual_tasks.status]
+  - name: enum_policy_type
+    values: [cid_breakeven, pricing, compliance, whitelist, budget, stop_loss, rate_limit, gate]
+    used_by: [policy_versions.policy_type]
+  - name: enum_policy_scope
+    values: [global, platform_default, category, shop, product]
+    used_by: [policy_versions.scope_type]
+  - name: enum_alert_severity
+    values: [critical, high, medium, low]
+    used_by: [alert_events.severity]
+  - name: enum_alert_category
+    values: [funds, account, platform, task, infra, data_quality]
+    used_by: [alert_events.category]
+  - name: enum_alert_status
+    values: [open, acknowledged, escalated, recovering, resolved]
+    used_by: [alert_events.status]
+  - name: enum_delivery_channel
+    values: [dashboard, wecom, email, telegram]
+    used_by: [alert_deliveries.channel]
+  - name: enum_delivery_notif
+    values: [open, escalation, recovery]
+    used_by: [alert_deliveries.notification_type]
+  - name: enum_delivery_status
+    values: [pending, retrying, sent, delivered, failed, dropped]
+    used_by: [alert_deliveries.status]
+  - name: enum_actor_kind
+    values: [user, system, worker, service]
+    used_by: [actor_registry.actor_kind]
+  - name: enum_actor_status
+    values: [active, disabled]
+    used_by: [actor_registry.status]

@@ -1,0 +1,201 @@
+# error-codes.yaml — P0-0 批 A 契约
+# 来源：15-数据字典.md v6 §8（7 trigger 码）+ 半成品 WorkflowJob 码表（9 码）合并
+# 验收：exact-set = 16；每项 9 属性；跨字段规则；code 长度 <=32；大小写/重复/未知字段严格拒绝。
+# 存储：应用常量/注册表（非 PG enum）；workflow_steps.error_code 保持 varchar(32)。
+
+schema_version: "1.0"
+source_documents:
+  - "15-数据字典.md v6 §8"
+  - "backend/adapters/wechat_openapi.py ERROR_CODES（现状参考，非新注册表）"
+frozen_round: "round-16 / round-19"
+count: 16
+
+# 属性：9 个必需核心属性 code/category/retryable/backoff_seconds/manual_takeover/terminal/http_mapping/owner/evidence_required
+#       + 可选 supersedes（沿革记录，仅 UNEXPECTED/PAGE_CHANGED 携带；类型=字符串，说明被替代的既有语义）
+# 校验：严格解析时必需 9 项全在；supersedes 仅允许出现在已登记的沿革码上；未知字段仍拒绝。
+# 规则：
+#   - retryable=false 且 manual_takeover=true → 等待人工后恢复，不等同 terminal=true
+#   - retryable=true → 必须给出非负 backoff_seconds 且存在于顶层 retry_policies（机器可读）
+#   - 7 个 trigger 码 retryable=false，同事务不自动重试
+#   - AUTH_REQUIRED / VERIFICATION_REQUIRED 不自动重试（人工接管）
+#   - 所有 code 长度 <= 32
+
+entries:
+  # ---- 7 个 trigger 校验码（v6 §8，BEFORE ROW 即时拒绝，同事务不重试） ----
+  - code: INVALID_POLICY_REF
+    category: trigger
+    retryable: false
+    backoff_seconds: 0
+    manual_takeover: true
+    terminal: false
+    http_mapping: "422"
+    owner: database/domain_integrity
+    evidence_required: true
+  - code: SKU_PRODUCT_MISMATCH
+    category: trigger
+    retryable: false
+    backoff_seconds: 0
+    manual_takeover: true
+    terminal: false
+    http_mapping: "422"
+    owner: database/domain_integrity
+    evidence_required: true
+  - code: CONTEXT_MISMATCH
+    category: trigger
+    retryable: false
+    backoff_seconds: 0
+    manual_takeover: true
+    terminal: false
+    http_mapping: "422"
+    owner: database/domain_integrity
+    evidence_required: true
+  - code: ACCOUNT_SHOP_MISMATCH
+    category: trigger
+    retryable: false
+    backoff_seconds: 0
+    manual_takeover: true
+    terminal: false
+    http_mapping: "422"
+    owner: database/domain_integrity
+    evidence_required: true
+  - code: SCOPE_MISMATCH
+    category: trigger
+    retryable: false
+    backoff_seconds: 0
+    manual_takeover: true
+    terminal: false
+    http_mapping: "422"
+    owner: database/domain_integrity
+    evidence_required: true
+  - code: DIMENSION_MISMATCH
+    category: trigger
+    retryable: false
+    backoff_seconds: 0
+    manual_takeover: true
+    terminal: false
+    http_mapping: "422"
+    owner: database/domain_integrity
+    evidence_required: true
+  - code: SUPERSEDE_MISMATCH
+    category: trigger
+    retryable: false
+    backoff_seconds: 0
+    manual_takeover: true
+    terminal: false
+    http_mapping: "422"
+    owner: database/domain_integrity
+    evidence_required: true
+
+  # ---- 9 个 WorkflowJob 码（半成品码表，round-09 冻结集合） ----
+  - code: VERIFICATION_REQUIRED
+    category: verification
+    retryable: false
+    backoff_seconds: 0
+    manual_takeover: true
+    terminal: false
+    http_mapping: "409"
+    owner: platform_session_or_adapter
+    evidence_required: true
+  - code: AUTH_REQUIRED
+    category: auth
+    retryable: false
+    backoff_seconds: 0
+    manual_takeover: true
+    terminal: false
+    http_mapping: "401"
+    owner: platform_session_or_adapter
+    evidence_required: true
+  - code: RATE_LIMIT
+    category: platform_limit
+    retryable: true
+    backoff_seconds: 180
+    manual_takeover: false
+    terminal: false
+    http_mapping: "429"
+    owner: platform_adapter
+    evidence_required: true
+  - code: TIMEOUT
+    category: transport
+    retryable: true
+    backoff_seconds: 60
+    manual_takeover: false
+    terminal: false
+    http_mapping: "504"
+    owner: platform_adapter
+    evidence_required: true
+  - code: NO_MATCH
+    category: data
+    retryable: true
+    backoff_seconds: 120
+    manual_takeover: false
+    terminal: false
+    http_mapping: "404"
+    owner: domain_workflow
+    evidence_required: true
+  - code: PLATFORM_REJECT
+    category: platform_rejection
+    retryable: false
+    backoff_seconds: 0
+    manual_takeover: true
+    terminal: false
+    http_mapping: "422"
+    owner: platform_action
+    evidence_required: true
+  - code: UNEXPECTED
+    category: system
+    retryable: true
+    backoff_seconds: 60
+    manual_takeover: false
+    terminal: false
+    http_mapping: "500"
+    owner: workflow_runtime
+    evidence_required: true
+    supersedes: "09/M0 基线：UNEXPECTED=60s 退避重试、留证据；耗尽后是该次 workflow execution 终态，错误码本身不永久定义 terminal（round-23 A3 裁决）"
+  - code: PAGE_CHANGED
+    category: platform_change
+    retryable: false
+    backoff_seconds: 0
+    manual_takeover: true
+    terminal: false
+    http_mapping: "409"
+    owner: platform_session_or_adapter
+    evidence_required: true
+    supersedes: "旧 M0 retryable=true 有差异；新方案 14 号文档：留证、冻结适配器、转人工校准（round-23 A3 记录）"
+  - code: INSUFFICIENT_REFERENCES
+    category: data
+    retryable: true
+    backoff_seconds: 120
+    manual_takeover: false
+    terminal: false
+    http_mapping: "409"
+    owner: domain_workflow
+    evidence_required: true
+
+# A2（round-23 回修）：机器可读重试策略（原为注释，现入 YAML 数据供应用注册表消费）。
+# 双向 exact-set：retryable=true 的 code（RATE_LIMIT/TIMEOUT/NO_MATCH/INSUFFICIENT_REFERENCES/UNEXPECTED）必须各有 policy；
+# retryable=false 的 code 不得误挂自动 retry policy。
+# 注：UNEXPECTED 按 A3 裁决沿用 09/M0 基线 retryable=true/backoff=60，故纳入 retry_policies。
+retry_policies:
+  RATE_LIMIT: {max_attempts: 3, circuit_open_after: 2, circuit_open_seconds: 300}
+  TIMEOUT: {max_attempts: 3}
+  NO_MATCH: {max_attempts: 2}
+  INSUFFICIENT_REFERENCES: {max_attempts: 2}
+  UNEXPECTED: {max_attempts: 3}
+
+# 跨字段规则（验收强制）：
+#   1. 每项必需 9 属性；可选 supersedes（字符串）仅允许 UNEXPECTED/PAGE_CHANGED（沿革码）；未知字段拒绝（R24-1）
+#   2. retryable=true 的码：backoff_seconds >= 0 且必须存在于 retry_policies（机器可读，双向 exact-set）
+#   3. trigger 7 码：retryable=false
+#   4. AUTH_REQUIRED / VERIFICATION_REQUIRED：retryable=false, manual_takeover=true
+#   5. 所有 code 长度 <= 32
+#   6. 大小写：全部 UPPER_SNAKE；重复项拒绝
+#   7. 运行责任域 owner（round-23 A4 裁决）：
+#      - trigger 7 码 → database/domain_integrity
+#      - AUTH/VERIFICATION/PAGE_CHANGED → platform_session_or_adapter
+#      - RATE_LIMIT/TIMEOUT → platform_adapter
+#      - NO_MATCH/INSUFFICIENT_REFERENCES → domain_workflow
+#      - PLATFORM_REJECT → platform_action
+#      - UNEXPECTED → workflow_runtime
+#   8. UNEXPECTED（round-23 A3 裁决）：沿用 09/M0 基线 retryable=true/backoff=60/manual_takeover=false/terminal=false，
+#      耗尽后为该次 workflow execution 终态，错误码本身不永久定义 terminal；supersedes 记录来源。
+#   9. PAGE_CHANGED：新方案语义（留证/冻结/转人工校准），supersedes 记录与旧 M0 差异。
