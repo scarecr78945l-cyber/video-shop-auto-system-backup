@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P0 重构进度看板 · 视频号小店全自动系统</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#111a33; --card:#141d36; --card2:#1a2544;
+    --line:#243156; --text:#e8eeff; --muted:#93a2c9; --dim:#6b7aa5;
+    --accent:#6c8cff; --accent2:#22d3ee; --ok:#34d399; --warn:#fbbf24; --bad:#f87171;
+    --p0:#34d399; --p1:#22d3ee; --p2:#fbbf24; --p3:#64748b;
+    --shadow:0 12px 40px rgba(0,0,0,.35);
+    --radius:16px;
+  }
+  html[data-theme="light"]{
+    --bg:#f5f7fb; --bg2:#eef2fa; --card:#ffffff; --card2:#f7f9ff;
+    --line:#e2e8f5; --text:#101a33; --muted:#5b6b90; --dim:#8b98b8;
+    --accent:#3b5bdb; --accent2:#0891b2; --ok:#0f9d58; --warn:#b45309; --bad:#dc2626;
+    --shadow:0 10px 30px rgba(16,26,51,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:radial-gradient(1200px 600px at 15% -10%,rgba(108,140,255,.16),transparent 60%),
+               radial-gradient(1000px 500px at 100% 0%,rgba(34,211,238,.12),transparent 55%),
+               var(--bg);
+    color:var(--text); line-height:1.55; min-height:100vh;
+  }
+  a{color:var(--accent2);text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 22px 60px}
+  /* header */
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+  .brand .eyebrow{color:var(--accent2);font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
+  h1{font-size:30px;margin:6px 0 8px;letter-spacing:-.02em}
+  .meta{color:var(--muted);font-size:13px}
+  .meta b{color:var(--text);font-weight:600}
+  .header-actions{display:flex;gap:10px;align-items:center}
+  .btn{
+    border:1px solid var(--line);background:var(--card);color:var(--text);
+    padding:9px 14px;border-radius:10px;cursor:pointer;font-size:13px;transition:.18s;
+  }
+  .btn:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .pill{
+    display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;
+    font-size:12.5px;font-weight:600;border:1px solid transparent;white-space:nowrap
+  }
+  .pill.ok{background:rgba(52,211,153,.12);color:var(--ok);border-color:rgba(52,211,153,.35)}
+  .pill.warn{background:rgba(251,191,36,.12);color:var(--warn);border-color:rgba(251,191,36,.35)}
+  .pill.bad{background:rgba(248,113,113,.12);color:var(--bad);border-color:rgba(248,113,113,.35)}
+  .pill.info{background:rgba(34,211,238,.10);color:var(--accent2);border-color:rgba(34,211,238,.3)}
+  .dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}
+  /* hero */
+  .hero-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin:18px 0 26px}
+  @media (max-width:900px){.hero-grid{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .hero-main{padding:22px 24px;position:relative;overflow:hidden}
+  .hero-main:after{content:"";position:absolute;right:-80px;top:-80px;width:260px;height:260px;border-radius:50%;
+    background:radial-gradient(circle,rgba(108,140,255,.28),transparent 65%)}
+  .hero-main h2{margin:0 0 8px;font-size:19px}
+  .hero-main p{margin:0;color:var(--muted);font-size:14px;max-width:640px}
+  .hero-main .where{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:13px;color:var(--text)}
+  .where .flag{background:rgba(251,191,36,.14);color:var(--warn);border:1px solid rgba(251,191,36,.35);padding:5px 10px;border-radius:8px;font-weight:700}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .stat .num{font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .stat .num small{font-size:13px;font-weight:600;color:var(--muted)}
+  .stat .lbl{font-size:12px;color:var(--muted);margin-top:2px}
+  .stat.acc .num{color:var(--accent)}
+  .stat.ok .num{color:var(--ok)}
+  .stat.cyan .num{color:var(--accent2)}
+  .stat.warn .num{color:var(--warn)}
+  /* section */
+  section{margin:34px 0}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+  .sec-head h3{margin:0;font-size:18px;letter-spacing:-.01em}
+  .sec-head .hint{color:var(--dim);font-size:12.5px}
+  /* stage bars */
+  .stages{display:grid;gap:12px}
+  .stage{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .stage-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .stage-name{font-weight:700;font-size:15px}
+  .stage-name .tag{font-size:11px;font-weight:700;color:var(--dim);margin-left:8px;letter-spacing:.06em}
+  .stage-note{color:var(--muted);font-size:12.5px;margin:6px 0 12px}
+  .bar{height:10px;border-radius:999px;background:var(--bg2);overflow:hidden;position:relative;border:1px solid var(--line)}
+  .bar > i{display:block;height:100%;width:0;border-radius:999px;transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
+  .bar .fill-ok{background:linear-gradient(90deg,#2dd4bf,#34d399)}
+  .bar .fill-warn{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+  .bar .fill-idle{background:linear-gradient(90deg,#475569,#64748b)}
+  .pct{font-variant-numeric:tabular-nums;font-weight:800;font-size:14px}
+  .sub-bars{display:grid;gap:8px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .sub{display:grid;grid-template-columns:150px 1fr 46px;align-items:center;gap:12px;font-size:12.5px;color:var(--muted)}
+  .sub .bar{height:7px}
+  @media (max-width:640px){.sub{grid-template-columns:110px 1fr 40px}}
+  /* two lines */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:900px){.two-col{grid-template-columns:1fr}}
+  .line-card{padding:18px 20px}
+  .line-card h4{margin:0 0 4px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .line-card .sub-t{color:var(--dim);font-size:12px;margin-bottom:14px}
+  .kv{display:grid;gap:9px}
+  .kv .row{display:grid;grid-template-columns:92px 1fr 44px;align-items:center;gap:10px;font-size:12.5px;color:var(--muted)}
+  .kv .bar{height:7px}
+  .facts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .fact{background:var(--bg2);border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:12px;color:var(--muted)}
+  .fact b{color:var(--text)}
+  /* grid T */
+  .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:900px){.tgrid{grid-template-columns:1fr 1fr}}
+  @media (max-width:600px){.tgrid{grid-template-columns:1fr}}
+  .tcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px;transition:.18s;cursor:default}
+  .tcard:hover{transform:translateY(-2px);border-color:rgba(108,140,255,.55)}
+  .tcard .t-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .tcard .tid{font-size:11px;font-weight:800;color:var(--accent2);letter-spacing:.08em}
+  .tcard h5{margin:6px 0 6px;font-size:14px}
+  .tcard p{margin:0;color:var(--muted);font-size:12.2px;min-height:56px}
+  .tcard .proof{font-size:11.5px;color:var(--dim);border-top:1px dashed var(--line);margin-top:10px;padding-top:8px}
+  /* flow */
+  .flow-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px 10px;overflow-x:auto}
+  .flow{display:flex;align-items:stretch;gap:10px;min-width:980px}
+  .node{flex:1;min-width:140px;border-radius:13px;padding:12px;border:1px solid var(--line);background:var(--bg2);position:relative}
+  .node .nid{font-size:10.5px;letter-spacing:.1em;color:var(--dim);font-weight:800}
+  .node h6{margin:5px 0 4px;font-size:13.5px}
+  .node p{margin:0;color:var(--muted);font-size:11.8px;line-height:1.45}
+  .node .st{margin-top:9px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
+  .node.ok{border-color:rgba(52,211,153,.45);box-shadow:inset 0 0 0 1px rgba(52,211,153,.08)}
+  .node.ok .st{color:var(--ok)}
+  .node.warn{border-color:rgba(251,191,36,.5);box-shadow:0 0 0 2px rgba(251,191,36,.08)}
+  .node.warn .st{color:var(--warn)}
+  .node.idle{border-color:rgba(100,116,139,.45);opacity:.9}
+  .node.idle .st{color:var(--dim)}
+  .arrow{align-self:center;color:var(--dim);font-size:18px;flex:0 0 auto}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  /* tests */
+  .tests{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+  @media (max-width:900px){.tests{grid-template-columns:1fr}}
+  .stack{padding:18px 20px}
+  .stack .total{font-size:34px;font-weight:800;letter-spacing:-.02em}
+  .stack .total small{font-size:13px;color:var(--muted);font-weight:600}
+  .stack .stbar{display:flex;height:16px;border-radius:999px;overflow:hidden;margin:14px 0 12px;border:1px solid var(--line)}
+  .stack .stbar i{display:block;height:100%}
+  .stack .list{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;font-size:12.3px;color:var(--muted)}
+  .stack .list span{display:flex;justify-content:space-between;gap:8px}
+  .stack .list b{color:var(--text);font-variant-numeric:tabular-nums}
+  .drill{padding:18px 20px}
+  .drill ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:12.6px}
+  .drill li{margin:6px 0}
+  .drill b{color:var(--text)}
+  /* timeline */
+  .tl{position:relative;margin-left:6px;padding-left:26px;border-left:2px solid var(--line);display:grid;gap:18px}
+  .tl .step{position:relative}
+  .tl .step:before{content:"";position:absolute;left:-33px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--card);border:2px solid var(--dim)}
+  .tl .step.now:before{border-color:var(--warn);background:var(--warn);box-shadow:0 0 12px rgba(251,191,36,.6)}
+  .tl .step.done:before{border-color:var(--ok);background:var(--ok)}
+  .tl h5{margin:0 0 3px;font-size:14px}
+  .tl p{margin:0;color:var(--muted);font-size:12.5px}
+  .tl .who{color:var(--dim);font-size:11.5px;margin-top:3px}
+  /* risk */
+  .risk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:900px){.risk-grid{grid-template-columns:1fr}}
+  .risk{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:12px;padding:14px 16px}
+  .risk h5{margin:0 0 6px;font-size:13.5px}
+  .risk p{margin:0;color:var(--muted);font-size:12.3px}
+  /* cmd */
+  .cmdbox{background:#0a0f1e;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-family:ui-monospace,Consolas,monospace;font-size:12.3px;color:#c9d6ff;overflow-x:auto}
+  html[data-theme="light"] .cmdbox{background:#0f172a;color:#dbeafe}
+  .cmdbox .c{color:#64748b}
+  footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);color:var(--dim);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .kbd{font-family:ui-monospace,Consolas,monospace;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:11.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="eyebrow">Video-Shop Auto System · P0 Rebuild</div>
+      <h1>P0 重构进度看板</h1>
+      <div class="meta">
+        快照 <b>2026-11-10</b> · 数据源：<b>_experiment/_interop/STATE.md</b>（round-161）+ git 标签 <b>v0.90-p0-2-c2</b>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="pill warn"><span class="dot"></span>C2 待 Codex 验收</span>
+      <span class="pill bad"><span class="dot"></span>停摆约 8 周</span>
+      <button class="btn" id="themeBtn">切换明暗</button>
+    </div>
+  </header>
+
+  <!-- hero -->
+  <div class="hero-grid">
+    <div class="card hero-main">
+      <h2>一句话：地基全部完工，数据→计算→回写这条核心链路已打通到「回写门」。</h2>
+      <p>新重构线不是从零画 PPT：已经能真实建库（31 张业务表 + 7 张鉴权表 + 60 个枚举 + 17 个触发器）、真实算 CID 定价、真实鉴权审计、真实跑任务队列，并把报表 ROI 回写进 PG。业务功能和新界面要等到 P0-3 之后才重建——所以现在「没界面」是设计节奏，不是停滞。</p>
+      <div class="where">
+        <span class="flag">当前位置</span>
+        <span>P0-2 批次 2 · <b>C2 回写门</b>：代码已实现（round-161），等 Codex 独立验收（round-162）</span>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat ok"><div class="num">9<small>/9</small></div><div class="lbl">契约冻结（P0-0）</div></div>
+      <div class="stat ok"><div class="num">9<small>/9</small></div><div class="lbl">基座包 T1~T9 COMPLETE</div></div>
+      <div class="stat cyan"><div class="num">419</div><div class="lbl">全量回归通过</div></div>
+      <div class="stat acc"><div class="num">2.27<small> 万行</small></div><div class="lbl">新线代码+迁移+测试</div></div>
+    </div>
+  </div>
+
+  <!-- stages -->
+  <section>
+    <div class="sec-head">
+      <h3>新线阶段进度</h3>
+      <span class="hint">P0 = 地基与契约；P0-3 才开始真实页面/账号接入</span>
+    </div>
+    <div class="stages">
+      <div class="stage">
+        <div class="stage-top">
+          <div class="stage-name">P0-0 契约层<span class="tag">CONTRACTS</span></div>
+          <div class="pct" style="color:var(--ok)">100%</div>
+        </div>
+        <div class="stage-note">enum / 错误码 / CID / DDL 顺序 / 索引 / 测试策略 / 外部动作 / 幂等 / auth 边界，共 11 份文件 · 9/9 冻结 · Codex 逐份复核通过</div>
+        <div class="bar"><i class="fill-ok" data-w="100"></i></div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-top">
+          <div class="stage-name">P0-1 基座 T1~T9<span class="tag">FOUNDATION</span></div>
+          <div class="pct" style="color:var(--ok)">100%</div>
+        </div>
+        <div class="stage-note">迁移基础设施 / 60 枚举 / 31 表与约束 / 17 触发器 / CID 引擎 / 密钥存储 / 鉴权审计 / 任务队列 / 全量测试与回滚演练 · 185 项基座测试</div>
+        <div class="bar"><i class="fill-ok" data-w="100"></i></div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-top">
+          <div class="stage-name">P0-2 报表闭环<span class="tag">REPORT</span></div>
+          <div class="pct" style="color:var(--warn)">约 60%</div>
+        </div>
+        <div class="stage-note">批次0 契约 ✅ · 批次1 事实层 ✅ · 批次2：C1-a 选择器 ✅、C1-b/c 计算聚合 ✅、C2 回写门 ⏳ 待验收、C3 消费 ⛔ 未授权；批次3 人工编排 ⛔ 未启动</div>
+        <div class="bar"><i class="fill-warn" data-w="60"></i></div>
+        <div class="sub-bars">
+          <div class="sub"><span>批次1 事实层</span><div class="bar"><i class="fill-ok" data-w="100"></i></div><span>100%</span></div>
+          <div class="sub"><span>批次2 计算闭环</span><div class="bar"><i class="fill-warn" data-w="60"></i></div><span>60%</span></div>
+          <div class="sub"><span>批次3 人工编排</span><div class="bar"><i class="fill-idle" data-w="0"></i></div><span>0%</span></div>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-top">
+          <div class="stage-name">P0-3 真实接入<span class="tag">LIVE</span></div>
+          <div class="pct" style="color:var(--dim)">0%</div>
+        </div>
+        <div class="stage-note">真实账号 / CDP 页面 / 选择器校准 / 真实两次快照 —— 尚未启动（按 DAG 锁在 C3 与批次3 之后）</div>
+        <div class="bar"><i class="fill-idle" data-w="0"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- two lines -->
+  <section>
+    <div class="sec-head">
+      <h3>两条线：旧线有业务、新线有地基</h3>
+      <span class="hint">旧线是「验证过能赚钱的试验田」，新线是「按冻结契约重建的正式工程」</span>
+    </div>
+    <div class="two-col">
+      <div class="card line-card">
+        <h4><span class="pill info">旧线 v0.83</span> 业务验证 · 模块完整度</h4>
+        <div class="sub-t">六模块控制台真实可用（M6 前端 + FastAPI），但属遗留 SQLite 实现</div>
+        <div class="kv">
+          <div class="row"><span>M0 基座</span><div class="bar"><i class="fill-ok" data-w="100"></i></div><span>100%</span></div>
+          <div class="row"><span>M1 选品</span><div class="bar"><i class="fill-ok" data-w="97"></i></div><span>97%</span></div>
+          <div class="row"><span>M2 素材</span><div class="bar"><i class="fill-ok" data-w="100"></i></div><span>100%</span></div>
+          <div class="row"><span>M3 优化</span><div class="bar"><i class="fill-ok" data-w="95"></i></div><span>95%</span></div>
+          <div class="row"><span>M4 上架</span><div class="bar"><i class="fill-ok" data-w="100"></i></div><span>100%</span></div>
+          <div class="row"><span>M5 投放</span><div class="bar"><i class="fill-warn" data-w="75"></i></div><span>75%</span></div>
+          <div class="row"><span>M6 前端</span><div class="bar"><i class="fill-ok" data-w="100"></i></div><span>100%</span></div>
+        </div>
+        <div class="facts">
+          <div class="fact">商品池 <b>65</b></div>
+          <div class="fact">真实成本 <b>41</b>（毛利 60%+）</div>
+          <div class="fact">淘宝高清真图 <b>13</b></div>
+          <div class="fact">上架门禁 <b>61/65</b></div>
+        </div>
+      </div>
+
+      <div class="card line-card">
+        <h4><span class="pill ok">新线 P0</span> 正式工程 · 交付物</h4>
+        <div class="sub-t">契约优先、真实 PG、变异门禁，代码已提交并推送 GitHub</div>
+        <div class="facts" style="margin-top:0">
+          <div class="fact">31 张业务表</div>
+          <div class="fact">7 张鉴权表</div>
+          <div class="fact">60 枚举 / 267 标签</div>
+          <div class="fact">17 触发器</div>
+          <div class="fact">58 组合外键</div>
+          <div class="fact">17 父候选键</div>
+          <div class="fact">2 排他约束</div>
+          <div class="fact">7 个迁移版本</div>
+          <div class="fact">419 项测试</div>
+          <div class="fact">多轮变异钻取</div>
+        </div>
+        <div class="bar" style="margin-top:16px"><i class="fill-ok" data-w="100"></i></div>
+        <div class="sub-t" style="margin:8px 0 0">upgrade → downgrade → re-upgrade 往返演练通过；T9 六阶段 CI 全绿。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- T grid -->
+  <section>
+    <div class="sec-head">
+      <h3>P0-1 九个基座包（全部 COMPLETE）</h3>
+      <span class="hint">每个包都是「实现 + 独立断言 + 正反例 + 单包回退」，不是只写代码</span>
+    </div>
+    <div class="tgrid">
+      <div class="tcard"><div class="t-top"><span class="tid">T1</span><span class="pill ok">COMPLETE</span></div><h5>迁移基础设施</h5><p>Alembic / search_path / MIGRATION_ROLE 门禁 / PG15 预检 / 扩展所有权；空库往返演练。</p><div class="proof">三类负例 catalog 零差异</div></div>
+      <div class="tcard"><div class="t-top"><span class="tid">T2</span><span class="pill ok">COMPLETE</span></div><h5>60 个枚举类型</h5><p>由 enum-registry 确定性生成迁移，267 个 label exact-set，单一 revision 单 head。</p><div class="proof">生成器 --check 哈希稳定</div></div>
+      <div class="tcard"><div class="t-top"><span class="tid">T3</span><span class="pill ok">COMPLETE</span></div><h5>31 表 + 约束</h5><p>58 组合 FK、17 父候选键、4 NULLS NOT DISTINCT、2 排他、15 部分唯一，全部定义级 exact-set。</p><div class="proof">28 基础 FK 全属性校验</div></div>
+      <div class="tcard"><div class="t-top"><span class="tid">T4</span><span class="pill ok">COMPLETE</span></div><h5>17 个触发器</h5><p>数据驱动生成函数体；自定义 SQLSTATE 无冲突；同源语义与事件绕过反例。</p><div class="proof">41 项探针 + 13 项断言</div></div>
+      <div class="tcard"><div class="t-top"><span class="tid">T5</span><span class="pill ok">COMPLETE</span></div><h5>CID 公式引擎</h5><p>prec=60 / ROUND_HALF_UP / canonical 序列化 / envelope；拒绝 NaN/Infinity；12 键持久化投影。</p><div class="proof">黄金串 S=…947 等值</div></div>
+      <div class="tcard"><div class="t-top"><span class="tid">T6</span><span class="pill ok">COMPLETE</span></div><h5>密钥存储</h5><p>Fernet 本地加密；locator 无凭证、来源绑定、脱敏/轮换/过期；Windows ACL owner-only。</p><div class="proof">干净 venv 26+4 回归</div></div>
+      <div class="tcard"><div class="t-top"><span class="tid">T7</span><span class="pill ok">COMPLETE</span></div><h5>鉴权 / 审计</h5><p>better-auth 1.7.2 实机链路、7 张 auth 表、组织写入口全封禁、同事务审计、三时区矩阵。</p><div class="proof">68 项路由 guard</div></div>
+      <div class="tcard"><div class="t-top"><span class="tid">T8</span><span class="pill ok">COMPLETE</span></div><h5>Workflow 队列</h5><p>SKIP LOCKED + fencing token + 45min 租约 + 退避熔断 + 断点恢复；动作键幂等黄金向量。</p><div class="proof">56 项队列测试 ×2 次</div></div>
+      <div class="tcard"><div class="t-top"><span class="tid">T9</span><span class="pill ok">COMPLETE</span></div><h5>测试与回滚演练</h5><p>六阶段 CI、head 定义级 exact-set、base 白名单、19+ 变异负例、临时库零残留。</p><div class="proof">变异 4/4→6/6 全 RC=1</div></div>
+    </div>
+  </section>
+
+  <!-- flow -->
+  <section>
+    <div class="sec-head">
+      <h3>P0-2 报表闭环：走到哪一环</h3>
+      <span class="hint">这条链路就是「钱怎么被算清楚并写回去」</span>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow">
+        <div class="node ok"><div class="nid">BATCH 1 · FACTS</div><h6>① PG 快照采集</h6><p>现场哈希、append-only、三源版本键（id &gt; ts &gt; hash），captured_at 永不参与。</p><div class="st">✅ 已冻结 · 85 tests</div></div>
+        <div class="arrow">→</div>
+        <div class="node ok"><div class="nid">BATCH 2 · C1-a</div><h6>② 版本选择器</h6><p>唯一最大 / 并列 / 混合空值 / 全空 → 人工；5 组黄金向量、24 排列。</p><div class="st">✅ 已冻结 · 31 tests</div></div>
+        <div class="arrow">→</div>
+        <div class="node ok"><div class="nid">BATCH 2 · C1-b/c</div><h6>③ 计算 + 聚合</h6><p>ROI Σgmv/Σspend（prec60）、SKU 差额、零消耗 typed outcome、按事件身份去重。</p><div class="st">✅ 已冻结 · 39+29+7 tests</div></div>
+        <div class="arrow">→</div>
+        <div class="node warn"><div class="nid">BATCH 2 · C2</div><h6>④ 回写门</h6><p><code>fb:v1:</code> 身份键、双唯一键、NULL-safe 重放、同事务审计、savepoint 原子回滚。</p><div class="st">⏳ 已实现 · 待验收 · 43 tests</div></div>
+        <div class="arrow">→</div>
+        <div class="node idle"><div class="nid">BATCH 2 · C3</div><h6>⑤ 消费投影</h6><p>M1 只读投影 / M2 跨库映射与事件回执 / M3 延期；stable receipt 防重复消费。</p><div class="st">⛔ 未授权</div></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--ok)"></i>已冻结（Codex 独立复核通过）</span>
+        <span><i style="background:var(--warn)"></i>已实现、待独立验收</span>
+        <span><i style="background:var(--dim)"></i>未授权 / 未启动</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- tests -->
+  <section>
+    <div class="sec-head">
+      <h3>419 项回归的构成</h3>
+      <span class="hint">不是一个大数字，是逐层可追溯的门禁</span>
+    </div>
+    <div class="tests">
+      <div class="card stack">
+        <div class="total">419 <small>passed · 零残留</small></div>
+        <div class="stbar">
+          <i style="width:44.2%;background:#34d399"></i>
+          <i style="width:20.3%;background:#22d3ee"></i>
+          <i style="width:7.4%;background:#6c8cff"></i>
+          <i style="width:9.3%;background:#a78bfa"></i>
+          <i style="width:6.9%;background:#f472b6"></i>
+          <i style="width:1.7%;background:#fbbf24"></i>
+          <i style="width:10.3%;background:#fb923c"></i>
+        </div>
+        <div class="list">
+          <span><span>基座 T1~T9</span><b>185</b></span>
+          <span><span>事实层</span><b>85</b></span>
+          <span><span>版本选择器</span><b>31</b></span>
+          <span><span>计算器</span><b>39</b></span>
+          <span><span>聚合</span><b>29</b></span>
+          <span><span>PG 接线</span><b>7</b></span>
+          <span><span>回写门（待验收）</span><b>43</b></span>
+          <span><span>合计</span><b>419</b></span>
+        </div>
+      </div>
+      <div class="card drill">
+        <h4 style="margin:0;font-size:15px">为什么还做「变异钻取」</h4>
+        <ul>
+          <li>把源码故意改坏（身份键漏字段 / 重放漏比较 / created=false 也写审计 / ledger 移出 savepoint），验证门禁能抓到。</li>
+          <li><b>4/4、6/6、19+</b> 项变异全部 RC=1，还原后 RC=0 —— 证明断言是真门禁，不是摆设。</li>
+          <li>每轮验收都要求<b>独立复算</b>黄金值（哈希 / 金额 / 公式串），不接受「实现自己证明自己」。</li>
+          <li>测试后共享库 <b>0 残留</b>、临时库 <b>0 个</b>、源码哈希未被污染。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- timeline -->
+  <section>
+    <div class="sec-head">
+      <h3>下一步时间线</h3>
+      <span class="hint">当前卡在第 2 步的「换手」上</span>
+    </div>
+    <div class="tl">
+      <div class="step now"><h5>① 环境重建 + 419 回归复跑（现在）</h5><p>拉起 Docker PG（dsh-pg-test / dsh_test / dsh_migrator），确认 9 月 12 日的 419 项今天仍全绿。</p><div class="who">责任：DSH · 无需授权</div></div>
+      <div class="step"><h5>② Codex 独立验收 C2 回写门（round-162）</h5><p>把 round-161 的路径交给 Codex；通过后 C2 冻结，批次 2 记 65%~。</p><div class="who">责任：用户转交 + Codex</div></div>
+      <div class="step"><h5>③ C3 消费投影</h5><p>M1 只读投影 / M2 跨库映射与事件回执；需单独授权。</p><div class="who">责任：DSH 实现 + Codex 验收</div></div>
+      <div class="step"><h5>④ SKU 补列 migration + 批次 3 人工编排</h5><p>REPORT_MANUAL 队列、create/resolve/resume、workflow fencing 接入；批次 3 保持锁定直到授权。</p><div class="who">责任：每包单独授权</div></div>
+      <div class="step"><h5>⑤ P0-3 真实接入 → 业务模块重建</h5><p>真实账号 / CDP / 页面选择器 / 真实两次快照；之后才是新线 UI 与选品、素材、上架、投放功能。</p><div class="who">责任：P0-3 及以后</div></div>
+    </div>
+  </section>
+
+  <!-- risks -->
+  <section>
+    <div class="sec-head"><h3>风险与须知</h3></div>
+    <div class="risk-grid">
+      <div class="risk"><h5>停摆约 8 周</h5><p>最后产出 2026-09-12 20:05；环境已冷，恢复第一步必须重建 PG 并复跑回归，不能直接信任旧记录。</p></div>
+      <div class="risk"><h5>新线暂无 UI</h5><p>P0 是地基期，界面按路线在 P0-3 之后。旧线控制台可操作，但那是遗留实现，不能当作新线进度。</p></div>
+      <div class="risk"><h5>链路未完全闭合</h5><p>C2 未验收、C3 未授权、SKU 迁移未做、批次 3 未启动——「钱算清楚并写回」还差两环。</p></div>
+    </div>
+  </section>
+
+  <!-- verify -->
+  <section>
+    <div class="sec-head">
+      <h3>自己验证（开发者命令）</h3>
+      <span class="hint">全部只读；不改业务代码</span>
+    </div>
+    <div class="cmdbox">
+<span class="c"># 1) 起测试库（若未运行）</span>
+docker start dsh-pg-test
+
+<span class="c"># 2) 环境变量（见 _experiment/SESSION_HANDOFF.md 第五节）</span>
+$env:PYTHONUTF8="1"; $env:MIGRATION_ROLE="dsh_migrator"
+$env:DATABASE_URL="postgresql+psycopg2://dsh:dsh@127.0.0.1:5432/dsh_test"
+
+<span class="c"># 3) 复跑全量回归（419 项目标）</span>
+python -m pytest backend/tests project/scripts -q
+
+<span class="c"># 4) 查看快照与版本</span>
+git log --oneline -6 ; git tag --list "v0.9*"
+    </div>
+  </section>
+
+  <footer>
+    <span>生成于 2026-11-10 · 仅供进度沟通，不改变任何工程状态</span>
+    <span>依据：STATE.md（round-01~161）· dashboard.md · git v0.90-p0-2-c2</span>
+  </footer>
+</div>
+
+<script>
+  // 主题
+  const root = document.documentElement;
+  const saved = localStorage.getItem("p0-theme");
+  if (saved) root.setAttribute("data-theme", saved);
+  document.getElementById("themeBtn").addEventListener("click", () => {
+    const next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+    if (next === "light") root.setAttribute("data-theme", "light");
+    else root.removeAttribute("data-theme");
+    localStorage.setItem("p0-theme", next);
+  });
+  // 进度条动画
+  const bars = [...document.querySelectorAll(".bar > i[data-w]")];
+  requestAnimationFrame(() => {
+    bars.forEach((b, i) => setTimeout(() => { b.style.width = b.dataset.w + "%"; }, 80 + i * 40));
+  });
+  // 卡片轻微入场
+  const cards = [...document.querySelectorAll(".tcard, .stage, .card")];
+  cards.forEach((c, i) => {
+    c.style.opacity = "0";
+    c.style.transform = "translateY(8px)";
+    c.style.transition = "opacity .5s ease, transform .5s ease";
+    setTimeout(() => { c.style.opacity = "1"; c.style.transform = "none"; }, 60 + i * 18);
+  });
+</script>
+</body>
+</html>
