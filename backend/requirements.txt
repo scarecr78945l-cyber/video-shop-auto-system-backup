@@ -8,6 +8,7 @@ Pillow>=10.0          # 图片 phash 去重
 requests>=2.31        # 图片/素材下载
 click>=8.1            # CLI
 pytest>=8.0           # 测试（dev）
+cryptography>=42.0    # T6 secret_store：Fernet 本地受限加密文件存储（round-73 R72-3 登记）
 
 # 生产环境可选
 # psycopg2-binary>=2.9   # PostgreSQL（SOURCING_DB_URL 指向 pg 时启用）

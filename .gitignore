@@ -53,3 +53,14 @@ backend/.pytest-tmp*/
 backend/.pytest-tmp/
 
 # CI ���ã����ر������ workflow scope ��Ȩ��ָ��������ͣ�
+
+# ===== pytest 评测临时目录（体积大，不入库）=====
+backend/.pytest-eval*/
+backend/.pytest-eval/
+
+# ===== 生成物：人工复核图 / 根目录运行时素材 =====
+_management/_review_sheets/
+data/images/
+
+# ===== 大体积证据二进制（保留在本地，校验和见 _experiment/_interop/evidence/README.md）=====
+_experiment/_interop/evidence/*.xlsx
