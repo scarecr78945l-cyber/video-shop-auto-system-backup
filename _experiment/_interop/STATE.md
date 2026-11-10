@@ -213,6 +213,14 @@ scope==实际 tenant）+ R160-3 自有 savepoint 原子回滚且不提交/回滚
 - DSH 已产出 `from-dsh/round-161-dsh-P0-2回写门四类子批次实现.md`：请把该文件路径交给 Codex 独立验收
   C2 四类子批次。每轮一次路径互换即可。
 
+## 备份与版本（2026-11-10 补记）
+
+- 工作区自 v0.83 之后的新线产物此前全部未入库；已于 2026-11-10 分 4 个提交收口，打标签 `v0.90-p0-2-c2` 并推送到 `origin/master`。
+- 提交：chore（CI/依赖/清理 + .gitignore）/ docs（14、15 号文档 + `docs/contracts/` 9+2 份）/ feat（`project/` 迁移 + `backend/domain` + `backend/infra` + P0 新测试 + 前端 auth）/ evidence（round-01~161 接力记录 + 旧线实验脚本）。
+- 未入库大文件：`_experiment/_interop/evidence/盈亏表T.xlsx`（48.9MB，SHA-256 见该目录 `README.md`）。
+- 新增忽略：`backend/.pytest-eval*/`、`_management/_review_sheets/`、`data/images/`。
+- 恢复开发前请先拉起 Docker PG（`dsh-pg-test` / `dsh_test` / `dsh_migrator`），并复跑 419 回归核对 round-161 声明。
+
 ## 规则红线
 
 - 不把 mock/fixtures 验收当作真实能力。
