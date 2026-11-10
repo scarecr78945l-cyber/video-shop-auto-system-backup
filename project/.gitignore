@@ -1,0 +1,5 @@
+# P0-1 project 忽略项
+__pycache__/
+*.pyc
+.venv*/
+.env

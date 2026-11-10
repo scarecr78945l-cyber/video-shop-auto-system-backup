@@ -1,0 +1,6 @@
+# P0-1 T1 migration 依赖清单（R44-5）
+# 安装：python -m pip install -r requirements.txt
+# 版本：与实测环境一致（alembic 1.19.1 / SQLAlchemy 2.0.52 / psycopg2-binary 2.9.12）
+alembic==1.19.1
+SQLAlchemy>=2.0,<2.1
+psycopg2-binary>=2.9,<3
